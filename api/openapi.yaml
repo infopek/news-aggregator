@@ -447,7 +447,44 @@
           "reviewNotes": { "type": ["string", "null"] }
         }
       },
+      "NotApplicableScraperPolicy": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ScraperPolicy" },
+          {
+            "type": "object",
+            "required": ["status", "termsUrl", "robotsUrl", "reviewedAt", "reviewNotes"],
+            "properties": {
+              "status": { "const": "not_applicable" },
+              "termsUrl": { "type": "null" },
+              "robotsUrl": { "type": "null" },
+              "reviewedAt": { "type": "null" },
+              "reviewNotes": { "type": "null" }
+            }
+          }
+        ]
+      },
+      "ApprovedScraperPolicy": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ScraperPolicy" },
+          {
+            "type": "object",
+            "required": ["status", "reviewedAt"],
+            "properties": {
+              "status": { "const": "approved" },
+              "reviewedAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        ]
+      },
       "SourceWrite": {
+        "oneOf": [
+          { "$ref": "#/components/schemas/FeedSourceWrite" },
+          { "$ref": "#/components/schemas/APISourceWrite" },
+          { "$ref": "#/components/schemas/DisabledScraperSourceWrite" },
+          { "$ref": "#/components/schemas/EnabledScraperSourceWrite" }
+        ]
+      },
+      "SourceWriteBase": {
         "type": "object",
         "additionalProperties": false,
         "required": ["name", "url", "kind", "enabled", "contentPermission", "adapterConfig", "scraperPolicy"],
@@ -464,6 +501,47 @@
           ] },
           "scraperPolicy": { "$ref": "#/components/schemas/ScraperPolicy" }
         }
+      },
+      "FeedSourceWrite": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SourceWriteBase" },
+          { "type": "object", "properties": {
+            "kind": { "const": "feed" },
+            "adapterConfig": { "$ref": "#/components/schemas/FeedAdapterConfiguration" },
+            "scraperPolicy": { "$ref": "#/components/schemas/NotApplicableScraperPolicy" }
+          } }
+        ]
+      },
+      "APISourceWrite": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SourceWriteBase" },
+          { "type": "object", "properties": {
+            "kind": { "const": "api" },
+            "adapterConfig": { "$ref": "#/components/schemas/APIAdapterConfiguration" },
+            "scraperPolicy": { "$ref": "#/components/schemas/NotApplicableScraperPolicy" }
+          } }
+        ]
+      },
+      "DisabledScraperSourceWrite": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SourceWriteBase" },
+          { "type": "object", "properties": {
+            "kind": { "const": "scraper" },
+            "enabled": { "const": false },
+            "adapterConfig": { "$ref": "#/components/schemas/ScraperAdapterConfiguration" }
+          } }
+        ]
+      },
+      "EnabledScraperSourceWrite": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SourceWriteBase" },
+          { "type": "object", "properties": {
+            "kind": { "const": "scraper" },
+            "enabled": { "const": true },
+            "adapterConfig": { "$ref": "#/components/schemas/ScraperAdapterConfiguration" },
+            "scraperPolicy": { "$ref": "#/components/schemas/ApprovedScraperPolicy" }
+          } }
+        ]
       },
       "Source": {
         "type": "object",
@@ -599,12 +677,33 @@
         }
       },
       "ArticleDetail": {
+        "oneOf": [
+          { "$ref": "#/components/schemas/MetadataOnlyArticleDetail" },
+          { "$ref": "#/components/schemas/FullContentArticleDetail" }
+        ]
+      },
+      "MetadataOnlyArticleDetail": {
         "type": "object",
         "additionalProperties": false,
         "required": ["article", "fullContent"],
         "properties": {
-          "article": { "$ref": "#/components/schemas/ArticleSummary" },
-          "fullContent": { "type": ["string", "null"], "description": "Null unless contentPermission is full_content_allowed." }
+          "article": { "allOf": [
+            { "$ref": "#/components/schemas/ArticleSummary" },
+            { "type": "object", "properties": { "contentPermission": { "const": "metadata_only" } } }
+          ] },
+          "fullContent": { "type": "null", "description": "Restricted content is never returned." }
+        }
+      },
+      "FullContentArticleDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["article", "fullContent"],
+        "properties": {
+          "article": { "allOf": [
+            { "$ref": "#/components/schemas/ArticleSummary" },
+            { "type": "object", "properties": { "contentPermission": { "const": "full_content_allowed" } } }
+          ] },
+          "fullContent": { "type": "string", "description": "Sanitized content returned only when explicitly permitted." }
         }
       },
       "FeedPage": {

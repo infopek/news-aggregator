@@ -1,0 +1,9 @@
+{
+  "name": "Unapproved scraper",
+  "url": "https://example.com/news",
+  "kind": "scraper",
+  "enabled": true,
+  "contentPermission": "metadata_only",
+  "adapterConfig": { "articleSelector": "article", "titleSelector": "h1" },
+  "scraperPolicy": { "status": "pending", "termsUrl": "https://example.com/terms", "robotsUrl": "https://example.com/robots.txt", "reviewedAt": null, "reviewNotes": "Awaiting review." }
+}

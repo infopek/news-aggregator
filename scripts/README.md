@@ -8,6 +8,7 @@ Run from the repository root.
 
 ```bash
 npm --prefix web ci
+npm --prefix scripts ci
 ./scripts/verify.sh
 ```
 
@@ -15,6 +16,7 @@ npm --prefix web ci
 
 ```powershell
 npm --prefix web ci
+npm --prefix scripts ci
 .\scripts\verify.ps1
 ```
 
@@ -28,10 +30,11 @@ After editing `api/openapi.yaml`, regenerate the checked-in TypeScript bindings:
 node scripts/generate-api-types.mjs
 ```
 
-CI-style drift, fixture, Go boundary, and frontend checks are available as
+CI-style OpenAPI 3.1 validation, drift, fixture, Go boundary, and frontend checks are available as
 `./scripts/api-contract.sh` or `.\scripts\api-contract.ps1`. Generation uses
-only Node.js built-ins; the OpenAPI file intentionally remains JSON-compatible
-YAML so the process is deterministic and adds no dependency.
+only Node.js built-ins; Redocly CLI is pinned under `scripts/package-lock.json`
+for standards validation. The OpenAPI file intentionally remains JSON-compatible
+YAML so generation remains deterministic.
 
 Generated frontend output is ignored by Git. The checked-in `internal/webassets/dist/.gitkeep` makes a clean-checkout Go build valid before the first frontend build.
 

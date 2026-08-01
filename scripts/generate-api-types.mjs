@@ -18,20 +18,36 @@ validateOpenAPI(spec)
 const digest = createHash('sha256').update(specText).digest('hex').slice(0, 16)
 const schemas = spec.components.schemas
 const models = generateModels(schemas, digest)
-const operations = generateOperations(spec.paths, schemas, digest)
+const operations = generateOperations(spec.paths, digest)
+const operationTest = generateOperationTest(digest)
 
 const manifest = JSON.parse(await readFile(resolve(fixtureDir, 'manifest.json'), 'utf8'))
 validateFixtures(manifest, schemas)
-for (const [file, schemaName] of Object.entries(manifest)) await validateFixture(file, schemaName, schemas)
-const fixtureTest = generateFixtureTest(manifest, digest)
+const fixtureValues = new Map()
+for (const [file, schemaName] of Object.entries(manifest)) {
+  const fixture = await loadFixture(file)
+  validateValue(fixture, schemas[schemaName], schemas, `$fixture:${file}`)
+  fixtureValues.set(file, fixture)
+}
+const fixtureTest = generateFixtureTest(manifest, fixtureValues, digest)
+const invalidManifest = JSON.parse(await readFile(resolve(fixtureDir, 'invalid-manifest.json'), 'utf8'))
+for (const [file, schemaName] of Object.entries(invalidManifest)) {
+  if (!schemas[schemaName]) throw new Error(`negative fixture ${file} names unknown schema ${schemaName}`)
+  const fixture = await loadFixture(file)
+  let rejected = false
+  try { validateValue(fixture, schemas[schemaName], schemas, `$negative-fixture:${file}`) } catch { rejected = true }
+  if (!rejected) throw new Error(`negative fixture ${file} unexpectedly matches ${schemaName}`)
+}
 
 if (!check) await mkdir(outputDir, { recursive: true })
 await emit('models.ts', models)
 await emit('operations.ts', operations)
 await emit('fixture-contract.test.ts', fixtureTest)
+await emit('operation-contract.test.ts', operationTest)
 
 console.log(`RESULT OK openapi_valid=true operations=${operationEntries(spec.paths).length} schemas=${Object.keys(schemas).length}`)
 console.log(`RESULT OK api_fixtures_valid=true fixtures=${Object.keys(manifest).length}`)
+console.log(`RESULT OK api_negative_fixtures_rejected=true fixtures=${Object.keys(invalidManifest).length}`)
 console.log(`RESULT OK api_types_${check ? 'current' : 'generated'}=true digest=${digest}`)
 
 async function emit(name, content) {
@@ -101,6 +117,7 @@ function schemaType(schema, depth) {
   if (schema.const !== undefined) return JSON.stringify(schema.const)
   if (schema.enum) return schema.enum.map((value) => JSON.stringify(value)).join(' | ')
   if (schema.anyOf || schema.oneOf) return (schema.anyOf ?? schema.oneOf).map((candidate) => schemaType(candidate, depth)).join(' | ')
+  if (schema.allOf) return schema.allOf.map((candidate) => schemaType(candidate, depth)).join(' & ')
   if (Array.isArray(schema.type)) return schema.type.map((type) => schemaType({ ...schema, type }, depth)).join(' | ')
   if (schema.type === 'array') return `Array<${schemaType(schema.items ?? {}, depth)}>`
   if (schema.type === 'object' || schema.properties) {
@@ -126,11 +143,11 @@ function schemaType(schema, depth) {
   return 'string'
 }
 
-function generateOperations(paths, schemas, hash) {
+function generateOperations(paths, hash) {
   const entries = operationEntries(paths)
   const lines = [header(hash), "import type * as Models from './models'\n", 'export interface ApiOperationMap {']
   for (const [path, method, operation] of entries) {
-    const request = operation['x-request-type'] === null ? 'undefined' : `Models.${operation['x-request-type']}`
+    const request = operationRequestType(paths[path], operation)
     const response = operation['x-response-type'] === null ? 'undefined' : `Models.${operation['x-response-type']}`
     lines.push(`  ${operation.operationId}: { method: ${JSON.stringify(method.toUpperCase())}; path: ${JSON.stringify(path)}; request: ${request}; response: ${response} }`)
   }
@@ -143,6 +160,26 @@ function generateOperations(paths, schemas, hash) {
   return `${lines.join('\n')}\n`
 }
 
+function operationRequestType(pathItem, operation) {
+  const parameters = [...(pathItem.parameters ?? []), ...(operation.parameters ?? [])]
+  const pathParameter = parameters.find((parameter) => parameter.$ref?.includes('/SourceID'))
+    ? 'Models.SourceIDRequest'
+    : parameters.find((parameter) => parameter.$ref?.includes('/ArticleID'))
+      ? 'Models.ArticleIDRequest'
+      : parameters.find((parameter) => parameter.$ref?.includes('/RefreshID'))
+        ? 'Models.RefreshIDRequest'
+        : null
+  const body = operation.requestBody && operation['x-request-type'] ? `Models.${operation['x-request-type']}` : null
+  const query = !operation.requestBody && parameters.some((parameter) => parameter.in === 'query') && operation['x-request-type']
+    ? `Models.${operation['x-request-type']}`
+    : null
+  const fields = []
+  if (pathParameter) fields.push(`path: ${pathParameter}`)
+  if (query) fields.push(`query: ${query}`)
+  if (body) fields.push(`body: ${body}`)
+  return fields.length === 0 ? 'undefined' : `{ ${fields.join('; ')} }`
+}
+
 function validateFixtures(manifest, schemas) {
   for (const [file, schemaName] of Object.entries(manifest)) {
     if (!schemas[schemaName]) throw new Error(`fixture ${file} names unknown schema ${schemaName}`)
@@ -153,48 +190,82 @@ async function loadFixture(file) {
   return JSON.parse(await readFile(resolve(fixtureDir, file), 'utf8'))
 }
 
-async function validateFixture(file, schemaName, schemas) {
-  validateValue(await loadFixture(file), schemas[schemaName], schemas, `$fixture:${file}`)
-}
-
 function validateValue(value, schema, schemas, path) {
   if (schema.$ref) return validateValue(value, schemas[schema.$ref.replace('#/components/schemas/', '')], schemas, path)
-  if (schema.anyOf || schema.oneOf) {
-    const matches = (schema.anyOf ?? schema.oneOf).filter((candidate) => {
-      try { validateValue(value, candidate, schemas, path); return true } catch { return false }
-    })
-    const expected = schema.oneOf ? 1 : Math.max(1, matches.length)
-    if (matches.length !== expected) throw new Error(`${path} does not match ${schema.oneOf ? 'exactly one' : 'any'} variant`)
+  if (schema.allOf) {
+    for (const candidate of schema.allOf) validateValue(value, candidate, schemas, path)
     return
   }
-  if (schema.const !== undefined && value !== schema.const) throw new Error(`${path} must equal ${schema.const}`)
+  if (schema.anyOf || schema.oneOf) {
+    const failures = []
+    const matches = (schema.anyOf ?? schema.oneOf).filter((candidate) => {
+      try { validateValue(value, candidate, schemas, path); return true } catch (error) { failures.push(error.message); return false }
+    })
+    const expected = schema.oneOf ? 1 : Math.max(1, matches.length)
+    if (matches.length !== expected) throw new Error(`${path} does not match ${schema.oneOf ? 'exactly one' : 'any'} variant: ${failures.join('; ')}`)
+    return
+  }
+  if (schema.const !== undefined) {
+    if (value !== schema.const) throw new Error(`${path} must equal ${schema.const}`)
+    return
+  }
   if (schema.enum && !schema.enum.includes(value)) throw new Error(`${path} has invalid enum value`)
   const types = Array.isArray(schema.type) ? schema.type : [schema.type]
   if (types.includes('null') && value === null) return
-  const type = types.find((candidate) => candidate !== 'null')
+  const type = types.find((candidate) => candidate !== 'null') ?? 'null'
   if (type === 'object' || schema.properties) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`${path} must be an object`)
     for (const required of schema.required ?? []) if (!Object.hasOwn(value, required)) throw new Error(`${path}.${required} is required`)
     if (schema.additionalProperties === false) for (const key of Object.keys(value)) if (!schema.properties?.[key]) throw new Error(`${path}.${key} is not allowed`)
     for (const [key, child] of Object.entries(value)) if (schema.properties?.[key]) validateValue(child, schema.properties[key], schemas, `${path}.${key}`)
+    if (schema.minProperties !== undefined && Object.keys(value).length < schema.minProperties) throw new Error(`${path} has too few properties`)
     return
   }
   if (type === 'array') {
     if (!Array.isArray(value)) throw new Error(`${path} must be an array`)
     for (const [index, child] of value.entries()) validateValue(child, schema.items ?? {}, schemas, `${path}[${index}]`)
+    if (schema.uniqueItems && new Set(value.map((item) => JSON.stringify(item))).size !== value.length) throw new Error(`${path} contains duplicate items`)
     return
   }
   if (type === 'integer' && (!Number.isInteger(value))) throw new Error(`${path} must be an integer`)
   if (type === 'number' && typeof value !== 'number') throw new Error(`${path} must be a number`)
   if (type === 'boolean' && typeof value !== 'boolean') throw new Error(`${path} must be a boolean`)
+  if (type === 'null' && value !== null) throw new Error(`${path} must be null`)
   if (type === 'string' && typeof value !== 'string') throw new Error(`${path} must be a string`)
+  if (typeof value === 'string' && schema.minLength !== undefined && value.length < schema.minLength) throw new Error(`${path} is too short`)
+  if (typeof value === 'string' && schema.maxLength !== undefined && value.length > schema.maxLength) throw new Error(`${path} is too long`)
+  if (typeof value === 'string' && schema.format === 'date-time' && Number.isNaN(Date.parse(value))) throw new Error(`${path} must be a date-time`)
+  if (typeof value === 'string' && schema.format === 'uri') {
+    try { new URL(value) } catch { throw new Error(`${path} must be a URI`) }
+  }
   if (typeof value === 'number' && (value < (schema.minimum ?? -Infinity) || value > (schema.maximum ?? Infinity))) throw new Error(`${path} is outside numeric bounds`)
 }
 
-function generateFixtureTest(manifest, hash) {
-  const imports = Object.keys(manifest).map((file, index) => `import fixture${index} from '../../../../test/fixtures/api/${file}'`)
+function generateFixtureTest(manifest, fixtures, hash) {
+  const declarations = Object.entries(manifest).map(([file, schema], index) =>
+    `const fixture${index}: Models.${schema} = ${JSON.stringify(fixtures.get(file), null, 2)}`
+  )
   const assertions = Object.entries(manifest).map(([file, schema], index) => `    expect(fixture${index}).toBeTruthy() // ${file} -> ${schema}`)
-  return `${header(hash)}\nimport { describe, expect, it } from 'vitest'\n${imports.join('\n')}\n\ndescribe('generated API fixture bindings', () => {\n  it('imports every runtime-validated fixture', () => {\n${assertions.join('\n')}\n  })\n})\n`
+  return `${header(hash)}\nimport { describe, expect, it } from 'vitest'\nimport type * as Models from './models'\n\n${declarations.join('\n\n')}\n\ndescribe('generated API fixture bindings', () => {\n  it('compiles every runtime-validated fixture against its generated model', () => {\n${assertions.join('\n')}\n  })\n})\n`
+}
+
+function generateOperationTest(hash) {
+  return `${header(hash)}
+import { describe, expect, it } from 'vitest'
+import type { ApiOperationMap } from './operations'
+import type { ArticleIDRequest, CredentialWrite, LibraryStateWrite, SourceIDRequest, SourceWrite } from './models'
+
+type Extends<Actual, Expected> = Actual extends Expected ? true : false
+const updateSourceCarriesPathAndBody: Extends<ApiOperationMap['updateSource']['request'], { path: SourceIDRequest; body: SourceWrite }> = true
+const credentialCarriesPathAndBody: Extends<ApiOperationMap['putSourceCredential']['request'], { path: SourceIDRequest; body: CredentialWrite }> = true
+const libraryCarriesPathAndBody: Extends<ApiOperationMap['patchLibraryState']['request'], { path: ArticleIDRequest; body: LibraryStateWrite }> = true
+
+describe('generated operation request contract', () => {
+  it('requires resource identifiers beside mutation bodies', () => {
+    expect(updateSourceCarriesPathAndBody && credentialCarriesPathAndBody && libraryCarriesPathAndBody).toBe(true)
+  })
+})
+`
 }
 
 function header(hash) {

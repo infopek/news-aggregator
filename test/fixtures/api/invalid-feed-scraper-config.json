@@ -1,0 +1,9 @@
+{
+  "name": "Mismatched source",
+  "url": "https://example.com/feed.xml",
+  "kind": "feed",
+  "enabled": true,
+  "contentPermission": "metadata_only",
+  "adapterConfig": { "articleSelector": "article", "titleSelector": "h1" },
+  "scraperPolicy": { "status": "not_applicable", "termsUrl": null, "robotsUrl": null, "reviewedAt": null, "reviewNotes": null }
+}

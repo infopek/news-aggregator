@@ -237,6 +237,20 @@
         "Non-blocking: later implementations must sanitize error summaries, avoid retaining callback secret bytes, and validate ranking-result bounds and consistency."
       ],
       "reviewed_at": "2026-08-01T17:37:12Z"
+    },
+    {
+      "review_id": "contract-003-review-001",
+      "submission_id": "contract-003-run-001-submission",
+      "reviewer_actor_id": "reviewer-agent",
+      "status": "changes_requested",
+      "findings": [
+        "P0: Generated mutation request types omitted required resource path identifiers.",
+        "P0: ArticleDetail allowed full content when contentPermission was metadata_only.",
+        "P0: SourceWrite allowed mismatched source kinds, adapter configurations, and unsafe enabled-scraper policy states.",
+        "P1: Validation was shallow and frontend fixtures were not compiled against generated types.",
+        "P1: The endpoint-to-screen coverage matrix was absent and two source reads lacked a compiled handler boundary."
+      ],
+      "reviewed_at": "2026-08-01T18:03:04Z"
     }
   ],
   "audit_events": [
@@ -399,6 +413,22 @@
       "target_id": "CONTRACT-003",
       "created_at": "2026-08-01T17:52:46Z",
       "details": "Assignment moved to review."
+    },
+    {
+      "event_id": "contract-003-review-changes-requested",
+      "actor_id": "reviewer-agent",
+      "event_type": "review_added",
+      "target_id": "contract-003-review-001",
+      "created_at": "2026-08-01T18:03:04Z",
+      "details": "Reviewer rejected revision 1 with three P0 and two P1 contract findings."
+    },
+    {
+      "event_id": "contract-003-revision-submitted",
+      "actor_id": "backend-core-agent",
+      "event_type": "artifact_submitted",
+      "target_id": "contract-003-run-001-submission",
+      "created_at": "2026-08-01T18:03:04Z",
+      "details": "Submitted typed request inputs, discriminated privacy schemas, standards validation, negative fixtures, compiled consumers, and coverage matrix for re-review."
     }
   ]
 }

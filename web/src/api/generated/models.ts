@@ -1,4 +1,4 @@
-// Generated from api/openapi.yaml (b6c730e56578ce87). Do not edit.
+// Generated from api/openapi.yaml (ee0ab217f61d00a7). Do not edit.
 export type Health = {
   "status": "ready"
   "version": string
@@ -90,7 +90,19 @@ export type ScraperPolicy = {
   "reviewedAt": string | null
   "reviewNotes": string | null
 }
-export type SourceWrite = {
+export type NotApplicableScraperPolicy = ScraperPolicy & {
+  "status": "not_applicable"
+  "termsUrl": null
+  "robotsUrl": null
+  "reviewedAt": null
+  "reviewNotes": null
+}
+export type ApprovedScraperPolicy = ScraperPolicy & {
+  "status": "approved"
+  "reviewedAt": string
+}
+export type SourceWrite = FeedSourceWrite | APISourceWrite | DisabledScraperSourceWrite | EnabledScraperSourceWrite
+export type SourceWriteBase = {
   "name": string
   "url": string
   "kind": "feed" | "api" | "scraper"
@@ -98,6 +110,27 @@ export type SourceWrite = {
   "contentPermission": "metadata_only" | "full_content_allowed"
   "adapterConfig": FeedAdapterConfiguration | APIAdapterConfiguration | ScraperAdapterConfiguration
   "scraperPolicy": ScraperPolicy
+}
+export type FeedSourceWrite = SourceWriteBase & {
+  "kind"?: "feed"
+  "adapterConfig"?: FeedAdapterConfiguration
+  "scraperPolicy"?: NotApplicableScraperPolicy
+}
+export type APISourceWrite = SourceWriteBase & {
+  "kind"?: "api"
+  "adapterConfig"?: APIAdapterConfiguration
+  "scraperPolicy"?: NotApplicableScraperPolicy
+}
+export type DisabledScraperSourceWrite = SourceWriteBase & {
+  "kind"?: "scraper"
+  "enabled"?: false
+  "adapterConfig"?: ScraperAdapterConfiguration
+}
+export type EnabledScraperSourceWrite = SourceWriteBase & {
+  "kind"?: "scraper"
+  "enabled"?: true
+  "adapterConfig"?: ScraperAdapterConfiguration
+  "scraperPolicy"?: ApprovedScraperPolicy
 }
 export type Source = {
   "id": string
@@ -179,9 +212,18 @@ export type ArticleSummary = {
   "library": LibraryState
   "ranking": RankingResult
 }
-export type ArticleDetail = {
-  "article": ArticleSummary
-  "fullContent": string | null
+export type ArticleDetail = MetadataOnlyArticleDetail | FullContentArticleDetail
+export type MetadataOnlyArticleDetail = {
+  "article": ArticleSummary & {
+    "contentPermission"?: "metadata_only"
+  }
+  "fullContent": null
+}
+export type FullContentArticleDetail = {
+  "article": ArticleSummary & {
+    "contentPermission"?: "full_content_allowed"
+  }
+  "fullContent": string
 }
 export type FeedPage = {
   "items": Array<ArticleSummary>

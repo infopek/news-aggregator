@@ -1,0 +1,5 @@
+{
+  "invalid-article-metadata-leak.json": "ArticleDetail",
+  "invalid-feed-scraper-config.json": "SourceWrite",
+  "invalid-enabled-scraper-policy.json": "SourceWrite"
+}
