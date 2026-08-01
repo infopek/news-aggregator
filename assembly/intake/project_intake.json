@@ -1,0 +1,145 @@
+{
+  "schema_version": "0.1.0",
+  "project_slug": "news-aggregator",
+  "intake_mode": "guided",
+  "project_goal": "Provide a private, local-first news aggregator that collects selected sources and ranks the most relevant articles first for one user on Windows 11.",
+  "target_users": [
+    "The repository owner as the sole local user"
+  ],
+  "mvp": {
+    "summary": "A manually launched Windows executable serves an installable web application that ingests configured news sources, ranks articles locally, and supports a persistent personal reading workflow.",
+    "must_have": [
+      "Ship an installable progressive web application with Windows 11 as the first supported platform.",
+      "Launch as one Windows executable that starts the local server and opens the application in the default browser.",
+      "Provide a small editable starter catalog and allow manual source configuration.",
+      "Ingest RSS/Atom feeds, supported official news APIs, and explicitly approved public-page scrapers.",
+      "Rank articles using transparent weighted rules plus lightweight local text similarity such as TF-IDF or BM25.",
+      "Prioritize explicit interests, selected sources, recency, and reading actions over optional low-weight demographic signals.",
+      "Keep the user profile, article data, ranking data, and semantic processing on the local machine.",
+      "Let the user manually select a coarse location and optionally provide age, gender, and city; every demographic field must be optional and disableable.",
+      "Explain concisely why each article received its position.",
+      "Display full article content in-app only when the feed or source permissions provide it; otherwise display metadata and link to the publisher.",
+      "Support read/unread state, save-for-later, hide/dismiss, and basic filtering.",
+      "Persist sources, articles, settings, ranking data, and library state across restarts in SQLite.",
+      "Store optional API credentials in Windows Credential Manager through a replaceable credential-storage interface."
+    ],
+    "postponed": [
+      "User accounts, synchronization, and multi-user support",
+      "Mobile-first or non-Windows packaging",
+      "Bundled embedding models or separately installed local model services",
+      "Automatic source discovery",
+      "Folders, annotations, exports, and cross-article research features",
+      "Background-service installation, automatic startup, and ingestion while the executable is closed",
+      "Broad scraping or any access-control, paywall, login, or rate-limit bypass"
+    ]
+  },
+  "target_platforms": [
+    "Windows 11",
+    "Installable progressive web application served on localhost"
+  ],
+  "stack": {
+    "preference": "Go as the main backend, Vue with TypeScript as the SPA frontend, and SQLite for local persistence.",
+    "recommendation": "Embed the compiled Vue SPA into the Go executable, keep ranking and ingestion behind replaceable interfaces, and use lightweight local text similarity for the MVP.",
+    "options": [
+      {
+        "name": "Selected: Go + Vue + TypeScript + SQLite",
+        "best_for": "A local-first interactive PWA distributed as one Windows executable.",
+        "risks": [
+          "The frontend adds a separate build toolchain.",
+          "Windows Credential Manager integration requires platform-specific code.",
+          "PWA installation behavior depends on browser support."
+        ]
+      },
+      {
+        "name": "Postponed: bundled local embedding runtime",
+        "best_for": "Stronger semantic matching without sending data off-device.",
+        "risks": [
+          "Larger distribution size.",
+          "More complex native Windows packaging and runtime management."
+        ]
+      }
+    ],
+    "decision_status": "user_selected"
+  },
+  "existing_project": {
+    "state": "existing_repo",
+    "path": "/home/infopek/workspace/news-aggregator",
+    "notes": [
+      "GitHub repository: infopek/news-aggregator",
+      "Default branch: main",
+      "The repository was empty before the initial README commit and framework bootstrap."
+    ]
+  },
+  "tools": [
+    {
+      "name": "Windows Credential Manager",
+      "path": "",
+      "configuration": "Access through a replaceable Go credential-storage interface.",
+      "notes": "Store optional news API keys without plaintext application configuration."
+    }
+  ],
+  "team_mode": {
+    "humans": 1,
+    "ai_agents": 3,
+    "parallelization_goal": "Allow two implementation agents to work concurrently after shared contracts are established, with a third independent reviewer agent gating every implementation pull request."
+  },
+  "working_style": {
+    "task_size": "small",
+    "review_style": "Every implementation pull request requires automated checks and explicit reviewer-agent approval; a rejection blocks merging until resolved.",
+    "proof_required": [
+      "Relevant Go unit tests",
+      "Relevant Vue unit or component tests",
+      "Go and frontend integration checks",
+      "A critical-path browser test where applicable",
+      "A Windows build smoke check",
+      "Lint and build checks for affected components"
+    ]
+  },
+  "constraints": [
+    "The application is for one local user and will not publish or redistribute aggregated content.",
+    "The MVP must operate without external AI or embedding services.",
+    "The local server and ingestion run only while the manually launched executable is open.",
+    "Ranking must remain explainable and demographic influence must be optional, disableable, and low-weight.",
+    "The application must preserve a clean adapter boundary for future ingestion and semantic-ranking upgrades."
+  ],
+  "safety_boundaries": [
+    "Scrape only public pages whose terms and robots guidance permit automated access.",
+    "Do not bypass paywalls, authentication, access controls, rate limits, or publisher restrictions.",
+    "Display full content in-app only when the source feed or permissions provide it; otherwise link to the publisher.",
+    "Keep profile and article-processing data local and do not send it to external AI services.",
+    "Do not store API credentials in plaintext application data.",
+    "Do not infer sensitive demographic fields; collect only optional values explicitly entered by the user."
+  ],
+  "assumptions": [
+    "The sole user controls the Windows 11 machine and local application data.",
+    "Manual refresh and refresh-while-running are sufficient for the MVP.",
+    "Starter sources can be changed without an application release.",
+    "Browser storage is limited to disposable UI preferences or caches; SQLite is authoritative.",
+    "Coarse location is sufficient for regional news relevance."
+  ],
+  "open_questions": [
+    {
+      "question": "Which feeds and regions should make up the initial starter catalog?",
+      "risk_if_unanswered": "A placeholder catalog can be used during implementation, but final onboarding usefulness cannot be evaluated."
+    },
+    {
+      "question": "Which official news APIs and approved scraper targets should be implemented first?",
+      "risk_if_unanswered": "The MVP can prove adapter behavior with RSS and fixtures, but provider-specific acceptance cannot be completed."
+    },
+    {
+      "question": "What initial weights should each ranking signal use?",
+      "risk_if_unanswered": "Planning can define configurable defaults, but ranking quality will require user tuning after real usage."
+    }
+  ],
+  "acceptance_signals": [
+    "The user can build or obtain the Windows executable, launch it manually, and open the locally served PWA.",
+    "The user can configure a local profile and sources without creating an account.",
+    "A refresh ingests articles from configured sources and produces a relevance-ranked feed.",
+    "Each ranked article presents a concise explanation based on enabled signals.",
+    "The user can read permitted content in-app or open the publisher link.",
+    "Read, saved, hidden, filtering, profile, and source state persist across restarts.",
+    "Optional API credentials are stored through Windows Credential Manager.",
+    "Layered automated checks and a Windows build smoke check pass.",
+    "The independent reviewer agent approves the implementation pull request."
+  ]
+}
