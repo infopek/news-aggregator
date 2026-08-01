@@ -1,0 +1,217 @@
+{
+  "schema_version": "0.1.0",
+  "batch_id": "backend-ranking-library",
+  "source_plan_path": "assembly/generated/project_spec.json",
+  "tasks": [
+    {
+      "id": "RANK-001",
+      "title": "Implement deterministic local text similarity",
+      "summary": "Implement local tokenization, indexing, and TF-IDF/BM25-style similarity behind the accepted ranking port.",
+      "objective": "Provide lightweight content-interest matching without external AI services, model runtimes, or network calls.",
+      "context": "The MVP chose replaceable lightweight local text similarity. Results must be deterministic, explainable, restart-safe, and suitable for one user's local corpus.",
+      "owner_role": "backend-core-implementer",
+      "lane": "ranking",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["internal/application/ranking/**", "internal/domain/**", "internal/adapters/sqlite/**", "test/fixtures/ranking/**", "tests/integration/**"],
+      "depends_on": ["CONTRACT-002", "CONTRACT-004", "CONTRACT-005", "BACKEND-002", "INGEST-002"],
+      "inputs": ["Normalized article fields", "Explicit user interests", "Text-similarity port", "Ranking fixtures"],
+      "outputs": ["Deterministic tokenizer", "Corpus statistics/index storage", "TF-IDF or BM25-style scorer", "Similarity contribution with version metadata"],
+      "implementation_notes": [
+        "Normalize case and Unicode predictably and document language limitations rather than inferring unsupported language semantics.",
+        "Use title and allowed excerpt/content fields with explicit field weighting; never fetch extra content for ranking.",
+        "Version tokenization and similarity parameters so stored results can be invalidated safely.",
+        "Keep the interface replaceable for a postponed embedding implementation."
+      ],
+      "acceptance_criteria": [
+        "Identical corpus, profile interests, configuration, clock, and algorithm version produce identical scores.",
+        "The scorer handles empty interests, empty text, small corpora, common terms, Unicode, and repeated tokens without invalid numeric results.",
+        "Index state can be rebuilt solely from permitted locally stored article fields.",
+        "Similarity produces a bounded normalized contribution and machine-readable matching terms/reasons.",
+        "No runtime network request, external AI service, embedding model, or separate model process is used."
+      ],
+      "verification": [
+        "Run golden ranking fixtures for tokenization, corpus statistics, and score ordering.",
+        "Run determinism tests across repeated builds and database reloads.",
+        "Run property/fuzz tests for finite bounded scores and malformed Unicode input.",
+        "Run a test proving the scorer has no outbound-network dependency."
+      ],
+      "proof_required": ["Golden-fixture output", "Determinism result", "Bounded-score property-test output"],
+      "edge_cases": ["Empty corpus", "One-document corpus", "All terms common", "Unsupported language", "HTML remnants", "Very long article text"],
+      "non_goals": ["Embeddings", "Generative summaries", "Language detection service", "Cross-user collaborative filtering"],
+      "estimated_size": "M",
+      "risk_tags": ["ranking-quality", "determinism", "local-processing"],
+      "handoff_notes": "Expose contribution details, not UI prose; the combined scorer owns final explanation ordering."
+    },
+    {
+      "id": "RANK-002",
+      "title": "Implement primary ranking signal extractors",
+      "summary": "Compute bounded recency, explicit-interest, source-preference, library-feedback, and coarse-location contributions independently of final score aggregation.",
+      "objective": "Make each primary personalization signal testable and explainable before weights combine them.",
+      "context": "Explicit interests, selected sources, recency, and reading actions must lead ranking; coarse manually entered location may contribute without automatic geolocation.",
+      "owner_role": "backend-core-implementer",
+      "lane": "ranking",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["internal/application/ranking/**", "internal/domain/**", "internal/adapters/sqlite/**", "test/fixtures/ranking/**"],
+      "depends_on": ["RANK-001", "BACKEND-004", "INGEST-002"],
+      "inputs": ["Article metadata and normalized text", "User profile and source preferences", "Library state", "Injected clock"],
+      "outputs": ["Independent bounded signal extractors", "Stable signal reason codes", "Signal-level fixtures and tests"],
+      "implementation_notes": [
+        "Use an injected clock and explicit decay parameters for recency.",
+        "Treat hidden state as feed exclusion, not an arbitrarily large negative score.",
+        "Define reading-action effects conservatively so a single action cannot permanently dominate the feed.",
+        "Location matching uses only explicit coarse profile/source/article metadata and never infers physical location."
+      ],
+      "acceptance_criteria": [
+        "Each signal returns a finite documented range plus stable explanation data.",
+        "Empty or disabled signals contribute zero and do not fabricate evidence.",
+        "Recency behavior is deterministic under a fixed clock and handles missing/future timestamps safely.",
+        "Source and reading-action signals distinguish explicit preference from incidental availability.",
+        "Location uses manually selected country/region and optional city only."
+      ],
+      "verification": [
+        "Run table-driven tests for every signal at minimum, maximum, absent, disabled, and malformed-input boundaries.",
+        "Run fixed-clock recency tests including future and missing publication times.",
+        "Run behavior tests for read, saved, hidden, restored, and untouched articles.",
+        "Run coarse-location matching tests without geolocation or IP calls."
+      ],
+      "proof_required": ["Per-signal range matrix", "Fixed-clock test output", "Disabled-signal zero-contribution proof"],
+      "edge_cases": ["Future publication timestamp", "No source preference", "All articles read", "Saved then hidden article", "Missing region metadata"],
+      "non_goals": ["Final weighted score", "Demographic scoring", "Machine-learned behavioral predictions"],
+      "estimated_size": "M",
+      "risk_tags": ["ranking-quality", "feedback-loop", "location-privacy"],
+      "handoff_notes": "The combined scorer may weight these contributions but must not duplicate or mutate their extraction rules."
+    },
+    {
+      "id": "RANK-003",
+      "title": "Combine scores with demographic caps and explanations",
+      "summary": "Implement normalized weighted aggregation, optional low-weight age/gender adjustments, deterministic ordering, and persisted ranking explanations.",
+      "objective": "Produce the final relevance order while enforcing the accepted transparency, privacy, and demographic-subordination policy.",
+      "context": "Demographics may make only small optional adjustments. Primary signals and text similarity lead, and every article must explain its placement.",
+      "owner_role": "backend-core-implementer",
+      "lane": "ranking",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["internal/application/ranking/**", "internal/domain/**", "internal/adapters/sqlite/**", "test/fixtures/ranking/**", "tests/integration/**"],
+      "depends_on": ["RANK-001", "RANK-002", "BACKEND-004"],
+      "inputs": ["Text-similarity contribution", "Primary signal contributions", "Validated RankingConfiguration", "Optional explicit demographic values"],
+      "outputs": ["Weighted ranking engine", "Demographic cap enforcement", "Stable tie-break rules", "Persisted RankingResult and explanation components"],
+      "implementation_notes": [
+        "Normalize configured weights and reject invalid, negative, non-finite, or all-zero active configurations according to the domain contract.",
+        "Enforce hard aggregate and per-signal caps for age/gender regardless of configured input.",
+        "Use stable tie-breakers such as score, publication time, then article identifier.",
+        "Build explanations from actual nonzero contributions and stable reason codes; do not claim causal facts not present in inputs."
+      ],
+      "acceptance_criteria": [
+        "Final scores are finite, bounded, deterministic, and accompanied by contributions that reconcile to the documented total.",
+        "Disabling or omitting age/gender produces exactly zero contribution and no demographic explanation.",
+        "Enabled demographic contributions cannot exceed accepted low-weight caps or outrank the aggregate primary-signal budget by themselves.",
+        "Tie ordering is stable across recomputation and restart.",
+        "Every visible result has at least one truthful explanation or an explicit neutral/default reason."
+      ],
+      "verification": [
+        "Run golden end-to-end ranking fixtures with contribution reconciliation.",
+        "Run property tests for finite bounds, deterministic order, and demographic caps across generated configurations.",
+        "Run metamorphic tests showing disabled demographics cannot change order or explanations.",
+        "Run persistence/reload tests for algorithm version and components."
+      ],
+      "proof_required": ["Golden ranked fixture", "Contribution reconciliation output", "Demographic cap and disablement tests", "Determinism proof"],
+      "edge_cases": ["All active weights zero", "NaN or infinite input attempt", "Exact score ties", "No matching interests", "Only demographic fields populated"],
+      "non_goals": ["Inferring age or gender", "Opaque model-based explanations", "Automated weight tuning from multiple users"],
+      "estimated_size": "M",
+      "risk_tags": ["bias", "explainability", "ranking-quality"],
+      "handoff_notes": "Expose stable contribution/reason structures through the API; the frontend may localize wording but must not change meaning."
+    },
+    {
+      "id": "RANK-004",
+      "title": "Implement ranked feed and article query APIs",
+      "summary": "Implement paginated ranked-feed and article-detail queries with basic filters, permission-aware content, and contract-compliant explanations.",
+      "objective": "Expose the local ranked corpus to the PWA without duplicating ranking logic or leaking unauthorized content.",
+      "context": "The feed must support read/unread, saved, hidden, source, and basic search/filter behavior while SQLite remains authoritative.",
+      "owner_role": "backend-core-implementer",
+      "lane": "library",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["internal/application/feed/**", "internal/httpapi/**", "internal/adapters/sqlite/**", "api/openapi.yaml", "test/fixtures/api/**", "tests/integration/**"],
+      "depends_on": ["RANK-003", "BACKEND-002", "BACKEND-005", "INGEST-005"],
+      "inputs": ["Persisted articles and RankingResults", "Library state", "OpenAPI feed/article schemas", "Content permission mode"],
+      "outputs": ["Ranked-feed query service", "Article-detail query service", "GET feed and article handlers", "Stable pagination and filter implementation"],
+      "implementation_notes": [
+        "Default feed excludes hidden articles and returns current persisted rank order.",
+        "Use stable cursor/page keys that cannot duplicate or omit unchanged rows across adjacent pages.",
+        "Return sanitized full content only in full-content-allowed mode; otherwise return metadata/excerpt and canonical publisher URL.",
+        "Basic text filtering operates locally over permitted stored fields."
+      ],
+      "acceptance_criteria": [
+        "Feed results follow deterministic rank order with stable pagination and include machine-readable explanation components.",
+        "Filters cover source, read/unread, saved, hidden visibility, and accepted basic text/date behavior.",
+        "Article detail never returns stored or derived full content for metadata-only sources.",
+        "Unknown or malformed cursors/identifiers produce contract-defined errors.",
+        "Queries remain bounded and use the planned SQLite indexes for representative local data volumes."
+      ],
+      "verification": [
+        "Run API conformance tests for feed and article endpoints.",
+        "Run pagination tests for empty, single-page, multi-page, ties, and filtered datasets.",
+        "Run content-permission negative tests and malicious-content rendering fixtures.",
+        "Inspect representative query plans and run bounded performance checks on generated local data."
+      ],
+      "proof_required": ["API conformance output", "Pagination/filter matrix", "Permission negative tests", "Representative query-plan evidence"],
+      "edge_cases": ["Empty database", "Rank ties", "Article hidden between pages", "Invalid cursor", "Metadata-only article with accidentally populated body"],
+      "non_goals": ["Remote search service", "Folders or annotations", "Cross-article analysis", "Frontend rendering"],
+      "estimated_size": "M",
+      "risk_tags": ["pagination", "content-permission", "query-performance"],
+      "handoff_notes": "Frontend feed/reader work must consume returned rank and permission state without recreating backend rules."
+    },
+    {
+      "id": "RANK-005",
+      "title": "Implement library actions and ranking recomputation",
+      "summary": "Implement persistent read, saved, and hidden mutations plus targeted ranking recomputation after ingestion, profile, configuration, or library changes.",
+      "objective": "Complete the feedback loop and preserve user state and rank behavior across restarts.",
+      "context": "Library actions are both user-visible state and bounded ranking inputs. Recalculation must not block successful ingestion indefinitely or produce stale explanations.",
+      "owner_role": "backend-core-implementer",
+      "lane": "library",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["internal/application/library/**", "internal/application/ranking/**", "internal/httpapi/**", "internal/adapters/sqlite/**", "cmd/news-aggregator/**", "test/fixtures/api/**", "tests/integration/**"],
+      "depends_on": ["RANK-003", "RANK-004", "INGEST-005", "BACKEND-004"],
+      "inputs": ["Library repository", "Ranking engine", "Refresh completion events/results", "Profile/ranking configuration changes", "OpenAPI library-state contract"],
+      "outputs": ["Idempotent library mutation service", "PATCH library-state handler", "Targeted/full recomputation coordinator", "Restart-safe stale-result/version handling"],
+      "implementation_notes": [
+        "Model read, saved, and hidden as independently reversible timestamps/states.",
+        "Serialize or version recomputation so an older run cannot overwrite results calculated from newer inputs.",
+        "Prefer targeted recomputation when one article/library state changes and bounded full recomputation when corpus/configuration changes.",
+        "Hidden state excludes the article by default but restoring it must make the article eligible again."
+      ],
+      "acceptance_criteria": [
+        "Read/unread, save/unsave, and hide/restore operations are idempotent and persist across restart.",
+        "Library mutations return the contract-defined current state and trigger only the documented ranking updates.",
+        "Article ingestion, profile changes, ranking-config changes, and algorithm-version changes result in fresh compatible RankingResults.",
+        "Concurrent or cancelled recomputation cannot commit stale results over newer input versions.",
+        "A recomputation failure preserves readable prior data, reports sanitized status, and remains retryable."
+      ],
+      "verification": [
+        "Run table-driven state-transition tests for every action and reversal.",
+        "Run API conformance and restart-persistence tests.",
+        "Run concurrency tests for overlapping mutations, refresh completion, and configuration changes.",
+        "Run stale-version, cancellation, retry, and partial-failure recomputation tests."
+      ],
+      "proof_required": ["Library transition matrix", "Restart persistence output", "Recomputation concurrency/version test output", "API conformance output"],
+      "edge_cases": ["Repeated identical mutation", "Hide then save", "Article deleted during recomputation", "Profile update during refresh", "Process exits during full recomputation"],
+      "non_goals": ["Background scheduling while closed", "Cross-device synchronization", "Automatic ML-based weight learning"],
+      "estimated_size": "M",
+      "risk_tags": ["concurrency", "stale-data", "feedback-loop", "persistence"],
+      "handoff_notes": "Frontend workflows may treat successful mutation responses as authoritative and then refresh affected feed queries."
+    }
+  ]
+}

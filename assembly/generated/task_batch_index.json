@@ -52,7 +52,7 @@
       "expected_task_ids": ["RANK-001", "RANK-002", "RANK-003", "RANK-004", "RANK-005"],
       "depends_on_batches": ["shared-contracts", "backend-platform", "backend-ingestion"],
       "output_path": "assembly/generated/task_batches/backend-ranking-library.json",
-      "status": "planned",
+      "status": "generated",
       "notes": "Implements local text similarity, bounded explainable scoring, recomputation, feed queries, and persistent library actions."
     },
     {
