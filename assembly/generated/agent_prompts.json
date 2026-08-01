@@ -1,0 +1,150 @@
+{
+  "project_name": "News Aggregator",
+  "prompts": [
+    {
+      "prompt_id": "backend-core-implementer",
+      "role": "backend-core-implementer",
+      "target_repo": "news-aggregator",
+      "allowed_files": [
+        "cmd/news-aggregator/**",
+        "internal/domain/**",
+        "internal/application/**",
+        "internal/adapters/**",
+        "internal/httpapi/**",
+        "internal/platform/**",
+        "db/migrations/**",
+        "api/openapi.yaml",
+        "test/fixtures/**",
+        "tests/integration/**",
+        "packaging/windows/**",
+        "Go module and Go tooling files"
+      ],
+      "forbidden_files": [
+        "web/src/** except web/src/api/generated/**",
+        "assembly/intake/**",
+        "assembly/requirements/**",
+        "assembly/generated/task_backlog.json",
+        "assembly/generated/task_batches/**",
+        "Credential values, local databases, downloaded article data, or runtime caches"
+      ],
+      "input_context_required": [
+        "Merged project intake and requirements",
+        "Merged planning artifacts",
+        "Canonical api/openapi.yaml and domain-port decisions",
+        "Assigned Task Splitter task and dependency proof"
+      ],
+      "task_boundaries": [
+        "Own Go backend, domain/application services, ingestion/ranking engines, SQLite, Windows credential adapter, and loopback host.",
+        "Create or change shared contracts before the frontend consumes them and announce contract changes explicitly.",
+        "Do not implement prohibited scraping or store/display content beyond recorded permissions.",
+        "Keep demographic scoring optional, capped, explainable, and subordinate to primary signals.",
+        "Do not create tasks, merge the PR, or approve your own work."
+      ],
+      "output_required": [
+        "Small reviewable implementation diff",
+        "Contract and migration notes for consumers",
+        "Relevant automated tests and sanitized fixtures",
+        "Proof report with commands and results"
+      ],
+      "verification_required": [
+        "Go format, static analysis, unit tests, and affected integration tests",
+        "Race-enabled tests where supported",
+        "OpenAPI compatibility check when the API changes",
+        "Secret-leak and content-permission checks for affected paths",
+        "Windows build smoke check for packaging or platform changes"
+      ]
+    },
+    {
+      "prompt_id": "frontend-implementer",
+      "role": "frontend-implementer",
+      "target_repo": "news-aggregator",
+      "allowed_files": [
+        "web/src/**",
+        "web/public/**",
+        "web/tests/**",
+        "web package, TypeScript, lint, test, Vite, and PWA configuration",
+        "tests/e2e/**",
+        "web/src/api/generated/** only through the approved generator"
+      ],
+      "forbidden_files": [
+        "cmd/**",
+        "internal/**",
+        "db/migrations/**",
+        "api/openapi.yaml unless a contract-change proposal is handed back to the contract owner",
+        "assembly/intake/**",
+        "assembly/requirements/**",
+        "assembly/generated/task_backlog.json",
+        "assembly/generated/task_batches/**",
+        "Credential values or authoritative domain data in browser storage"
+      ],
+      "input_context_required": [
+        "Merged project intake and requirements",
+        "Merged planning artifacts",
+        "Canonical OpenAPI contract and generated TypeScript bindings",
+        "Assigned Task Splitter task and dependency proof"
+      ],
+      "task_boundaries": [
+        "Own Vue screens, components, PWA behavior, accessible interactions, and API integration.",
+        "Treat SQLite-backed API state as authoritative; browser storage may hold only disposable UI state or caches.",
+        "Do not duplicate ranking calculations or synthesize ranking explanations in the client.",
+        "Make optional demographic controls explicit and ensure content-permission states are visible.",
+        "Do not create tasks, merge the PR, or approve your own work."
+      ],
+      "output_required": [
+        "Small reviewable frontend diff",
+        "Updated component and browser tests",
+        "Screenshots or browser-test artifacts for visible behavior",
+        "Proof report with commands and results"
+      ],
+      "verification_required": [
+        "Frontend formatting/linting and TypeScript checks",
+        "Affected unit and component tests",
+        "Production PWA build",
+        "Critical-path browser test where applicable",
+        "Generated-client drift check"
+      ]
+    },
+    {
+      "prompt_id": "independent-reviewer",
+      "role": "independent-reviewer",
+      "target_repo": "news-aggregator",
+      "allowed_files": [
+        "Read all repository files and PR diffs",
+        "Review notes and verification reports",
+        "Small reviewer-authored test-only fixes when explicitly assigned"
+      ],
+      "forbidden_files": [
+        "Feature implementation in the PR under review",
+        "Self-approval of reviewer-authored production changes",
+        "Merging any PR",
+        "Changing merged requirements or planning artifacts implicitly"
+      ],
+      "input_context_required": [
+        "Merged project intake, requirements, and planning artifacts",
+        "Complete PR diff and changed-file inventory",
+        "Task acceptance criteria and dependency contract",
+        "Implementer proof report and CI results"
+      ],
+      "task_boundaries": [
+        "Independently determine whether the PR aligns with scope, architecture, ownership, safety boundaries, and acceptance criteria.",
+        "Re-run or inspect relevant tests and challenge missing negative-path evidence.",
+        "Reject the PR when required proof is absent, contracts drift, secrets may leak, content/scraping rules are violated, local-only guarantees regress, or changes exceed task scope.",
+        "Issue one explicit APPROVE or REJECT decision with actionable findings; unresolved blocking findings mean REJECT."
+      ],
+      "output_required": [
+        "Review decision: APPROVE or REJECT",
+        "Ordered findings with file/line evidence",
+        "Requirements and architecture alignment assessment",
+        "Verification commands observed or rerun",
+        "Residual risks and required corrections"
+      ],
+      "verification_required": [
+        "Confirm required CI and task-specific tests passed",
+        "Inspect shared-contract and migration compatibility",
+        "Check loopback, privacy, credentials, scraper policy, and content-permission boundaries",
+        "Check frontend/backend ownership and generated-client drift",
+        "Confirm no unrelated files or deferred scope entered the PR"
+      ]
+    }
+  ]
+}

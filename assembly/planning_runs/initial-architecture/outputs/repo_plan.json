@@ -1,0 +1,25 @@
+{
+  "project_name": "News Aggregator",
+  "repos": [
+    {
+      "name": "news-aggregator",
+      "purpose": "Monorepo for the Windows-local Go host, Vue PWA, shared contracts, persistence, ingestion/ranking engine, packaging, and verification.",
+      "contains": [
+        "Shared-first ownership: api/openapi.yaml, internal/domain/**, db/migrations/**, test/fixtures/**",
+        "Backend-lane ownership: cmd/news-aggregator/**, internal/application/**, internal/adapters/**, internal/httpapi/**, internal/platform/**",
+        "Frontend-lane ownership: web/src/**, web/public/**, web/tests/**, web package and build configuration",
+        "Generated boundary: web/src/api/generated/** is produced only from api/openapi.yaml and is not hand-edited",
+        "Integration ownership: tests/integration/**, tests/e2e/**, packaging/windows/**, CI workflow files",
+        "Planning ownership: assembly/generated/project_spec.json, assembly/generated/repo_plan.json, assembly/generated/agent_prompts.json, assembly/generated/slots_db.json, assembly/planning_runs/**"
+      ],
+      "depends_on": [],
+      "excludes": [
+        "A second implementation repository",
+        "Cloud deployment, remote database, authentication, accounts, or synchronization",
+        "Task backlog and task-batch files during the planning phase",
+        "Secrets, API keys, downloaded article corpora, local SQLite databases, and generated runtime caches",
+        "Broad or unauthorized scraper implementations"
+      ]
+    }
+  ]
+}

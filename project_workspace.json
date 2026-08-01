@@ -2,7 +2,7 @@
   "schema_version": "0.2.0",
   "project_id": "news-aggregator",
   "name": "News Aggregator",
-  "status": "draft",
+  "status": "planning_review",
   "default_view": "overview",
   "repository": {
     "provider": "github",
@@ -66,10 +66,11 @@
   ],
   "ai_guidance": {
     "onboarding_mode": "guided_pr",
-    "human_next_step": "Complete guided intake and open the requirements/bootstrap pull request. Do not generate architecture or implementation tasks yet.",
+    "human_next_step": "Review and merge the planning pull request, then start Task Splitting from the merged planning artifacts.",
     "notes": [
       "Chat context is temporary; merged repository files are authoritative.",
-      "Planning and task decomposition belong in later pull requests."
+      "The requirements/bootstrap pull request is merged.",
+      "Task decomposition remains deferred until the planning pull request is merged."
     ]
   }
 }

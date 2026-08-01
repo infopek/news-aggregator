@@ -1,0 +1,260 @@
+{
+  "project_name": "News Aggregator",
+  "product_summary": {
+    "goal": "Provide one Windows 11 user with a private local news-reading application that aggregates selected sources and explains a personalized relevance order.",
+    "users": [
+      "The repository owner as the sole local user"
+    ],
+    "non_goals": [
+      "Accounts, multi-user access, or device synchronization",
+      "Background Windows service operation or ingestion while the executable is closed",
+      "External AI services, bundled embedding models, or a separate local model service",
+      "Automatic source discovery, folders, annotations, exports, or research workflows",
+      "Broad scraping, paywall bypass, authentication bypass, access-control bypass, or publisher-restriction bypass",
+      "Non-Windows packaging in the MVP"
+    ]
+  },
+  "safety_boundaries": [
+    "Fetch only configured public sources and honor source terms, robots guidance, rate limits, and explicit adapter allowlists.",
+    "Never bypass paywalls, authentication, access controls, or publisher restrictions.",
+    "Persist and render full article content only when the feed or source permission supplies it; otherwise retain metadata, excerpt, and canonical publisher URL.",
+    "Keep profile data, article processing, similarity calculation, and ranking on the local machine.",
+    "Collect demographic values only through explicit optional user input; do not infer them, and allow every demographic signal to be disabled.",
+    "Store API secrets through a credential-store port backed by Windows Credential Manager; never place secret values in SQLite, logs, fixtures, or repository files.",
+    "Bind the local HTTP server to loopback by default and do not expose it to the LAN without a future explicit requirement."
+  ],
+  "repo_split": [
+    {
+      "name": "news-aggregator",
+      "purpose": "Single monorepo and distributable application containing the Go host, Vue PWA, shared API contract, migrations, packaging, and verification.",
+      "contains": [
+        "cmd/news-aggregator: composition root, loopback server startup, browser launch, and embedded frontend",
+        "internal/domain: dependency-free entities, value objects, and port interfaces",
+        "internal/application: ingestion, ranking, library, profile, source, and refresh use cases",
+        "internal/adapters: SQLite, feed/API/scraper, credential-store, clock, and HTTP implementations",
+        "internal/httpapi: versioned REST handlers, request validation, error mapping, and generated/static contract checks",
+        "db/migrations: ordered SQLite schema migrations",
+        "web: Vue + TypeScript PWA source, generated API client/types, and browser tests",
+        "api/openapi.yaml: canonical frontend/backend HTTP contract",
+        "packaging/windows: build metadata and smoke-test scripts"
+      ],
+      "depends_on": []
+    }
+  ],
+  "domain_model": [
+    {
+      "name": "UserProfile",
+      "fields": [
+        "id fixed to the single local profile",
+        "interests and per-interest weights",
+        "preferred source identifiers",
+        "country and region with optional city",
+        "optional age and gender values",
+        "per-demographic-signal enabled flags and low-weight caps",
+        "ranking preferences and updated timestamp"
+      ],
+      "relations": [
+        "Produces RankingConfiguration together with explicit source preferences",
+        "Never leaves the local process or SQLite database"
+      ]
+    },
+    {
+      "name": "Source",
+      "fields": [
+        "id, display name, canonical URL, source kind, enabled state",
+        "adapter configuration without secret values",
+        "content permission mode: metadata-only or full-content-allowed",
+        "policy review metadata for scraper sources",
+        "refresh cursor, last success, last error, and retry metadata"
+      ],
+      "relations": [
+        "Produces zero or more Articles through exactly one ingestion adapter",
+        "May reference a credential key identifier stored outside SQLite"
+      ]
+    },
+    {
+      "name": "Article",
+      "fields": [
+        "id and stable deduplication fingerprint",
+        "source id, canonical URL, title, author, publication timestamp, fetched timestamp",
+        "excerpt and optional permitted full content",
+        "normalized language, topics, and token statistics",
+        "current relevance score and explanation components"
+      ],
+      "relations": [
+        "Belongs to one Source",
+        "Has one local LibraryState",
+        "Has computed RankingResult values"
+      ]
+    },
+    {
+      "name": "LibraryState",
+      "fields": [
+        "article id",
+        "read timestamp",
+        "saved timestamp",
+        "hidden timestamp"
+      ],
+      "relations": [
+        "Belongs to one Article",
+        "Provides explicit behavior signals to ranking"
+      ]
+    },
+    {
+      "name": "RankingConfiguration",
+      "fields": [
+        "recency, interest, source preference, behavior, location, age, gender, and text-similarity weights",
+        "hard caps for optional demographic contributions",
+        "enabled flags and normalization parameters"
+      ],
+      "relations": [
+        "Consumes UserProfile and explicit application defaults",
+        "Produces explainable RankingResult components"
+      ]
+    },
+    {
+      "name": "RankingResult",
+      "fields": [
+        "article id and total normalized score",
+        "ordered per-signal contributions",
+        "human-readable explanation tokens",
+        "ranking algorithm version and calculated timestamp"
+      ],
+      "relations": [
+        "Computed locally from Article, LibraryState, and RankingConfiguration"
+      ]
+    },
+    {
+      "name": "RefreshRun",
+      "fields": [
+        "id, start and finish timestamps, status",
+        "per-source fetched, inserted, updated, skipped, and failed counts",
+        "sanitized error summaries without credentials or full restricted content"
+      ],
+      "relations": [
+        "Coordinates configured Source adapters and article indexing"
+      ]
+    }
+  ],
+  "frontend_screens": [
+    {
+      "name": "First-run setup",
+      "renders_from": [
+        "GET/PUT /api/v1/profile",
+        "GET /api/v1/starter-sources",
+        "GET/POST /api/v1/sources"
+      ],
+      "notes": "Collect interests and coarse location first; age, gender, and city are visibly optional with disable controls. Allow starter-source selection before the first refresh."
+    },
+    {
+      "name": "Ranked feed",
+      "renders_from": [
+        "GET /api/v1/feed with pagination and basic filters",
+        "POST /api/v1/refresh and GET /api/v1/refresh/{id}",
+        "PATCH /api/v1/articles/{id}/library-state"
+      ],
+      "notes": "Show refresh state, score explanations, source and publication metadata, read/saved/hidden controls, filters, and an explicit publisher link. Hidden articles are excluded by default."
+    },
+    {
+      "name": "Article reader",
+      "renders_from": [
+        "GET /api/v1/articles/{id}",
+        "PATCH /api/v1/articles/{id}/library-state"
+      ],
+      "notes": "Render sanitized full content only when content permission is full-content-allowed; otherwise render metadata/excerpt and direct the user to the canonical publisher URL."
+    },
+    {
+      "name": "Personal library",
+      "renders_from": [
+        "GET /api/v1/feed filtered by saved, read, unread, or hidden state",
+        "PATCH /api/v1/articles/{id}/library-state"
+      ],
+      "notes": "Support saved, read/unread, and hidden management with persistent filters."
+    },
+    {
+      "name": "Sources and refresh",
+      "renders_from": [
+        "GET/POST/PATCH/DELETE /api/v1/sources",
+        "PUT/DELETE /api/v1/sources/{id}/credential",
+        "POST /api/v1/refresh and GET /api/v1/refresh/{id}"
+      ],
+      "notes": "Manage starter and custom sources, show adapter/policy status, configure credential references without reading secret values back, and surface sanitized refresh failures."
+    },
+    {
+      "name": "Profile and ranking settings",
+      "renders_from": [
+        "GET/PUT /api/v1/profile",
+        "GET/PUT /api/v1/ranking-config"
+      ],
+      "notes": "Expose interests, coarse location, optional demographics, signal enablement, and bounded weights; explain that demographic effects are capped and local."
+    }
+  ],
+  "backend_services": [
+    {
+      "name": "Local HTTP host",
+      "responsibility": "Bind to loopback, serve the versioned JSON API and embedded PWA assets, coordinate graceful shutdown, and open the default browser after readiness.",
+      "inputs": ["CLI configuration", "embedded web assets", "application services"],
+      "outputs": ["Loopback HTTP endpoint", "structured sanitized logs", "process exit status"]
+    },
+    {
+      "name": "Source service",
+      "responsibility": "Validate and persist editable starter/custom source configuration while separating credential identifiers from secret values.",
+      "inputs": ["Source commands", "starter catalog", "credential-store port"],
+      "outputs": ["Source views", "validated adapter configuration", "credential references"]
+    },
+    {
+      "name": "Ingestion service",
+      "responsibility": "Run bounded manual refreshes through RSS/Atom, official API, or allowlisted scraper adapters; normalize, deduplicate, and persist articles and refresh outcomes.",
+      "inputs": ["Enabled sources", "adapter ports", "refresh command"],
+      "outputs": ["Normalized articles", "RefreshRun progress", "sanitized failures"]
+    },
+    {
+      "name": "Ranking service",
+      "responsibility": "Compute deterministic normalized scores from explicit weighted signals and local text similarity, cap demographic contributions, version the algorithm, and emit explanation components.",
+      "inputs": ["Articles", "UserProfile", "LibraryState", "RankingConfiguration"],
+      "outputs": ["Ordered RankingResult values", "human-readable explanation components"]
+    },
+    {
+      "name": "Feed and library service",
+      "responsibility": "Query ranked articles with pagination and filters and atomically update read, saved, and hidden state.",
+      "inputs": ["Feed query", "library-state commands", "ranking results"],
+      "outputs": ["Paginated feed", "article detail", "persistent library state"]
+    },
+    {
+      "name": "Persistence service",
+      "responsibility": "Own SQLite connections, transactions, migrations, repositories, and restart-safe state while excluding API secret values.",
+      "inputs": ["Repository operations", "ordered migrations"],
+      "outputs": ["Transactional domain records", "migration status"]
+    }
+  ],
+  "core_engine_responsibilities": [
+    "Define dependency-free domain types and ports before frontend and adapter work branches diverge.",
+    "Normalize source payloads into one Article representation and deduplicate using canonical URL plus stable content identity rules.",
+    "Tokenize and index locally for lightweight text similarity with deterministic fixtures and no network dependency.",
+    "Normalize signal contributions into bounded comparable values, cap demographic effects, and retain each contribution for explanations.",
+    "Recompute affected ranking results after ingestion, profile changes, ranking-configuration changes, or library feedback.",
+    "Enforce content-permission and scraper-policy decisions independently of presentation code.",
+    "Keep adapter failures isolated per source so one failing feed does not discard successful refresh work.",
+    "Provide clock, HTTP fetcher, credential store, and persistence ports for deterministic testing."
+  ],
+  "verification_tasks": [
+    "Run Go formatting, static analysis, unit tests, race-enabled tests where supported, and backend integration tests against temporary SQLite databases.",
+    "Run frontend formatting/linting, type checking, unit/component tests, and production build.",
+    "Validate OpenAPI compatibility between Go handlers and the generated TypeScript client/types.",
+    "Exercise a fixture-driven ingestion path covering RSS success, duplicate suppression, partial adapter failure, retry metadata, and prohibited full-content handling.",
+    "Exercise ranking fixtures covering determinism, bounded weights, demographic disablement and caps, text-similarity contribution, and explanation-total consistency.",
+    "Run a critical-path browser test from first-run profile and source selection through refresh, ranked feed, explanation, save/read/hide actions, and restart persistence.",
+    "Cross-compile or build the Windows executable and smoke-test startup, loopback binding, embedded assets, migration, browser-open behavior, and clean shutdown on Windows CI.",
+    "Verify secrets never appear in SQLite, API responses, logs, snapshots, fixtures, or committed files.",
+    "Require the independent reviewer to report requirements alignment, safety-boundary compliance, test evidence, and an approve-or-reject decision."
+  ],
+  "starter_prompts": {
+    "intake_interviewer": "Use the merged assembly/intake/project_intake.json and assembly/requirements/REQUIREMENTS.md as fixed requirements; reopen intake only for a genuinely blocking product decision.",
+    "planning_agent": "Maintain planning-only artifacts, preserve merged requirements, define contracts before parallel lanes, and defer executable task identifiers to the Task Splitter.",
+    "contract_steward": "Establish api/openapi.yaml, domain ports, migration ownership, error semantics, pagination, refresh status, ranking explanation shapes, and test fixtures before parallel implementation; do not implement user-facing features beyond contract proof.",
+    "frontend_builder": "Build only the Vue PWA and generated API bindings against accepted contracts; never persist authoritative domain state or secrets in browser storage and never duplicate ranking logic in the client.",
+    "backend_builder": "Build the Go composition root, application/domain services, adapters, SQLite persistence, credential integration, ranking, ingestion, and versioned API against accepted contracts; do not edit Vue feature code except generated bindings or integration fixtures.",
+    "core_engine_builder": "Keep ingestion normalization, deduplication, text similarity, score normalization, demographic caps, and explanations deterministic, local, adapter-independent, and covered by fixtures.",
+    "red_team_verifier": "Independently review every implementation PR; reject changes that violate merged scope, local privacy, credential handling, scraping/content permissions, loopback binding, contract compatibility, or required proof."
+  }
+}

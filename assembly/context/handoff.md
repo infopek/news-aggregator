@@ -2,17 +2,21 @@
 
 ## Current lifecycle phase
 
-Requirements/bootstrap package is ready for human review.
+Requirements/bootstrap is merged. The initial architecture planning package is ready for human review.
 
 ## Source of truth
 
 - `project_workspace.json`
 - `assembly/intake/project_intake.json`
 - `assembly/requirements/REQUIREMENTS.md`
+- `assembly/generated/project_spec.json`
+- `assembly/generated/repo_plan.json`
+- `assembly/generated/agent_prompts.json`
+- `assembly/generated/slots_db.json`
 
 ## Next action
 
-Review and merge the requirements/bootstrap PR. After merge, start a fresh Planning Agent context from the merged repository files. Do not create architecture, a task backlog, or implementation work before that approval boundary.
+Review and merge the planning PR. After merge, start a fresh Task Splitter context from the merged repository files. Do not create the executable task backlog or implementation work before that approval boundary.
 
 ## Accepted direction
 
