@@ -13,7 +13,7 @@
       "expected_task_ids": ["CONTRACT-001", "CONTRACT-002", "CONTRACT-003", "CONTRACT-004", "CONTRACT-005"],
       "depends_on_batches": [],
       "output_path": "assembly/generated/task_batches/shared-contracts.json",
-      "status": "planned",
+      "status": "generated",
       "notes": "Establishes the repository scaffold, OpenAPI boundary, domain ports, migrations, and deterministic fixtures before parallel implementation."
     },
     {

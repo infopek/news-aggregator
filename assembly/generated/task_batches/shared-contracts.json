@@ -1,0 +1,349 @@
+{
+  "schema_version": "0.1.0",
+  "batch_id": "shared-contracts",
+  "source_plan_path": "assembly/generated/project_spec.json",
+  "tasks": [
+    {
+      "id": "CONTRACT-001",
+      "title": "Scaffold the Go and Vue monorepo build",
+      "summary": "Create the minimal buildable repository structure and shared developer commands without implementing product features.",
+      "objective": "Give later backend and frontend tasks a deterministic Go module, Vue TypeScript workspace, embedded-asset boundary, and common verification entrypoints.",
+      "context": "The accepted plan uses one Go executable serving an embedded Vue PWA. Parallel work must start from a stable repository layout and repeatable commands.",
+      "owner_role": "backend-core-implementer",
+      "lane": "shared-contract",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": [
+        "go.mod",
+        "go.sum",
+        "cmd/news-aggregator/**",
+        "internal/**",
+        "web/**",
+        "Makefile",
+        "scripts/**",
+        ".gitignore"
+      ],
+      "depends_on": [],
+      "inputs": [
+        "assembly/generated/project_spec.json",
+        "assembly/generated/repo_plan.json",
+        "assembly/generated/agent_prompts.json"
+      ],
+      "outputs": [
+        "Initialized Go module and empty composition-root package",
+        "Vue 3 + TypeScript + Vite PWA workspace under web/",
+        "A declared generated-asset location that Go can embed after the frontend build",
+        "Documented repository-level commands for format, lint, test, frontend build, and Go build"
+      ],
+      "implementation_notes": [
+        "Keep the initial Go domain/application packages free of infrastructure dependencies.",
+        "Pin toolchain and package versions through normal lock/module files.",
+        "Do not add a production framework or dependency without using it for an accepted requirement.",
+        "A development fallback may serve frontend assets from disk, but the release boundary must support embedding compiled assets."
+      ],
+      "acceptance_criteria": [
+        "A clean checkout can install frontend dependencies, build the Vue application, and build the Go command using documented commands.",
+        "The Go build has an explicit location from which compiled frontend assets will be embedded without committing build output.",
+        "Repository ignore rules exclude local SQLite files, secret material, downloaded content, frontend dependencies, generated build output, and caches.",
+        "No product feature, remote service, account system, or task-backlog change is introduced."
+      ],
+      "verification": [
+        "Run Go formatting and `go test ./...`.",
+        "Run frontend lint/typecheck if configured and the production frontend build.",
+        "Run the documented Go build after producing frontend assets.",
+        "Inspect `git status --short` to confirm runtime/build artifacts remain untracked or ignored."
+      ],
+      "proof_required": [
+        "Command transcript for clean Go and frontend builds",
+        "Changed-file inventory showing only scaffold/configuration paths"
+      ],
+      "edge_cases": [
+        "Frontend assets have not yet been built.",
+        "Commands run from a path containing spaces on Windows.",
+        "No C compiler is installed on the build machine."
+      ],
+      "non_goals": [
+        "Implementing HTTP endpoints",
+        "Selecting live starter sources",
+        "Creating an installer or background service"
+      ],
+      "estimated_size": "M",
+      "risk_tags": ["build", "cross-platform", "shared-boundary"],
+      "handoff_notes": "Publish the final directory map and exact verification commands before dependent contract work begins."
+    },
+    {
+      "id": "CONTRACT-002",
+      "title": "Define domain entities and application ports",
+      "summary": "Create dependency-free Go types and interfaces for profiles, sources, articles, library state, refresh runs, ranking configuration, repositories, and external adapters.",
+      "objective": "Freeze the core vocabulary and dependency direction consumed by persistence, ingestion, ranking, HTTP, and frontend-contract work.",
+      "context": "The planning package requires ports for persistence, fetching, credentials, clocks, ingestion adapters, and ranking while keeping domain rules independent of infrastructure.",
+      "owner_role": "backend-core-implementer",
+      "lane": "shared-contract",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": [
+        "internal/domain/**",
+        "internal/application/**",
+        "test/fixtures/**"
+      ],
+      "depends_on": ["CONTRACT-001"],
+      "inputs": [
+        "Merged requirements domain concepts",
+        "assembly/generated/project_spec.json domain_model and backend_services"
+      ],
+      "outputs": [
+        "Go domain types with validation-oriented value objects",
+        "Repository and transaction port interfaces",
+        "Feed/API/scraper adapter, HTTP fetcher, credential store, and clock port interfaces",
+        "Typed application commands, queries, result types, and sentinel/domain errors"
+      ],
+      "implementation_notes": [
+        "Represent optional demographics explicitly; absence and disabled state must not collapse into a guessed value.",
+        "Represent content permission independently from whether content text happens to be present.",
+        "Keep secrets write-only at the application boundary: use credential identifiers, not secret-bearing domain records.",
+        "Define score contributions as machine-readable values from which the API can render explanations without recomputing rank logic."
+      ],
+      "acceptance_criteria": [
+        "Domain packages import no SQLite, HTTP framework, browser, Windows credential, or source-specific adapter packages.",
+        "The interfaces cover profile/source configuration, refresh, article persistence, library actions, ranking configuration/results, and credential references.",
+        "Content permission, scraper policy state, refresh partial failures, optional demographic controls, and ranking explanation components are represented explicitly.",
+        "Compile-time interface tests or focused unit tests demonstrate intended dependency inversion."
+      ],
+      "verification": [
+        "Run `go test ./internal/domain/... ./internal/application/...`.",
+        "Run a dependency/import check proving domain packages do not import infrastructure adapters.",
+        "Review public types against every entity and service in `assembly/generated/project_spec.json`."
+      ],
+      "proof_required": [
+        "Passing domain/application test output",
+        "A concise port inventory for downstream implementers"
+      ],
+      "edge_cases": [
+        "Missing publication timestamps or authors",
+        "Duplicate canonical URLs from different fetches",
+        "Optional demographics present but individually disabled",
+        "One source failing within an otherwise successful refresh"
+      ],
+      "non_goals": [
+        "Concrete database queries",
+        "Live HTTP fetching",
+        "Final ranking formulas or default weights"
+      ],
+      "estimated_size": "M",
+      "risk_tags": ["architecture", "privacy", "shared-contract"],
+      "handoff_notes": "Any later domain-contract change requires coordination with both implementation lanes and regenerated API fixtures where affected."
+    },
+    {
+      "id": "CONTRACT-003",
+      "title": "Specify the versioned local HTTP API",
+      "summary": "Replace the placeholder API description with the canonical OpenAPI contract for setup, profile, sources, credentials, refresh, feed, article detail, library state, and ranking settings.",
+      "objective": "Let frontend and backend work independently against one reviewed request/response and error contract.",
+      "context": "The API is local and loopback-only, but still needs stable validation, pagination, errors, refresh progress, permission states, and explanation shapes.",
+      "owner_role": "backend-core-implementer",
+      "lane": "shared-contract",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": [
+        "api/openapi.yaml",
+        "internal/httpapi/**",
+        "web/src/api/generated/**",
+        "scripts/**",
+        "test/fixtures/api/**"
+      ],
+      "depends_on": ["CONTRACT-002"],
+      "inputs": [
+        "Domain commands, queries, errors, and explanation types from CONTRACT-002",
+        "Frontend screens and backend services from assembly/generated/project_spec.json"
+      ],
+      "outputs": [
+        "OpenAPI 3 contract under api/openapi.yaml",
+        "Documented generation/check command for TypeScript bindings",
+        "Representative request, response, and error fixtures",
+        "Contract rules for pagination, timestamps, identifiers, optional fields, and credential write/delete behavior"
+      ],
+      "implementation_notes": [
+        "Use a versioned `/api/v1` prefix.",
+        "Never expose a credential read endpoint or return secret values after writes.",
+        "Make full-content permission and publisher-link fallback explicit in article responses.",
+        "Return score components and stable reason codes; presentation strings may be formed by the frontend without re-ranking."
+      ],
+      "acceptance_criteria": [
+        "The contract covers every accepted MVP screen and operation without exposing postponed features.",
+        "Mutations define validation errors and conflict/not-found behavior; list operations define stable cursor or page semantics.",
+        "Refresh start and status responses represent running, partial-success, success, and failure outcomes.",
+        "Credential responses reveal only configured/not-configured state and never secret values.",
+        "A deterministic command regenerates TypeScript bindings and a drift check fails when generated files differ."
+      ],
+      "verification": [
+        "Validate api/openapi.yaml with the selected OpenAPI validator.",
+        "Run the TypeScript client/type generator and its clean-tree drift check.",
+        "Compile representative Go handler interfaces and frontend fixture consumers against the contract.",
+        "Search response fixtures for secret-like values and prohibited full-content cases."
+      ],
+      "proof_required": [
+        "OpenAPI validation output",
+        "Generated-binding drift-check output",
+        "Endpoint-to-screen coverage matrix"
+      ],
+      "edge_cases": [
+        "Empty feed and final pagination page",
+        "Unknown source or article identifiers",
+        "Concurrent refresh request while one is running",
+        "Metadata-only articles that still contain an excerpt"
+      ],
+      "non_goals": [
+        "Authentication or remote network exposure",
+        "WebSocket or server-sent event updates",
+        "Actual handler or UI implementation"
+      ],
+      "estimated_size": "M",
+      "risk_tags": ["api", "shared-contract", "privacy"],
+      "handoff_notes": "Frontend and backend tasks must consume this contract; incompatible changes require coordinated versioning rather than silent drift."
+    },
+    {
+      "id": "CONTRACT-004",
+      "title": "Design the initial SQLite migration set",
+      "summary": "Define ordered, restart-safe migrations for all authoritative MVP data while excluding secrets and disposable browser state.",
+      "objective": "Provide a reviewed persistence contract before repositories, ingestion, and ranking implementations begin.",
+      "context": "SQLite stores profile, sources, article metadata/permitted content, library state, refresh history, token/index data, and ranking results. Windows Credential Manager stores secret values.",
+      "owner_role": "backend-core-implementer",
+      "lane": "shared-contract",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": [
+        "db/migrations/**",
+        "internal/domain/**",
+        "test/fixtures/db/**",
+        "scripts/**"
+      ],
+      "depends_on": ["CONTRACT-002"],
+      "inputs": [
+        "Domain entities and repository ports from CONTRACT-002",
+        "Persistence and credential boundaries in merged requirements"
+      ],
+      "outputs": [
+        "Numbered forward SQLite migrations",
+        "Schema constraints and indexes for source identity, article deduplication, feed queries, and refresh history",
+        "Migration runner contract including application schema version behavior",
+        "Temporary-database migration fixtures"
+      ],
+      "implementation_notes": [
+        "Prefer pure-Go SQLite compatibility unless a later accepted decision explicitly permits CGO.",
+        "Store credential reference identifiers and configured state only.",
+        "Retain raw fetched payloads only if a later task proves they are required and permitted; they are not part of this initial schema.",
+        "Choose stable time and boolean representations and document them."
+      ],
+      "acceptance_criteria": [
+        "Applying all migrations to an empty database creates every required MVP table, constraint, and index.",
+        "Re-running the migration command is safe and reports the current schema version.",
+        "The schema enforces stable article deduplication and valid source/library relationships.",
+        "No table or column stores API secret values, inferred demographic data, or unpermitted full content.",
+        "The design supports transactional refresh writes and ranked-feed query patterns."
+      ],
+      "verification": [
+        "Apply migrations to a temporary empty SQLite database.",
+        "Re-run migrations and assert idempotent version behavior.",
+        "Exercise foreign-key and unique-constraint failure fixtures.",
+        "Inspect the schema for forbidden credential-value columns."
+      ],
+      "proof_required": [
+        "Migration test output against a temporary database",
+        "Schema inventory with indexes and invariants"
+      ],
+      "edge_cases": [
+        "Interrupted migration transaction",
+        "Legacy database with an unknown newer schema version",
+        "Two source URLs resolving to the same canonical article URL",
+        "Nullable optional demographic and article metadata fields"
+      ],
+      "non_goals": [
+        "Repository query implementation",
+        "Database encryption",
+        "Cloud or multi-user schema support"
+      ],
+      "estimated_size": "M",
+      "risk_tags": ["database", "migration", "privacy"],
+      "handoff_notes": "Persistence implementations must use these migrations as the only schema authority and add future changes through new migration files."
+    },
+    {
+      "id": "CONTRACT-005",
+      "title": "Create deterministic cross-layer contract fixtures",
+      "summary": "Build shared fixture sets and automated contract checks that keep OpenAPI, domain semantics, SQLite migrations, and generated frontend bindings aligned.",
+      "objective": "Make contract acceptance observable before the two implementation lanes run concurrently.",
+      "context": "The accepted plan requires shared contracts and deterministic fixtures to be complete before parallel frontend/backend execution.",
+      "owner_role": "backend-core-implementer",
+      "lane": "shared-contract",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": [
+        "test/fixtures/**",
+        "tests/integration/**",
+        "api/openapi.yaml",
+        "web/src/api/generated/**",
+        "scripts/**",
+        "internal/domain/**",
+        "db/migrations/**"
+      ],
+      "depends_on": ["CONTRACT-003", "CONTRACT-004"],
+      "inputs": [
+        "Canonical OpenAPI contract from CONTRACT-003",
+        "Initial migrations from CONTRACT-004",
+        "Domain semantics from CONTRACT-002"
+      ],
+      "outputs": [
+        "Sanitized JSON fixtures for profile, sources, refresh states, feed pages, article permissions, library state, and ranking explanations",
+        "RSS/Atom, official-API-shaped, and approved-scraper-shaped ingestion fixtures with no live credentials",
+        "Contract verification command covering schema validation, generated-client drift, fixture decoding, and migration application",
+        "Shared contract handoff document for the backend and frontend lanes"
+      ],
+      "implementation_notes": [
+        "Use fictional or permissively reusable fixture content and clearly mark permission mode.",
+        "Include both positive and negative fixtures, especially secrets, restricted content, invalid weights, and partial refresh failure.",
+        "Make fixture timestamps and identifiers deterministic.",
+        "Do not contact live providers in contract verification."
+      ],
+      "acceptance_criteria": [
+        "One documented command validates OpenAPI, regenerates/checks frontend bindings, decodes all fixtures, and applies migrations to a temporary database.",
+        "Fixtures cover every API response family and each ingestion adapter shape planned for the MVP.",
+        "Negative fixtures prove secret values and unauthorized full content are rejected or omitted.",
+        "Backend and frontend implementers can consume the fixtures without editing shared contract files.",
+        "The independent reviewer records an explicit approval of the shared contract boundary before parallel lanes begin."
+      ],
+      "verification": [
+        "Run the shared contract verification command from a clean checkout.",
+        "Run `git diff --exit-code` after generated binding checks.",
+        "Validate negative fixtures fail for the documented reason.",
+        "Have the independent reviewer compare fixture coverage with the merged project specification."
+      ],
+      "proof_required": [
+        "Complete contract-check transcript",
+        "Fixture coverage inventory",
+        "Independent reviewer APPROVE decision"
+      ],
+      "edge_cases": [
+        "Unknown enum or reason-code values",
+        "Absent optional profile and article fields",
+        "Partial refresh with both successes and failures",
+        "Generated client changes after only formatting differences"
+      ],
+      "non_goals": [
+        "Live provider integration",
+        "Feature-complete backend or frontend behavior",
+        "Performance benchmarking"
+      ],
+      "estimated_size": "M",
+      "risk_tags": ["contract-drift", "parallelization", "verification"],
+      "handoff_notes": "This task is the explicit gate: dependent frontend and backend tasks may proceed in parallel only after its contract checks and reviewer approval pass."
+    }
+  ]
+}
