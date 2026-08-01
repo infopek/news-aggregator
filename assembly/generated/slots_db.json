@@ -1,0 +1,79 @@
+[
+  {
+    "slot_id": "backend-core-lane",
+    "role": "backend-core-implementer",
+    "status": "planned",
+    "inputs": [
+      "Merged requirements and planning package",
+      "Task Splitter assignment",
+      "Accepted shared-contract dependency"
+    ],
+    "outputs": [
+      "Go backend/core implementation PR",
+      "Tests, fixtures, migrations, and verification report"
+    ],
+    "allowed_actions": [
+      "Implement one assigned backend/core task within declared ownership",
+      "Run local verification and push an implementation branch",
+      "Request contract review before changing shared interfaces"
+    ],
+    "verification_requirements": [
+      "Relevant Go unit and integration tests",
+      "Contract checks and Windows smoke build where applicable",
+      "Independent reviewer approval before merge"
+    ],
+    "notes": "May run concurrently with the frontend lane only after shared OpenAPI/domain contracts needed by both lanes are accepted."
+  },
+  {
+    "slot_id": "frontend-lane",
+    "role": "frontend-implementer",
+    "status": "planned",
+    "inputs": [
+      "Merged requirements and planning package",
+      "Task Splitter assignment",
+      "Accepted OpenAPI contract and generated client"
+    ],
+    "outputs": [
+      "Vue PWA implementation PR",
+      "Component/browser tests and verification report"
+    ],
+    "allowed_actions": [
+      "Implement one assigned frontend task within declared ownership",
+      "Run local verification and push an implementation branch",
+      "Request contract changes from the shared-contract owner"
+    ],
+    "verification_requirements": [
+      "Frontend lint, typecheck, unit/component tests, and production build",
+      "Critical-path browser test where applicable",
+      "Independent reviewer approval before merge"
+    ],
+    "notes": "May run concurrently with the backend lane against accepted contracts and generated bindings; must not invent API behavior."
+  },
+  {
+    "slot_id": "review-gate",
+    "role": "independent-reviewer",
+    "status": "planned",
+    "inputs": [
+      "Implementation PR diff",
+      "Merged requirements and planning package",
+      "Task acceptance criteria",
+      "Implementer and CI proof"
+    ],
+    "outputs": [
+      "Explicit APPROVE or REJECT review",
+      "Evidence-backed findings and required corrections"
+    ],
+    "allowed_actions": [
+      "Read all scoped files and diffs",
+      "Run non-destructive verification",
+      "Approve compliant PRs",
+      "Reject PRs with blocking findings"
+    ],
+    "verification_requirements": [
+      "Check requirements, architecture, ownership, and task scope",
+      "Check tests, contracts, migrations, privacy, credentials, scraping, and content permissions",
+      "Require all blocking findings to be resolved before approval"
+    ],
+    "notes": "Mandatory gate for every implementation PR. Reviewer rejection blocks merge; reviewer does not merge PRs."
+  }
+]
