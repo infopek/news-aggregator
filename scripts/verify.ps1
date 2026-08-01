@@ -9,6 +9,9 @@ go vet ./...
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 go test ./...
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+.\scripts\migration-contract.ps1
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 npm --prefix web run lint
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 npm --prefix web run typecheck

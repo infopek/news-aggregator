@@ -1,6 +1,6 @@
 # Development commands
 
-Prerequisites: Go 1.24 or newer, Node.js 22 or newer, and npm 10 or newer. The build uses pure Go at this stage and does not require a C compiler.
+Prerequisites: Go 1.24 or newer, Node.js 22.12 or newer, and npm 10 or newer. The build uses pure Go at this stage and does not require a C compiler.
 
 Run from the repository root.
 
@@ -21,6 +21,15 @@ npm --prefix scripts ci
 ```
 
 Both scripts format-check Go, run Go static analysis and tests, lint/type-check/test/build the frontend, and build the Go command after Vite writes assets to `internal/webassets/dist`.
+
+## SQLite migration contract
+
+Run `./scripts/migration-contract.sh` or `.\scripts\migration-contract.ps1` to
+apply every migration to a temporary SQLite database and verify repeat runs,
+schema inventory, relationship/deduplication constraints, interrupted rollback,
+unsupported-newer-version rejection, and forbidden schema terms. The harness
+uses the Node.js 22 built-in SQLite binding only for contract verification; the
+application runtime remains pure Go and does not gain a SQLite dependency here.
 
 ## API contract
 
