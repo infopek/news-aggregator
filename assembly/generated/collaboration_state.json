@@ -70,6 +70,25 @@
       ],
       "notes": "Revision ba5683d resolved both P0 findings and received independent approval before merge.",
       "updated_at": "2026-08-01T17:37:12Z"
+    },
+    {
+      "task_id": "CONTRACT-003",
+      "assigned_to": "backend-core-agent",
+      "assignee_type": "local_ai",
+      "assignee_label": "Backend/Core Implementation Agent",
+      "status": "done",
+      "claimed_at": "2026-08-01T17:42:37Z",
+      "proof": [
+        {
+          "kind": "task_run",
+          "path": "assembly/generated/task_runs/CONTRACT-003-run-001.json",
+          "summary": "Versioned OpenAPI contract, deterministic TypeScript bindings, fixtures, and boundary checks submitted for independent review.",
+          "status": "accepted",
+          "recorded_at": "2026-08-01T17:52:46Z"
+        }
+      ],
+      "notes": "Revision afe7a85 resolved all P0/P1 findings and received independent approval before merge.",
+      "updated_at": "2026-08-01T18:05:24Z"
     }
   ],
   "task_claims": [
@@ -89,6 +108,15 @@
       "status": "released",
       "claimed_at": "2026-08-01T17:26:09Z",
       "released_at": "2026-08-01T17:37:12Z",
+      "notes": "Released after revision approval."
+    },
+    {
+      "claim_id": "contract-003-run-001-claim",
+      "task_id": "CONTRACT-003",
+      "actor_id": "backend-core-agent",
+      "status": "released",
+      "claimed_at": "2026-08-01T17:42:37Z",
+      "released_at": "2026-08-01T18:05:24Z",
       "notes": "Released after revision approval."
     }
   ],
@@ -141,6 +169,33 @@
       ],
       "status": "accepted",
       "submitted_at": "2026-08-01T17:30:29Z"
+    },
+    {
+      "submission_id": "contract-003-run-001-submission",
+      "task_id": "CONTRACT-003",
+      "actor_id": "backend-core-agent",
+      "artifact_paths": [
+        "api/openapi.yaml",
+        "internal/httpapi",
+        "web/src/api/generated",
+        "scripts/generate-api-types.mjs",
+        "scripts/api-contract.sh",
+        "scripts/api-contract.ps1",
+        "test/fixtures/api",
+        "assembly/generated/task_runs/CONTRACT-003-run-001.json"
+      ],
+      "summary": "Versioned loopback HTTP API contract with deterministic TypeScript generation and representative request/response fixtures.",
+      "proof": [
+        {
+          "kind": "task_run",
+          "path": "assembly/generated/task_runs/CONTRACT-003-run-001.json",
+          "summary": "Task run records contract, drift, fixture, Go, frontend, full verification, and Windows build evidence.",
+          "status": "accepted",
+          "recorded_at": "2026-08-01T17:52:46Z"
+        }
+      ],
+      "status": "accepted",
+      "submitted_at": "2026-08-01T17:52:46Z"
     }
   ],
   "reviews": [
@@ -183,6 +238,34 @@
         "Non-blocking: later implementations must sanitize error summaries, avoid retaining callback secret bytes, and validate ranking-result bounds and consistency."
       ],
       "reviewed_at": "2026-08-01T17:37:12Z"
+    },
+    {
+      "review_id": "contract-003-review-001",
+      "submission_id": "contract-003-run-001-submission",
+      "reviewer_actor_id": "reviewer-agent",
+      "status": "changes_requested",
+      "findings": [
+        "P0: Generated mutation request types omitted required resource path identifiers.",
+        "P0: ArticleDetail allowed full content when contentPermission was metadata_only.",
+        "P0: SourceWrite allowed mismatched source kinds, adapter configurations, and unsafe enabled-scraper policy states.",
+        "P1: Validation was shallow and frontend fixtures were not compiled against generated types.",
+        "P1: The endpoint-to-screen coverage matrix was absent and two source reads lacked a compiled handler boundary."
+      ],
+      "reviewed_at": "2026-08-01T18:03:04Z"
+    },
+    {
+      "review_id": "contract-003-review-002",
+      "submission_id": "contract-003-run-001-submission",
+      "reviewer_actor_id": "reviewer-agent",
+      "status": "approved",
+      "findings": [
+        "All prior P0 and P1 findings are resolved in revision afe7a85.",
+        "Generated operations carry typed path, query, and body inputs with compile-time assertions.",
+        "ArticleDetail discriminates permissions and rejects metadata-only content leakage.",
+        "SourceWrite discriminates source kind/configuration and enforces approved review metadata for enabled scrapers.",
+        "Pinned Redocly validation, constraint-aware fixtures, typed consumers, negative fixtures, endpoint coverage, and compiled SourceQueries boundary passed review."
+      ],
+      "reviewed_at": "2026-08-01T18:05:24Z"
     }
   ],
   "audit_events": [
@@ -313,6 +396,78 @@
       "target_id": "CONTRACT-002",
       "created_at": "2026-08-01T17:37:12Z",
       "details": "Marked CONTRACT-002 done after independent approval."
+    },
+    {
+      "event_id": "contract-003-claim-created",
+      "actor_id": "backend-core-agent",
+      "event_type": "claim_created",
+      "target_id": "contract-003-run-001-claim",
+      "created_at": "2026-08-01T17:42:37Z",
+      "details": "Claimed CONTRACT-003 on ai/task-contract-003."
+    },
+    {
+      "event_id": "contract-003-assignment-started",
+      "actor_id": "backend-core-agent",
+      "event_type": "assignment_updated",
+      "target_id": "CONTRACT-003",
+      "created_at": "2026-08-01T17:42:37Z",
+      "details": "Assignment moved to in_progress."
+    },
+    {
+      "event_id": "contract-003-artifact-submitted",
+      "actor_id": "backend-core-agent",
+      "event_type": "artifact_submitted",
+      "target_id": "contract-003-run-001-submission",
+      "created_at": "2026-08-01T17:52:46Z",
+      "details": "Submitted CONTRACT-003 implementation and proof for independent review."
+    },
+    {
+      "event_id": "contract-003-assignment-review",
+      "actor_id": "backend-core-agent",
+      "event_type": "assignment_updated",
+      "target_id": "CONTRACT-003",
+      "created_at": "2026-08-01T17:52:46Z",
+      "details": "Assignment moved to review."
+    },
+    {
+      "event_id": "contract-003-review-changes-requested",
+      "actor_id": "reviewer-agent",
+      "event_type": "review_added",
+      "target_id": "contract-003-review-001",
+      "created_at": "2026-08-01T18:03:04Z",
+      "details": "Reviewer rejected revision 1 with three P0 and two P1 contract findings."
+    },
+    {
+      "event_id": "contract-003-revision-submitted",
+      "actor_id": "backend-core-agent",
+      "event_type": "artifact_submitted",
+      "target_id": "contract-003-run-001-submission",
+      "created_at": "2026-08-01T18:03:04Z",
+      "details": "Submitted typed request inputs, discriminated privacy schemas, standards validation, negative fixtures, compiled consumers, and coverage matrix for re-review."
+    },
+    {
+      "event_id": "contract-003-review-approved",
+      "actor_id": "reviewer-agent",
+      "event_type": "review_added",
+      "target_id": "contract-003-review-002",
+      "created_at": "2026-08-01T18:05:24Z",
+      "details": "Independent reviewer approved revision afe7a85 after all P0 and P1 findings were resolved."
+    },
+    {
+      "event_id": "contract-003-claim-released",
+      "actor_id": "backend-core-agent",
+      "event_type": "claim_released",
+      "target_id": "contract-003-run-001-claim",
+      "created_at": "2026-08-01T18:05:24Z",
+      "details": "Released claim after independent approval."
+    },
+    {
+      "event_id": "contract-003-completed",
+      "actor_id": "reviewer-agent",
+      "event_type": "status_changed",
+      "target_id": "CONTRACT-003",
+      "created_at": "2026-08-01T18:05:24Z",
+      "details": "Marked CONTRACT-003 done after independent approval."
     }
   ]
 }

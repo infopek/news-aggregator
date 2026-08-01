@@ -1,0 +1,18 @@
+{
+  "article": {
+    "id": "article-unsafe",
+    "sourceId": "source-1",
+    "canonicalUrl": "https://example.com/articles/restricted",
+    "title": "Restricted article",
+    "author": "Example Author",
+    "publishedAt": "2026-08-01T10:00:00Z",
+    "fetchedAt": "2026-08-01T10:05:00Z",
+    "excerpt": "Metadata may retain a permitted excerpt.",
+    "contentPermission": "metadata_only",
+    "language": "en",
+    "topics": [],
+    "library": { "articleId": "article-unsafe", "readAt": null, "savedAt": null, "hiddenAt": null },
+    "ranking": { "score": 0.1, "contributions": [], "algorithmVersion": "hybrid-v1", "calculatedAt": "2026-08-01T10:05:01Z" }
+  },
+  "fullContent": "This must never cross the API boundary."
+}

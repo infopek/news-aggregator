@@ -1,0 +1,10 @@
+{
+  "id": "refresh-1",
+  "status": "partial_success",
+  "startedAt": "2026-08-01T12:00:00Z",
+  "finishedAt": "2026-08-01T12:00:04Z",
+  "outcomes": [
+    { "sourceId": "source-1", "fetched": 10, "inserted": 8, "updated": 1, "skipped": 1, "failed": 0, "errorCode": null, "errorSummary": null },
+    { "sourceId": "source-2", "fetched": 0, "inserted": 0, "updated": 0, "skipped": 0, "failed": 1, "errorCode": "SOURCE_UNAVAILABLE", "errorSummary": "The source could not be reached." }
+  ]
+}

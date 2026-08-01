@@ -1,0 +1,759 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "News Aggregator Local API",
+    "version": "0.1.0",
+    "description": "Loopback-only API for the local News Aggregator PWA. No authentication or remote exposure is defined."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:{port}",
+      "description": "Local application process",
+      "variables": {
+        "port": { "default": "8787" }
+      }
+    }
+  ],
+  "tags": [
+    { "name": "system" },
+    { "name": "profile" },
+    { "name": "sources" },
+    { "name": "refresh" },
+    { "name": "feed" },
+    { "name": "library" }
+  ],
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "operationId": "getHealth",
+        "tags": ["system"],
+        "x-request-type": null,
+        "x-response-type": "Health",
+        "responses": {
+          "200": { "$ref": "#/components/responses/HealthResponse" }
+        }
+      }
+    },
+    "/api/v1/profile": {
+      "get": {
+        "operationId": "getProfile",
+        "tags": ["profile"],
+        "x-request-type": null,
+        "x-response-type": "Profile",
+        "responses": {
+          "200": { "description": "Current local profile", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Profile" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "operationId": "putProfile",
+        "tags": ["profile"],
+        "x-request-type": "ProfileWrite",
+        "x-response-type": "Profile",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProfileWrite" } } } },
+        "responses": {
+          "200": { "description": "Saved profile", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Profile" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/ranking-config": {
+      "get": {
+        "operationId": "getRankingConfig",
+        "tags": ["profile"],
+        "x-request-type": null,
+        "x-response-type": "RankingConfiguration",
+        "responses": {
+          "200": { "description": "Ranking configuration", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RankingConfiguration" } } } }
+        }
+      },
+      "put": {
+        "operationId": "putRankingConfig",
+        "tags": ["profile"],
+        "x-request-type": "RankingConfigurationWrite",
+        "x-response-type": "RankingConfiguration",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RankingConfigurationWrite" } } } },
+        "responses": {
+          "200": { "description": "Saved ranking configuration", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RankingConfiguration" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/starter-sources": {
+      "get": {
+        "operationId": "listStarterSources",
+        "tags": ["sources"],
+        "x-request-type": null,
+        "x-response-type": "SourceList",
+        "responses": {
+          "200": { "description": "Editable starter source catalog", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SourceList" } } } }
+        }
+      }
+    },
+    "/api/v1/sources": {
+      "get": {
+        "operationId": "listSources",
+        "tags": ["sources"],
+        "x-request-type": null,
+        "x-response-type": "SourceList",
+        "responses": {
+          "200": { "description": "Configured sources", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SourceList" } } } }
+        }
+      },
+      "post": {
+        "operationId": "createSource",
+        "tags": ["sources"],
+        "x-request-type": "SourceWrite",
+        "x-response-type": "Source",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SourceWrite" } } } },
+        "responses": {
+          "201": { "description": "Created source", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Source" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/sources/{sourceId}": {
+      "parameters": [
+        { "$ref": "#/components/parameters/SourceID" }
+      ],
+      "get": {
+        "operationId": "getSource",
+        "tags": ["sources"],
+        "x-request-type": "SourceIDRequest",
+        "x-response-type": "Source",
+        "responses": {
+          "200": { "description": "Configured source", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Source" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "patch": {
+        "operationId": "updateSource",
+        "tags": ["sources"],
+        "x-request-type": "SourceWrite",
+        "x-response-type": "Source",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SourceWrite" } } } },
+        "responses": {
+          "200": { "description": "Updated source", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Source" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      },
+      "delete": {
+        "operationId": "deleteSource",
+        "tags": ["sources"],
+        "x-request-type": "SourceIDRequest",
+        "x-response-type": null,
+        "responses": {
+          "204": { "description": "Source deleted" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/api/v1/sources/{sourceId}/credential": {
+      "parameters": [
+        { "$ref": "#/components/parameters/SourceID" }
+      ],
+      "put": {
+        "operationId": "putSourceCredential",
+        "tags": ["sources"],
+        "x-request-type": "CredentialWrite",
+        "x-response-type": "CredentialStatus",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CredentialWrite" } } } },
+        "responses": {
+          "200": { "description": "Credential configured", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CredentialStatus" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      },
+      "delete": {
+        "operationId": "deleteSourceCredential",
+        "tags": ["sources"],
+        "x-request-type": "SourceIDRequest",
+        "x-response-type": "CredentialStatus",
+        "responses": {
+          "200": { "description": "Credential removed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CredentialStatus" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
+    },
+    "/api/v1/refresh": {
+      "post": {
+        "operationId": "startRefresh",
+        "tags": ["refresh"],
+        "x-request-type": null,
+        "x-response-type": "RefreshRun",
+        "responses": {
+          "202": { "description": "Refresh started", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RefreshRun" } } } },
+          "409": { "$ref": "#/components/responses/RefreshConflict" },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
+    },
+    "/api/v1/refresh/{refreshId}": {
+      "get": {
+        "operationId": "getRefresh",
+        "tags": ["refresh"],
+        "x-request-type": "RefreshIDRequest",
+        "x-response-type": "RefreshRun",
+        "parameters": [
+          { "$ref": "#/components/parameters/RefreshID" }
+        ],
+        "responses": {
+          "200": { "description": "Refresh status", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RefreshRun" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/v1/feed": {
+      "get": {
+        "operationId": "getFeed",
+        "tags": ["feed"],
+        "x-request-type": "FeedQuery",
+        "x-response-type": "FeedPage",
+        "parameters": [
+          { "name": "cursor", "in": "query", "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 30 } },
+          { "name": "sourceId", "in": "query", "schema": { "type": "array", "items": { "type": "string" } }, "explode": true },
+          { "name": "read", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "saved", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "includeHidden", "in": "query", "schema": { "type": "boolean", "default": false } },
+          { "name": "text", "in": "query", "schema": { "type": "string", "maxLength": 200 } },
+          { "name": "publishedAfter", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "publishedBefore", "in": "query", "schema": { "type": "string", "format": "date-time" } }
+        ],
+        "responses": {
+          "200": { "description": "Stable cursor-paginated ranked feed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FeedPage" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/api/v1/articles/{articleId}": {
+      "get": {
+        "operationId": "getArticle",
+        "tags": ["feed"],
+        "x-request-type": "ArticleIDRequest",
+        "x-response-type": "ArticleDetail",
+        "parameters": [
+          { "$ref": "#/components/parameters/ArticleID" }
+        ],
+        "responses": {
+          "200": { "description": "Permission-aware article detail", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ArticleDetail" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/v1/articles/{articleId}/library-state": {
+      "patch": {
+        "operationId": "patchLibraryState",
+        "tags": ["library"],
+        "x-request-type": "LibraryStateWrite",
+        "x-response-type": "LibraryState",
+        "parameters": [
+          { "$ref": "#/components/parameters/ArticleID" }
+        ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LibraryStateWrite" } } } },
+        "responses": {
+          "200": { "description": "Authoritative library state", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LibraryState" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "SourceID": { "name": "sourceId", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1 } },
+      "ArticleID": { "name": "articleId", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1 } },
+      "RefreshID": { "name": "refreshId", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1 } }
+    },
+    "responses": {
+      "HealthResponse": { "description": "Process is ready", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Health" } } } },
+      "ValidationError": { "description": "Request validation failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/APIError" } } } },
+      "NotFound": { "description": "Resource not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/APIError" } } } },
+      "Conflict": { "description": "Current state conflicts with the request", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/APIError" } } } },
+      "RefreshConflict": { "description": "A refresh is already active", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/APIError" } } } },
+      "Unavailable": { "description": "A local dependency is unavailable", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/APIError" } } } }
+    },
+    "schemas": {
+      "Health": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["status", "version"],
+        "properties": {
+          "status": { "type": "string", "enum": ["ready"] },
+          "version": { "type": "string" }
+        }
+      },
+      "OptionalStringSignal": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["present", "enabled"],
+        "properties": {
+          "value": { "type": ["string", "null"] },
+          "present": { "type": "boolean" },
+          "enabled": { "type": "boolean" }
+        }
+      },
+      "OptionalIntegerSignal": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["present", "enabled"],
+        "properties": {
+          "value": { "type": ["integer", "null"], "minimum": 0, "maximum": 130 },
+          "present": { "type": "boolean" },
+          "enabled": { "type": "boolean" }
+        }
+      },
+      "LocationValue": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["country", "region", "city"],
+        "properties": {
+          "country": { "type": "string", "minLength": 1 },
+          "region": { "type": "string", "minLength": 1 },
+          "city": { "$ref": "#/components/schemas/OptionalStringSignal" }
+        }
+      },
+      "OptionalLocationSignal": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["present", "enabled"],
+        "properties": {
+          "value": { "anyOf": [{ "$ref": "#/components/schemas/LocationValue" }, { "type": "null" }] },
+          "present": { "type": "boolean" },
+          "enabled": { "type": "boolean" }
+        }
+      },
+      "WeightedInterest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "weight"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "weight": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      },
+      "ProfileWrite": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["interests", "preferredSourceIds", "location", "age", "gender"],
+        "properties": {
+          "interests": { "type": "array", "items": { "$ref": "#/components/schemas/WeightedInterest" } },
+          "preferredSourceIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+          "location": { "$ref": "#/components/schemas/OptionalLocationSignal" },
+          "age": { "$ref": "#/components/schemas/OptionalIntegerSignal" },
+          "gender": { "$ref": "#/components/schemas/OptionalStringSignal" }
+        }
+      },
+      "Profile": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "interests", "preferredSourceIds", "location", "age", "gender", "updatedAt"],
+        "properties": {
+          "id": { "type": "string", "const": "local-profile" },
+          "interests": { "type": "array", "items": { "$ref": "#/components/schemas/WeightedInterest" } },
+          "preferredSourceIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+          "location": { "$ref": "#/components/schemas/OptionalLocationSignal" },
+          "age": { "$ref": "#/components/schemas/OptionalIntegerSignal" },
+          "gender": { "$ref": "#/components/schemas/OptionalStringSignal" },
+          "updatedAt": { "type": "string", "format": "date-time", "readOnly": true }
+        }
+      },
+      "SignalWeight": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["enabled", "weight"],
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "weight": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      },
+      "RankingConfigurationWrite": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["recency", "interest", "sourcePreference", "behavior", "location", "age", "gender", "textSimilarity"],
+        "properties": {
+          "recency": { "$ref": "#/components/schemas/SignalWeight" },
+          "interest": { "$ref": "#/components/schemas/SignalWeight" },
+          "sourcePreference": { "$ref": "#/components/schemas/SignalWeight" },
+          "behavior": { "$ref": "#/components/schemas/SignalWeight" },
+          "location": { "$ref": "#/components/schemas/SignalWeight" },
+          "age": { "$ref": "#/components/schemas/SignalWeight" },
+          "gender": { "$ref": "#/components/schemas/SignalWeight" },
+          "textSimilarity": { "$ref": "#/components/schemas/SignalWeight" }
+        }
+      },
+      "RankingConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["recency", "interest", "sourcePreference", "behavior", "location", "age", "gender", "textSimilarity", "perDemographicCap", "totalDemographicCap", "normalizationVersion"],
+        "properties": {
+          "recency": { "$ref": "#/components/schemas/SignalWeight" },
+          "interest": { "$ref": "#/components/schemas/SignalWeight" },
+          "sourcePreference": { "$ref": "#/components/schemas/SignalWeight" },
+          "behavior": { "$ref": "#/components/schemas/SignalWeight" },
+          "location": { "$ref": "#/components/schemas/SignalWeight" },
+          "age": { "$ref": "#/components/schemas/SignalWeight" },
+          "gender": { "$ref": "#/components/schemas/SignalWeight" },
+          "textSimilarity": { "$ref": "#/components/schemas/SignalWeight" },
+          "perDemographicCap": { "type": "number", "minimum": 0, "maximum": 1, "readOnly": true },
+          "totalDemographicCap": { "type": "number", "minimum": 0, "maximum": 1, "readOnly": true },
+          "normalizationVersion": { "type": "string", "readOnly": true }
+        }
+      },
+      "FeedAdapterConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["format"],
+        "properties": { "format": { "type": "string", "enum": ["auto", "rss", "atom"] } }
+      },
+      "APIAdapterConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["provider", "pageSize"],
+        "properties": {
+          "provider": { "type": "string", "minLength": 1 },
+          "pageSize": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "ScraperAdapterConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["articleSelector", "titleSelector"],
+        "properties": {
+          "articleSelector": { "type": "string", "minLength": 1 },
+          "titleSelector": { "type": "string", "minLength": 1 },
+          "excerptSelector": { "type": "string" },
+          "contentSelector": { "type": "string" }
+        }
+      },
+      "ScraperPolicy": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["status", "termsUrl", "robotsUrl", "reviewedAt", "reviewNotes"],
+        "properties": {
+          "status": { "type": "string", "enum": ["not_applicable", "pending", "approved", "rejected"] },
+          "termsUrl": { "type": ["string", "null"], "format": "uri" },
+          "robotsUrl": { "type": ["string", "null"], "format": "uri" },
+          "reviewedAt": { "type": ["string", "null"], "format": "date-time" },
+          "reviewNotes": { "type": ["string", "null"] }
+        }
+      },
+      "NotApplicableScraperPolicy": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ScraperPolicy" },
+          {
+            "type": "object",
+            "required": ["status", "termsUrl", "robotsUrl", "reviewedAt", "reviewNotes"],
+            "properties": {
+              "status": { "const": "not_applicable" },
+              "termsUrl": { "type": "null" },
+              "robotsUrl": { "type": "null" },
+              "reviewedAt": { "type": "null" },
+              "reviewNotes": { "type": "null" }
+            }
+          }
+        ]
+      },
+      "ApprovedScraperPolicy": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ScraperPolicy" },
+          {
+            "type": "object",
+            "required": ["status", "reviewedAt"],
+            "properties": {
+              "status": { "const": "approved" },
+              "reviewedAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        ]
+      },
+      "SourceWrite": {
+        "oneOf": [
+          { "$ref": "#/components/schemas/FeedSourceWrite" },
+          { "$ref": "#/components/schemas/APISourceWrite" },
+          { "$ref": "#/components/schemas/DisabledScraperSourceWrite" },
+          { "$ref": "#/components/schemas/EnabledScraperSourceWrite" }
+        ]
+      },
+      "SourceWriteBase": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "url", "kind", "enabled", "contentPermission", "adapterConfig", "scraperPolicy"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "url": { "type": "string", "format": "uri" },
+          "kind": { "type": "string", "enum": ["feed", "api", "scraper"] },
+          "enabled": { "type": "boolean" },
+          "contentPermission": { "type": "string", "enum": ["metadata_only", "full_content_allowed"] },
+          "adapterConfig": { "oneOf": [
+            { "$ref": "#/components/schemas/FeedAdapterConfiguration" },
+            { "$ref": "#/components/schemas/APIAdapterConfiguration" },
+            { "$ref": "#/components/schemas/ScraperAdapterConfiguration" }
+          ] },
+          "scraperPolicy": { "$ref": "#/components/schemas/ScraperPolicy" }
+        }
+      },
+      "FeedSourceWrite": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SourceWriteBase" },
+          { "type": "object", "properties": {
+            "kind": { "const": "feed" },
+            "adapterConfig": { "$ref": "#/components/schemas/FeedAdapterConfiguration" },
+            "scraperPolicy": { "$ref": "#/components/schemas/NotApplicableScraperPolicy" }
+          } }
+        ]
+      },
+      "APISourceWrite": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SourceWriteBase" },
+          { "type": "object", "properties": {
+            "kind": { "const": "api" },
+            "adapterConfig": { "$ref": "#/components/schemas/APIAdapterConfiguration" },
+            "scraperPolicy": { "$ref": "#/components/schemas/NotApplicableScraperPolicy" }
+          } }
+        ]
+      },
+      "DisabledScraperSourceWrite": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SourceWriteBase" },
+          { "type": "object", "properties": {
+            "kind": { "const": "scraper" },
+            "enabled": { "const": false },
+            "adapterConfig": { "$ref": "#/components/schemas/ScraperAdapterConfiguration" }
+          } }
+        ]
+      },
+      "EnabledScraperSourceWrite": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SourceWriteBase" },
+          { "type": "object", "properties": {
+            "kind": { "const": "scraper" },
+            "enabled": { "const": true },
+            "adapterConfig": { "$ref": "#/components/schemas/ScraperAdapterConfiguration" },
+            "scraperPolicy": { "$ref": "#/components/schemas/ApprovedScraperPolicy" }
+          } }
+        ]
+      },
+      "Source": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "url", "kind", "enabled", "contentPermission", "adapterConfig", "scraperPolicy", "credentialConfigured", "lastSuccessAt", "lastError", "retryAfter"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "url": { "type": "string", "format": "uri" },
+          "kind": { "type": "string", "enum": ["feed", "api", "scraper"] },
+          "enabled": { "type": "boolean" },
+          "contentPermission": { "type": "string", "enum": ["metadata_only", "full_content_allowed"] },
+          "adapterConfig": { "oneOf": [
+            { "$ref": "#/components/schemas/FeedAdapterConfiguration" },
+            { "$ref": "#/components/schemas/APIAdapterConfiguration" },
+            { "$ref": "#/components/schemas/ScraperAdapterConfiguration" }
+          ] },
+          "scraperPolicy": { "$ref": "#/components/schemas/ScraperPolicy" },
+          "credentialConfigured": { "type": "boolean", "readOnly": true },
+          "lastSuccessAt": { "type": ["string", "null"], "format": "date-time", "readOnly": true },
+          "lastError": { "type": ["string", "null"], "readOnly": true },
+          "retryAfter": { "type": ["string", "null"], "format": "date-time", "readOnly": true }
+        }
+      },
+      "SourceList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items"],
+        "properties": { "items": { "type": "array", "items": { "$ref": "#/components/schemas/Source" } } }
+      },
+      "CredentialWrite": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["secret"],
+        "properties": { "secret": { "type": "string", "minLength": 1, "writeOnly": true } }
+      },
+      "CredentialStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["configured"],
+        "properties": { "configured": { "type": "boolean", "readOnly": true } }
+      },
+      "SourceRefreshOutcome": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sourceId", "fetched", "inserted", "updated", "skipped", "failed", "errorCode", "errorSummary"],
+        "properties": {
+          "sourceId": { "type": "string" },
+          "fetched": { "type": "integer", "minimum": 0 },
+          "inserted": { "type": "integer", "minimum": 0 },
+          "updated": { "type": "integer", "minimum": 0 },
+          "skipped": { "type": "integer", "minimum": 0 },
+          "failed": { "type": "integer", "minimum": 0 },
+          "errorCode": { "type": ["string", "null"] },
+          "errorSummary": { "type": ["string", "null"] }
+        }
+      },
+      "RefreshRun": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "startedAt", "finishedAt", "outcomes"],
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "type": "string", "enum": ["running", "succeeded", "partial_success", "failed", "cancelled"] },
+          "startedAt": { "type": "string", "format": "date-time" },
+          "finishedAt": { "type": ["string", "null"], "format": "date-time" },
+          "outcomes": { "type": "array", "items": { "$ref": "#/components/schemas/SourceRefreshOutcome" } }
+        }
+      },
+      "LibraryState": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["articleId", "readAt", "savedAt", "hiddenAt"],
+        "properties": {
+          "articleId": { "type": "string" },
+          "readAt": { "type": ["string", "null"], "format": "date-time" },
+          "savedAt": { "type": ["string", "null"], "format": "date-time" },
+          "hiddenAt": { "type": ["string", "null"], "format": "date-time" }
+        }
+      },
+      "LibraryStateWrite": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "read": { "type": "boolean" },
+          "saved": { "type": "boolean" },
+          "hidden": { "type": "boolean" }
+        }
+      },
+      "ScoreContribution": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["signal", "rawScore", "weight", "weightedScore", "reasonCode", "reasonValues"],
+        "properties": {
+          "signal": { "type": "string", "enum": ["recency", "interest", "source_preference", "behavior", "location", "age", "gender", "text_similarity"] },
+          "rawScore": { "type": "number", "minimum": 0, "maximum": 1 },
+          "weight": { "type": "number", "minimum": 0, "maximum": 1 },
+          "weightedScore": { "type": "number", "minimum": 0, "maximum": 1 },
+          "reasonCode": { "type": "string", "minLength": 1 },
+          "reasonValues": { "type": "object", "additionalProperties": { "type": "string" } }
+        }
+      },
+      "RankingResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["score", "contributions", "algorithmVersion", "calculatedAt"],
+        "properties": {
+          "score": { "type": "number", "minimum": 0, "maximum": 1 },
+          "contributions": { "type": "array", "items": { "$ref": "#/components/schemas/ScoreContribution" } },
+          "algorithmVersion": { "type": "string" },
+          "calculatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ArticleSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "sourceId", "canonicalUrl", "title", "author", "publishedAt", "fetchedAt", "excerpt", "contentPermission", "language", "topics", "library", "ranking"],
+        "properties": {
+          "id": { "type": "string" },
+          "sourceId": { "type": "string" },
+          "canonicalUrl": { "type": "string", "format": "uri" },
+          "title": { "type": "string" },
+          "author": { "type": "string" },
+          "publishedAt": { "type": ["string", "null"], "format": "date-time" },
+          "fetchedAt": { "type": "string", "format": "date-time" },
+          "excerpt": { "type": "string" },
+          "contentPermission": { "type": "string", "enum": ["metadata_only", "full_content_allowed"] },
+          "language": { "type": "string" },
+          "topics": { "type": "array", "items": { "type": "string" } },
+          "library": { "$ref": "#/components/schemas/LibraryState" },
+          "ranking": { "$ref": "#/components/schemas/RankingResult" }
+        }
+      },
+      "ArticleDetail": {
+        "oneOf": [
+          { "$ref": "#/components/schemas/MetadataOnlyArticleDetail" },
+          { "$ref": "#/components/schemas/FullContentArticleDetail" }
+        ]
+      },
+      "MetadataOnlyArticleDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["article", "fullContent"],
+        "properties": {
+          "article": { "allOf": [
+            { "$ref": "#/components/schemas/ArticleSummary" },
+            { "type": "object", "properties": { "contentPermission": { "const": "metadata_only" } } }
+          ] },
+          "fullContent": { "type": "null", "description": "Restricted content is never returned." }
+        }
+      },
+      "FullContentArticleDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["article", "fullContent"],
+        "properties": {
+          "article": { "allOf": [
+            { "$ref": "#/components/schemas/ArticleSummary" },
+            { "type": "object", "properties": { "contentPermission": { "const": "full_content_allowed" } } }
+          ] },
+          "fullContent": { "type": "string", "description": "Sanitized content returned only when explicitly permitted." }
+        }
+      },
+      "FeedPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "nextCursor"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/ArticleSummary" } },
+          "nextCursor": { "type": ["string", "null"], "description": "Opaque stable cursor; null means final page." }
+        }
+      },
+      "FeedQuery": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "cursor": { "type": "string" },
+          "limit": { "type": "integer", "minimum": 1, "maximum": 100 },
+          "sourceId": { "type": "array", "items": { "type": "string" } },
+          "read": { "type": "boolean" },
+          "saved": { "type": "boolean" },
+          "includeHidden": { "type": "boolean" },
+          "text": { "type": "string" },
+          "publishedAfter": { "type": "string", "format": "date-time" },
+          "publishedBefore": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SourceIDRequest": { "type": "object", "additionalProperties": false, "required": ["sourceId"], "properties": { "sourceId": { "type": "string" } } },
+      "ArticleIDRequest": { "type": "object", "additionalProperties": false, "required": ["articleId"], "properties": { "articleId": { "type": "string" } } },
+      "RefreshIDRequest": { "type": "object", "additionalProperties": false, "required": ["refreshId"], "properties": { "refreshId": { "type": "string" } } },
+      "APIErrorField": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "code", "message"],
+        "properties": {
+          "path": { "type": "string" },
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      },
+      "APIError": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "message", "correlationId", "fields"],
+        "properties": {
+          "code": { "type": "string", "enum": ["validation_failed", "not_found", "conflict", "refresh_active", "unsupported_platform", "unavailable", "internal_error"] },
+          "message": { "type": "string" },
+          "correlationId": { "type": "string" },
+          "fields": { "type": "array", "items": { "$ref": "#/components/schemas/APIErrorField" } }
+        }
+      }
+    }
+  }
+}
