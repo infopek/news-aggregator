@@ -1,0 +1,23 @@
+{
+  "items": [{
+    "id": "article-1",
+    "sourceId": "source-1",
+    "canonicalUrl": "https://example.com/articles/local-ranking",
+    "title": "Local ranking explained",
+    "author": "Example Author",
+    "publishedAt": "2026-08-01T10:00:00Z",
+    "fetchedAt": "2026-08-01T10:05:00Z",
+    "excerpt": "How an explainable local ranker orders the feed.",
+    "contentPermission": "metadata_only",
+    "language": "en",
+    "topics": ["technology"],
+    "library": { "articleId": "article-1", "readAt": null, "savedAt": "2026-08-01T11:00:00Z", "hiddenAt": null },
+    "ranking": {
+      "score": 0.84,
+      "contributions": [{ "signal": "interest", "rawScore": 0.9, "weight": 0.5, "weightedScore": 0.45, "reasonCode": "INTEREST_MATCH", "reasonValues": { "topic": "technology" } }],
+      "algorithmVersion": "hybrid-v1",
+      "calculatedAt": "2026-08-01T10:05:01Z"
+    }
+  }],
+  "nextCursor": "eyJvZmZzZXQiOjF9"
+}

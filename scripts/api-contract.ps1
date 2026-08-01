@@ -1,0 +1,10 @@
+$ErrorActionPreference = "Stop"
+
+node scripts/generate-api-types.mjs --check
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+go test ./internal/httpapi/...
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+npm --prefix web run typecheck
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+npm --prefix web run test
+exit $LASTEXITCODE

@@ -1,0 +1,10 @@
+{
+  "profile.json": "Profile",
+  "source.json": "Source",
+  "refresh-partial.json": "RefreshRun",
+  "feed-empty.json": "FeedPage",
+  "feed-page.json": "FeedPage",
+  "article-metadata.json": "ArticleDetail",
+  "validation-error.json": "APIError",
+  "credential-status.json": "CredentialStatus"
+}

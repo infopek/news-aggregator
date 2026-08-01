@@ -70,6 +70,25 @@
       ],
       "notes": "Revision ba5683d resolved both P0 findings and received independent approval before merge.",
       "updated_at": "2026-08-01T17:37:12Z"
+    },
+    {
+      "task_id": "CONTRACT-003",
+      "assigned_to": "backend-core-agent",
+      "assignee_type": "local_ai",
+      "assignee_label": "Backend/Core Implementation Agent",
+      "status": "review",
+      "claimed_at": "2026-08-01T17:42:37Z",
+      "proof": [
+        {
+          "kind": "task_run",
+          "path": "assembly/generated/task_runs/CONTRACT-003-run-001.json",
+          "summary": "Versioned OpenAPI contract, deterministic TypeScript bindings, fixtures, and boundary checks submitted for independent review.",
+          "status": "needs_review",
+          "recorded_at": "2026-08-01T17:52:46Z"
+        }
+      ],
+      "notes": "Implementation submitted on ai/task-contract-003; awaiting mandatory independent review.",
+      "updated_at": "2026-08-01T17:52:46Z"
     }
   ],
   "task_claims": [
@@ -90,6 +109,14 @@
       "claimed_at": "2026-08-01T17:26:09Z",
       "released_at": "2026-08-01T17:37:12Z",
       "notes": "Released after revision approval."
+    },
+    {
+      "claim_id": "contract-003-run-001-claim",
+      "task_id": "CONTRACT-003",
+      "actor_id": "backend-core-agent",
+      "status": "in_progress",
+      "claimed_at": "2026-08-01T17:42:37Z",
+      "notes": "Executing the accepted versioned local HTTP API contract task."
     }
   ],
   "artifact_submissions": [
@@ -141,6 +168,33 @@
       ],
       "status": "accepted",
       "submitted_at": "2026-08-01T17:30:29Z"
+    },
+    {
+      "submission_id": "contract-003-run-001-submission",
+      "task_id": "CONTRACT-003",
+      "actor_id": "backend-core-agent",
+      "artifact_paths": [
+        "api/openapi.yaml",
+        "internal/httpapi",
+        "web/src/api/generated",
+        "scripts/generate-api-types.mjs",
+        "scripts/api-contract.sh",
+        "scripts/api-contract.ps1",
+        "test/fixtures/api",
+        "assembly/generated/task_runs/CONTRACT-003-run-001.json"
+      ],
+      "summary": "Versioned loopback HTTP API contract with deterministic TypeScript generation and representative request/response fixtures.",
+      "proof": [
+        {
+          "kind": "task_run",
+          "path": "assembly/generated/task_runs/CONTRACT-003-run-001.json",
+          "summary": "Task run records contract, drift, fixture, Go, frontend, full verification, and Windows build evidence.",
+          "status": "needs_review",
+          "recorded_at": "2026-08-01T17:52:46Z"
+        }
+      ],
+      "status": "submitted",
+      "submitted_at": "2026-08-01T17:52:46Z"
     }
   ],
   "reviews": [
@@ -313,6 +367,38 @@
       "target_id": "CONTRACT-002",
       "created_at": "2026-08-01T17:37:12Z",
       "details": "Marked CONTRACT-002 done after independent approval."
+    },
+    {
+      "event_id": "contract-003-claim-created",
+      "actor_id": "backend-core-agent",
+      "event_type": "claim_created",
+      "target_id": "contract-003-run-001-claim",
+      "created_at": "2026-08-01T17:42:37Z",
+      "details": "Claimed CONTRACT-003 on ai/task-contract-003."
+    },
+    {
+      "event_id": "contract-003-assignment-started",
+      "actor_id": "backend-core-agent",
+      "event_type": "assignment_updated",
+      "target_id": "CONTRACT-003",
+      "created_at": "2026-08-01T17:42:37Z",
+      "details": "Assignment moved to in_progress."
+    },
+    {
+      "event_id": "contract-003-artifact-submitted",
+      "actor_id": "backend-core-agent",
+      "event_type": "artifact_submitted",
+      "target_id": "contract-003-run-001-submission",
+      "created_at": "2026-08-01T17:52:46Z",
+      "details": "Submitted CONTRACT-003 implementation and proof for independent review."
+    },
+    {
+      "event_id": "contract-003-assignment-review",
+      "actor_id": "backend-core-agent",
+      "event_type": "assignment_updated",
+      "target_id": "CONTRACT-003",
+      "created_at": "2026-08-01T17:52:46Z",
+      "details": "Assignment moved to review."
     }
   ]
 }

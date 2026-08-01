@@ -20,6 +20,19 @@ npm --prefix web ci
 
 Both scripts format-check Go, run Go static analysis and tests, lint/type-check/test/build the frontend, and build the Go command after Vite writes assets to `internal/webassets/dist`.
 
+## API contract
+
+After editing `api/openapi.yaml`, regenerate the checked-in TypeScript bindings:
+
+```bash
+node scripts/generate-api-types.mjs
+```
+
+CI-style drift, fixture, Go boundary, and frontend checks are available as
+`./scripts/api-contract.sh` or `.\scripts\api-contract.ps1`. Generation uses
+only Node.js built-ins; the OpenAPI file intentionally remains JSON-compatible
+YAML so the process is deterministic and adds no dependency.
+
 Generated frontend output is ignored by Git. The checked-in `internal/webassets/dist/.gitkeep` makes a clean-checkout Go build valid before the first frontend build.
 
 `web/go.mod` is an intentionally empty nested Go module boundary. It prevents root `go test ./...` and `go vet ./...` commands from traversing Go source files that may exist inside npm dependencies.

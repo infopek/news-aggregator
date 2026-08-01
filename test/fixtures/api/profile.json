@@ -1,0 +1,9 @@
+{
+  "id": "local-profile",
+  "interests": [{ "name": "technology", "weight": 0.9 }],
+  "preferredSourceIds": ["source-1"],
+  "location": { "present": true, "enabled": true, "value": { "country": "HU", "region": "Central Hungary", "city": "Budapest" } },
+  "age": { "present": true, "enabled": false, "value": 35 },
+  "gender": { "present": false, "enabled": false },
+  "updatedAt": "2026-08-01T12:00:00Z"
+}

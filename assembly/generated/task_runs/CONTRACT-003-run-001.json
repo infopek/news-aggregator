@@ -1,0 +1,82 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "CONTRACT-003",
+  "run_id": "CONTRACT-003-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "review",
+  "implementation_summary": "Specified the OpenAPI 3.1 loopback HTTP API for profile, ranking, sources, credentials, refresh, feed, article, and library workflows; added deterministic dependency-free TypeScript generation, runtime-validated fixtures, and Go boundary invariants.",
+  "files_changed": [
+    {
+      "path": "api/openapi.yaml",
+      "change": "Added the canonical /api/v1 OpenAPI contract with explicit operation bindings, errors, content permissions, ranking explanations, partial refresh outcomes, and write-only credentials."
+    },
+    {
+      "path": "web/src/api/generated/**",
+      "change": "Added deterministic generated TypeScript models, operation map, and fixture import test."
+    },
+    {
+      "path": "internal/httpapi/**",
+      "change": "Added application-service boundary composition and contract/security invariant tests without implementing handlers."
+    },
+    {
+      "path": "scripts/** and test/fixtures/api/**",
+      "change": "Added generation/drift commands and eight representative runtime-validated fixtures."
+    },
+    {
+      "path": "assembly/generated/collaboration_state.json",
+      "change": "Recorded claim and review submission without marking the task done."
+    }
+  ],
+  "verification": [
+    {
+      "command": "./scripts/api-contract.sh",
+      "result": "passed",
+      "output": "Validated 18 operations, 35 schemas, eight fixtures, generated-file currency, Go boundary tests, frontend typecheck, and Vitest tests."
+    },
+    {
+      "command": "./scripts/verify.sh",
+      "result": "passed",
+      "output": "Full Go vet/test, frontend lint/typecheck/test/build, PWA build, and Go build passed."
+    },
+    {
+      "command": "intentional generated models.ts mutation followed by node scripts/generate-api-types.mjs --check",
+      "result": "passed",
+      "output": "The check rejected the stale generated file; the original deterministic output was restored."
+    },
+    {
+      "command": "GOOS=windows GOARCH=amd64 go build -o /tmp/news-aggregator-contract-003.exe ./cmd/news-aggregator",
+      "result": "passed",
+      "output": "Windows amd64 executable compiled successfully."
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed",
+      "output": "No whitespace errors."
+    }
+  ],
+  "proof": [
+    {
+      "kind": "test_output",
+      "summary": "Focused API contract checks and the full repository verification suite passed.",
+      "status": "passed",
+      "recorded_at": "2026-08-01T17:52:46Z"
+    },
+    {
+      "kind": "command_output",
+      "summary": "Deterministic generation check rejects drift and Windows amd64 cross-build passes.",
+      "status": "passed",
+      "recorded_at": "2026-08-01T17:52:46Z"
+    },
+    {
+      "kind": "file",
+      "path": "api/openapi.yaml",
+      "summary": "Canonical versioned API contract awaiting independent review.",
+      "status": "needs_review",
+      "recorded_at": "2026-08-01T17:52:46Z"
+    }
+  ],
+  "blockers": [],
+  "notes": "No HTTP handlers, persistence, authentication, remote services, or UI behavior were added. The mandatory independent reviewer may reject this submission before merge.",
+  "submitted_at": "2026-08-01T17:52:46Z",
+  "updated_at": "2026-08-01T17:52:46Z"
+}

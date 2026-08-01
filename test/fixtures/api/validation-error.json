@@ -1,0 +1,6 @@
+{
+  "code": "validation_failed",
+  "message": "The request contains invalid fields.",
+  "correlationId": "request-123",
+  "fields": [{ "path": "location.value.country", "code": "INVALID_COUNTRY", "message": "Use an ISO 3166-1 alpha-2 country code." }]
+}
