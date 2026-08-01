@@ -1,0 +1,40 @@
+{
+  "schema_version": "0.1.0",
+  "workspace_id": "news-aggregator",
+  "generated_from": "assembly/generated/task_backlog.json",
+  "actors": [
+    {
+      "actor_id": "project-owner",
+      "display_name": "Project Owner",
+      "kind": "human",
+      "status": "active",
+      "notes": "Owns merge and product-acceptance decisions."
+    },
+    {
+      "actor_id": "backend-core-agent",
+      "display_name": "Backend/Core Implementation Agent",
+      "kind": "local_ai",
+      "status": "active",
+      "notes": "Eligible for backend-core-implementer tasks; no task is pre-assigned or claimed."
+    },
+    {
+      "actor_id": "frontend-agent",
+      "display_name": "Frontend Implementation Agent",
+      "kind": "local_ai",
+      "status": "active",
+      "notes": "Eligible for frontend-implementer tasks after required shared contracts; no task is pre-assigned or claimed."
+    },
+    {
+      "actor_id": "reviewer-agent",
+      "display_name": "Independent Reviewer Agent",
+      "kind": "local_ai",
+      "status": "active",
+      "notes": "Mandatory independent reviewer with authority to reject implementation pull requests; does not merge them."
+    }
+  ],
+  "task_assignments": [],
+  "task_claims": [],
+  "artifact_submissions": [],
+  "reviews": [],
+  "audit_events": []
+}

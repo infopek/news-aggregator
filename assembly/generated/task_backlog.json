@@ -1,0 +1,2610 @@
+[
+  {
+    "id": "CONTRACT-001",
+    "title": "Scaffold the Go and Vue monorepo build",
+    "summary": "Create the minimal buildable repository structure and shared developer commands without implementing product features.",
+    "objective": "Give later backend and frontend tasks a deterministic Go module, Vue TypeScript workspace, embedded-asset boundary, and common verification entrypoints.",
+    "context": "The accepted plan uses one Go executable serving an embedded Vue PWA. Parallel work must start from a stable repository layout and repeatable commands.",
+    "owner_role": "backend-core-implementer",
+    "lane": "shared-contract",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "go.mod",
+      "go.sum",
+      "cmd/news-aggregator/**",
+      "internal/**",
+      "web/**",
+      "Makefile",
+      "scripts/**",
+      ".gitignore"
+    ],
+    "depends_on": [],
+    "inputs": [
+      "assembly/generated/project_spec.json",
+      "assembly/generated/repo_plan.json",
+      "assembly/generated/agent_prompts.json"
+    ],
+    "outputs": [
+      "Initialized Go module and empty composition-root package",
+      "Vue 3 + TypeScript + Vite PWA workspace under web/",
+      "A declared generated-asset location that Go can embed after the frontend build",
+      "Documented repository-level commands for format, lint, test, frontend build, and Go build"
+    ],
+    "implementation_notes": [
+      "Keep the initial Go domain/application packages free of infrastructure dependencies.",
+      "Pin toolchain and package versions through normal lock/module files.",
+      "Do not add a production framework or dependency without using it for an accepted requirement.",
+      "A development fallback may serve frontend assets from disk, but the release boundary must support embedding compiled assets."
+    ],
+    "acceptance_criteria": [
+      "A clean checkout can install frontend dependencies, build the Vue application, and build the Go command using documented commands.",
+      "The Go build has an explicit location from which compiled frontend assets will be embedded without committing build output.",
+      "Repository ignore rules exclude local SQLite files, secret material, downloaded content, frontend dependencies, generated build output, and caches.",
+      "No product feature, remote service, account system, or task-backlog change is introduced."
+    ],
+    "verification": [
+      "Run Go formatting and `go test ./...`.",
+      "Run frontend lint/typecheck if configured and the production frontend build.",
+      "Run the documented Go build after producing frontend assets.",
+      "Inspect `git status --short` to confirm runtime/build artifacts remain untracked or ignored."
+    ],
+    "proof_required": [
+      "Command transcript for clean Go and frontend builds",
+      "Changed-file inventory showing only scaffold/configuration paths"
+    ],
+    "edge_cases": [
+      "Frontend assets have not yet been built.",
+      "Commands run from a path containing spaces on Windows.",
+      "No C compiler is installed on the build machine."
+    ],
+    "non_goals": [
+      "Implementing HTTP endpoints",
+      "Selecting live starter sources",
+      "Creating an installer or background service"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "build",
+      "cross-platform",
+      "shared-boundary"
+    ],
+    "handoff_notes": "Publish the final directory map and exact verification commands before dependent contract work begins."
+  },
+  {
+    "id": "CONTRACT-002",
+    "title": "Define domain entities and application ports",
+    "summary": "Create dependency-free Go types and interfaces for profiles, sources, articles, library state, refresh runs, ranking configuration, repositories, and external adapters.",
+    "objective": "Freeze the core vocabulary and dependency direction consumed by persistence, ingestion, ranking, HTTP, and frontend-contract work.",
+    "context": "The planning package requires ports for persistence, fetching, credentials, clocks, ingestion adapters, and ranking while keeping domain rules independent of infrastructure.",
+    "owner_role": "backend-core-implementer",
+    "lane": "shared-contract",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/domain/**",
+      "internal/application/**",
+      "test/fixtures/**"
+    ],
+    "depends_on": [
+      "CONTRACT-001"
+    ],
+    "inputs": [
+      "Merged requirements domain concepts",
+      "assembly/generated/project_spec.json domain_model and backend_services"
+    ],
+    "outputs": [
+      "Go domain types with validation-oriented value objects",
+      "Repository and transaction port interfaces",
+      "Feed/API/scraper adapter, HTTP fetcher, credential store, and clock port interfaces",
+      "Typed application commands, queries, result types, and sentinel/domain errors"
+    ],
+    "implementation_notes": [
+      "Represent optional demographics explicitly; absence and disabled state must not collapse into a guessed value.",
+      "Represent content permission independently from whether content text happens to be present.",
+      "Keep secrets write-only at the application boundary: use credential identifiers, not secret-bearing domain records.",
+      "Define score contributions as machine-readable values from which the API can render explanations without recomputing rank logic."
+    ],
+    "acceptance_criteria": [
+      "Domain packages import no SQLite, HTTP framework, browser, Windows credential, or source-specific adapter packages.",
+      "The interfaces cover profile/source configuration, refresh, article persistence, library actions, ranking configuration/results, and credential references.",
+      "Content permission, scraper policy state, refresh partial failures, optional demographic controls, and ranking explanation components are represented explicitly.",
+      "Compile-time interface tests or focused unit tests demonstrate intended dependency inversion."
+    ],
+    "verification": [
+      "Run `go test ./internal/domain/... ./internal/application/...`.",
+      "Run a dependency/import check proving domain packages do not import infrastructure adapters.",
+      "Review public types against every entity and service in `assembly/generated/project_spec.json`."
+    ],
+    "proof_required": [
+      "Passing domain/application test output",
+      "A concise port inventory for downstream implementers"
+    ],
+    "edge_cases": [
+      "Missing publication timestamps or authors",
+      "Duplicate canonical URLs from different fetches",
+      "Optional demographics present but individually disabled",
+      "One source failing within an otherwise successful refresh"
+    ],
+    "non_goals": [
+      "Concrete database queries",
+      "Live HTTP fetching",
+      "Final ranking formulas or default weights"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "architecture",
+      "privacy",
+      "shared-contract"
+    ],
+    "handoff_notes": "Any later domain-contract change requires coordination with both implementation lanes and regenerated API fixtures where affected."
+  },
+  {
+    "id": "CONTRACT-003",
+    "title": "Specify the versioned local HTTP API",
+    "summary": "Replace the placeholder API description with the canonical OpenAPI contract for setup, profile, sources, credentials, refresh, feed, article detail, library state, and ranking settings.",
+    "objective": "Let frontend and backend work independently against one reviewed request/response and error contract.",
+    "context": "The API is local and loopback-only, but still needs stable validation, pagination, errors, refresh progress, permission states, and explanation shapes.",
+    "owner_role": "backend-core-implementer",
+    "lane": "shared-contract",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "api/openapi.yaml",
+      "internal/httpapi/**",
+      "web/src/api/generated/**",
+      "scripts/**",
+      "test/fixtures/api/**"
+    ],
+    "depends_on": [
+      "CONTRACT-002"
+    ],
+    "inputs": [
+      "Domain commands, queries, errors, and explanation types from CONTRACT-002",
+      "Frontend screens and backend services from assembly/generated/project_spec.json"
+    ],
+    "outputs": [
+      "OpenAPI 3 contract under api/openapi.yaml",
+      "Documented generation/check command for TypeScript bindings",
+      "Representative request, response, and error fixtures",
+      "Contract rules for pagination, timestamps, identifiers, optional fields, and credential write/delete behavior"
+    ],
+    "implementation_notes": [
+      "Use a versioned `/api/v1` prefix.",
+      "Never expose a credential read endpoint or return secret values after writes.",
+      "Make full-content permission and publisher-link fallback explicit in article responses.",
+      "Return score components and stable reason codes; presentation strings may be formed by the frontend without re-ranking."
+    ],
+    "acceptance_criteria": [
+      "The contract covers every accepted MVP screen and operation without exposing postponed features.",
+      "Mutations define validation errors and conflict/not-found behavior; list operations define stable cursor or page semantics.",
+      "Refresh start and status responses represent running, partial-success, success, and failure outcomes.",
+      "Credential responses reveal only configured/not-configured state and never secret values.",
+      "A deterministic command regenerates TypeScript bindings and a drift check fails when generated files differ."
+    ],
+    "verification": [
+      "Validate api/openapi.yaml with the selected OpenAPI validator.",
+      "Run the TypeScript client/type generator and its clean-tree drift check.",
+      "Compile representative Go handler interfaces and frontend fixture consumers against the contract.",
+      "Search response fixtures for secret-like values and prohibited full-content cases."
+    ],
+    "proof_required": [
+      "OpenAPI validation output",
+      "Generated-binding drift-check output",
+      "Endpoint-to-screen coverage matrix"
+    ],
+    "edge_cases": [
+      "Empty feed and final pagination page",
+      "Unknown source or article identifiers",
+      "Concurrent refresh request while one is running",
+      "Metadata-only articles that still contain an excerpt"
+    ],
+    "non_goals": [
+      "Authentication or remote network exposure",
+      "WebSocket or server-sent event updates",
+      "Actual handler or UI implementation"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "api",
+      "shared-contract",
+      "privacy"
+    ],
+    "handoff_notes": "Frontend and backend tasks must consume this contract; incompatible changes require coordinated versioning rather than silent drift."
+  },
+  {
+    "id": "CONTRACT-004",
+    "title": "Design the initial SQLite migration set",
+    "summary": "Define ordered, restart-safe migrations for all authoritative MVP data while excluding secrets and disposable browser state.",
+    "objective": "Provide a reviewed persistence contract before repositories, ingestion, and ranking implementations begin.",
+    "context": "SQLite stores profile, sources, article metadata/permitted content, library state, refresh history, token/index data, and ranking results. Windows Credential Manager stores secret values.",
+    "owner_role": "backend-core-implementer",
+    "lane": "shared-contract",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "db/migrations/**",
+      "internal/domain/**",
+      "test/fixtures/db/**",
+      "scripts/**"
+    ],
+    "depends_on": [
+      "CONTRACT-002"
+    ],
+    "inputs": [
+      "Domain entities and repository ports from CONTRACT-002",
+      "Persistence and credential boundaries in merged requirements"
+    ],
+    "outputs": [
+      "Numbered forward SQLite migrations",
+      "Schema constraints and indexes for source identity, article deduplication, feed queries, and refresh history",
+      "Migration runner contract including application schema version behavior",
+      "Temporary-database migration fixtures"
+    ],
+    "implementation_notes": [
+      "Prefer pure-Go SQLite compatibility unless a later accepted decision explicitly permits CGO.",
+      "Store credential reference identifiers and configured state only.",
+      "Retain raw fetched payloads only if a later task proves they are required and permitted; they are not part of this initial schema.",
+      "Choose stable time and boolean representations and document them."
+    ],
+    "acceptance_criteria": [
+      "Applying all migrations to an empty database creates every required MVP table, constraint, and index.",
+      "Re-running the migration command is safe and reports the current schema version.",
+      "The schema enforces stable article deduplication and valid source/library relationships.",
+      "No table or column stores API secret values, inferred demographic data, or unpermitted full content.",
+      "The design supports transactional refresh writes and ranked-feed query patterns."
+    ],
+    "verification": [
+      "Apply migrations to a temporary empty SQLite database.",
+      "Re-run migrations and assert idempotent version behavior.",
+      "Exercise foreign-key and unique-constraint failure fixtures.",
+      "Inspect the schema for forbidden credential-value columns."
+    ],
+    "proof_required": [
+      "Migration test output against a temporary database",
+      "Schema inventory with indexes and invariants"
+    ],
+    "edge_cases": [
+      "Interrupted migration transaction",
+      "Legacy database with an unknown newer schema version",
+      "Two source URLs resolving to the same canonical article URL",
+      "Nullable optional demographic and article metadata fields"
+    ],
+    "non_goals": [
+      "Repository query implementation",
+      "Database encryption",
+      "Cloud or multi-user schema support"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "database",
+      "migration",
+      "privacy"
+    ],
+    "handoff_notes": "Persistence implementations must use these migrations as the only schema authority and add future changes through new migration files."
+  },
+  {
+    "id": "BACKEND-001",
+    "title": "Build the loopback application host",
+    "summary": "Implement the Go composition root that starts a loopback-only HTTP server, serves embedded frontend assets, opens the default browser after readiness, and shuts down cleanly.",
+    "objective": "Provide the secure local runtime boundary required by every backend endpoint and the single-executable Windows experience.",
+    "context": "The app is manually launched, has no authentication, and therefore must not listen on non-loopback interfaces by default.",
+    "owner_role": "backend-core-implementer",
+    "lane": "backend-core",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "cmd/news-aggregator/**",
+      "internal/platform/**",
+      "internal/httpapi/**",
+      "web/dist/**",
+      "packaging/windows/**"
+    ],
+    "depends_on": [
+      "CONTRACT-001",
+      "CONTRACT-003"
+    ],
+    "inputs": [
+      "Repository scaffold",
+      "Canonical OpenAPI contract",
+      "Embedded frontend asset boundary"
+    ],
+    "outputs": [
+      "Go composition root",
+      "Loopback server lifecycle",
+      "SPA fallback/static handler",
+      "Browser-launch and graceful-shutdown adapters"
+    ],
+    "implementation_notes": [
+      "Bind explicitly to 127.0.0.1 or ::1 and use an available configured/default port without falling back to all interfaces.",
+      "Open the browser only after a readiness probe succeeds.",
+      "Use structured logs that exclude request bodies, credentials, and article content.",
+      "Make browser launching injectable so tests do not open a real browser."
+    ],
+    "acceptance_criteria": [
+      "The process serves `/api/v1` and embedded SPA assets only on loopback by default.",
+      "Direct navigation to a client-side route returns the SPA entrypoint without shadowing API 404 responses.",
+      "Browser launch occurs once after readiness and a launch failure does not terminate the server.",
+      "Interrupt or termination signals trigger bounded graceful shutdown with deterministic exit behavior.",
+      "Startup errors are actionable and sanitized."
+    ],
+    "verification": [
+      "Run Go unit tests with injected listener, clock, and browser launcher.",
+      "Run an integration test that asserts the bound address is loopback.",
+      "Test SPA fallback, API 404 isolation, readiness ordering, and graceful shutdown.",
+      "Build the command for Windows."
+    ],
+    "proof_required": [
+      "Go test output",
+      "Loopback binding assertion",
+      "Windows cross-build or native build output"
+    ],
+    "edge_cases": [
+      "Default port already occupied",
+      "Missing embedded build assets in development",
+      "Browser command unavailable",
+      "Shutdown during an in-flight request"
+    ],
+    "non_goals": [
+      "Windows service installation",
+      "LAN exposure",
+      "TLS or authentication",
+      "Feature endpoint implementation"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "network-boundary",
+      "windows",
+      "packaging"
+    ],
+    "handoff_notes": "Expose a small composition interface so persistence and application services can be wired without putting business rules in main."
+  },
+  {
+    "id": "CONTRACT-005",
+    "title": "Create deterministic cross-layer contract fixtures",
+    "summary": "Build shared fixture sets and automated contract checks that keep OpenAPI, domain semantics, SQLite migrations, and generated frontend bindings aligned.",
+    "objective": "Make contract acceptance observable before the two implementation lanes run concurrently.",
+    "context": "The accepted plan requires shared contracts and deterministic fixtures to be complete before parallel frontend/backend execution.",
+    "owner_role": "backend-core-implementer",
+    "lane": "shared-contract",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "test/fixtures/**",
+      "tests/integration/**",
+      "api/openapi.yaml",
+      "web/src/api/generated/**",
+      "scripts/**",
+      "internal/domain/**",
+      "db/migrations/**"
+    ],
+    "depends_on": [
+      "CONTRACT-003",
+      "CONTRACT-004"
+    ],
+    "inputs": [
+      "Canonical OpenAPI contract from CONTRACT-003",
+      "Initial migrations from CONTRACT-004",
+      "Domain semantics from CONTRACT-002"
+    ],
+    "outputs": [
+      "Sanitized JSON fixtures for profile, sources, refresh states, feed pages, article permissions, library state, and ranking explanations",
+      "RSS/Atom, official-API-shaped, and approved-scraper-shaped ingestion fixtures with no live credentials",
+      "Contract verification command covering schema validation, generated-client drift, fixture decoding, and migration application",
+      "Shared contract handoff document for the backend and frontend lanes"
+    ],
+    "implementation_notes": [
+      "Use fictional or permissively reusable fixture content and clearly mark permission mode.",
+      "Include both positive and negative fixtures, especially secrets, restricted content, invalid weights, and partial refresh failure.",
+      "Make fixture timestamps and identifiers deterministic.",
+      "Do not contact live providers in contract verification."
+    ],
+    "acceptance_criteria": [
+      "One documented command validates OpenAPI, regenerates/checks frontend bindings, decodes all fixtures, and applies migrations to a temporary database.",
+      "Fixtures cover every API response family and each ingestion adapter shape planned for the MVP.",
+      "Negative fixtures prove secret values and unauthorized full content are rejected or omitted.",
+      "Backend and frontend implementers can consume the fixtures without editing shared contract files.",
+      "The independent reviewer records an explicit approval of the shared contract boundary before parallel lanes begin."
+    ],
+    "verification": [
+      "Run the shared contract verification command from a clean checkout.",
+      "Run `git diff --exit-code` after generated binding checks.",
+      "Validate negative fixtures fail for the documented reason.",
+      "Have the independent reviewer compare fixture coverage with the merged project specification."
+    ],
+    "proof_required": [
+      "Complete contract-check transcript",
+      "Fixture coverage inventory",
+      "Independent reviewer APPROVE decision"
+    ],
+    "edge_cases": [
+      "Unknown enum or reason-code values",
+      "Absent optional profile and article fields",
+      "Partial refresh with both successes and failures",
+      "Generated client changes after only formatting differences"
+    ],
+    "non_goals": [
+      "Live provider integration",
+      "Feature-complete backend or frontend behavior",
+      "Performance benchmarking"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "contract-drift",
+      "parallelization",
+      "verification"
+    ],
+    "handoff_notes": "This task is the explicit gate: dependent frontend and backend tasks may proceed in parallel only after its contract checks and reviewer approval pass."
+  },
+  {
+    "id": "BACKEND-002",
+    "title": "Implement SQLite migrations and repositories",
+    "summary": "Implement the migration runner, connection lifecycle, transactions, and repositories for all authoritative MVP records.",
+    "objective": "Make profile, sources, articles, refresh runs, ranking state, and library state durable and queryable across restarts.",
+    "context": "The accepted migration set is the only schema authority, SQLite is local and authoritative, and API secret values must never enter the database.",
+    "owner_role": "backend-core-implementer",
+    "lane": "backend-core",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/adapters/sqlite/**",
+      "internal/application/**",
+      "internal/domain/**",
+      "db/migrations/**",
+      "tests/integration/**"
+    ],
+    "depends_on": [
+      "CONTRACT-002",
+      "CONTRACT-004",
+      "CONTRACT-005"
+    ],
+    "inputs": [
+      "Domain repository ports",
+      "Accepted migrations",
+      "Deterministic database fixtures"
+    ],
+    "outputs": [
+      "SQLite connection and migration implementation",
+      "Transactional repositories",
+      "Feed-query persistence primitives",
+      "Temporary-database integration tests"
+    ],
+    "implementation_notes": [
+      "Enable and verify foreign keys for every connection.",
+      "Use bounded connection settings appropriate for one local process and document journal/busy-timeout choices.",
+      "Map storage errors to domain/application errors without leaking SQL details through the API.",
+      "Keep credential identifiers separate from credential values."
+    ],
+    "acceptance_criteria": [
+      "A fresh database migrates automatically and an existing current database opens without destructive changes.",
+      "Repository round trips preserve optional values, timestamps, permission mode, ranking components, and library state.",
+      "Refresh writes can commit successful source results while recording per-source failures according to application transaction boundaries.",
+      "Concurrent reads and serialized writes return predictable busy/cancellation errors rather than corrupting state.",
+      "No schema or repository method accepts API secret values."
+    ],
+    "verification": [
+      "Run repository integration tests against temporary SQLite files.",
+      "Test migration from empty, current, interrupted, and unsupported-newer schema states.",
+      "Test unique, foreign-key, transaction rollback, cancellation, and restart persistence behavior.",
+      "Search database fixtures and schema for credential values."
+    ],
+    "proof_required": [
+      "SQLite integration-test output",
+      "Migration compatibility matrix",
+      "Schema secret-boundary audit"
+    ],
+    "edge_cases": [
+      "Locked database",
+      "Cancelled transaction",
+      "Unknown newer schema",
+      "Duplicate article fingerprint",
+      "Deleted source with retained library history"
+    ],
+    "non_goals": [
+      "Database encryption",
+      "Cloud database support",
+      "Ranking algorithm implementation"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "database",
+      "migration",
+      "data-integrity"
+    ],
+    "handoff_notes": "Document transaction boundaries and query primitives used by ingestion and ranked-feed tasks."
+  },
+  {
+    "id": "BACKEND-003",
+    "title": "Implement the Windows credential-store adapter",
+    "summary": "Implement the credential-store port with Windows Credential Manager and a non-secret test double for other build environments.",
+    "objective": "Allow optional official API adapters to use credentials without plaintext persistence, logging, or API disclosure.",
+    "context": "Windows 11 is the MVP target, but Linux-based development and CI must still compile or test through build-tagged adapters and fakes.",
+    "owner_role": "backend-core-implementer",
+    "lane": "backend-core",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/adapters/credentials/**",
+      "internal/platform/**",
+      "internal/application/**",
+      "packaging/windows/**",
+      "tests/integration/**"
+    ],
+    "depends_on": [
+      "CONTRACT-002",
+      "CONTRACT-003",
+      "CONTRACT-005"
+    ],
+    "inputs": [
+      "Credential-store port",
+      "Write/delete-only API contract",
+      "Secret-negative fixtures"
+    ],
+    "outputs": [
+      "Windows Credential Manager adapter",
+      "Build-tagged portable test double",
+      "Credential naming/lifecycle convention",
+      "Secret-redaction tests"
+    ],
+    "implementation_notes": [
+      "Use a stable application namespace and opaque credential reference derived from source identity.",
+      "Never return secret bytes through domain views or HTTP responses.",
+      "Zero or discard in-memory buffers when practical and avoid formatting secrets into errors.",
+      "Do not silently fall back to plaintext storage on unsupported platforms."
+    ],
+    "acceptance_criteria": [
+      "On Windows, credentials can be written, resolved for adapter use, replaced, and deleted through the port.",
+      "Application-facing reads expose only configured state; only trusted adapter execution can resolve secret material.",
+      "Unsupported-platform behavior is explicit and tests can run without a real credential vault.",
+      "Logs, errors, API fixtures, SQLite, and snapshots contain no supplied secret values.",
+      "Deleting a source can follow a documented credential cleanup path without deleting unrelated entries."
+    ],
+    "verification": [
+      "Run portable unit tests with sentinel secrets and assert redaction across errors/log capture.",
+      "Run Windows integration tests for create, replace, resolve-for-use, and delete.",
+      "Build on Windows and the primary non-Windows CI environment.",
+      "Search test artifacts and temporary SQLite files for sentinel secrets."
+    ],
+    "proof_required": [
+      "Cross-platform build output",
+      "Windows credential integration output",
+      "Sentinel-secret leak scan"
+    ],
+    "edge_cases": [
+      "Credential missing",
+      "Vault access denied",
+      "Replacement interrupted",
+      "Source renamed",
+      "Unsupported OS"
+    ],
+    "non_goals": [
+      "Cross-platform production vaults",
+      "Displaying or exporting saved credentials",
+      "OAuth account flows"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "secrets",
+      "windows",
+      "platform-specific"
+    ],
+    "handoff_notes": "Official API adapters receive a narrow resolve-for-use capability; HTTP handlers must never receive returned secret values."
+  },
+  {
+    "id": "FRONTEND-001",
+    "title": "Configure the Vue TypeScript PWA and generated API client",
+    "summary": "Complete the Vue 3, TypeScript, Vite, and PWA setup and wire deterministic TypeScript client/type generation from the canonical OpenAPI contract.",
+    "objective": "Provide an installable, buildable frontend boundary that cannot silently drift from the Go API.",
+    "context": "The compiled SPA is embedded in the Go executable. Authoritative data remains behind the local API, and generated API files are never hand-edited.",
+    "owner_role": "frontend-implementer",
+    "lane": "frontend",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "web/**",
+      "api/openapi.yaml",
+      "scripts/**",
+      "test/fixtures/api/**"
+    ],
+    "depends_on": [
+      "CONTRACT-001",
+      "CONTRACT-003",
+      "CONTRACT-005"
+    ],
+    "inputs": [
+      "Vue workspace scaffold",
+      "Canonical OpenAPI contract",
+      "Shared API fixtures",
+      "Go embedded-asset location"
+    ],
+    "outputs": [
+      "Production Vue TypeScript build",
+      "PWA manifest and service-worker configuration",
+      "Generated API client/types",
+      "Generated-client drift check",
+      "Frontend lint/typecheck/unit-test commands"
+    ],
+    "implementation_notes": [
+      "Choose a minimal state and routing setup supported by the accepted Vue stack; do not add alternative UI frameworks without need.",
+      "Scope service-worker caching to static application assets and explicitly safe GET responses; never cache credential mutations or secret-bearing requests.",
+      "Use same-origin relative `/api/v1` URLs so the embedded app talks only to its local host.",
+      "Keep generated bindings in the planned generated directory and regenerate them through one pinned command."
+    ],
+    "acceptance_criteria": [
+      "The frontend passes lint, type checking, unit-test startup, and a production build from a clean checkout.",
+      "The generated client covers every canonical MVP endpoint and a drift check fails after an incompatible OpenAPI edit.",
+      "The production output lands in the exact location consumed by the Go embed build.",
+      "The manifest has stable application identity, install metadata, icons, display mode, and localhost-compatible start behavior.",
+      "Offline caching excludes credential operations and does not present stale mutation success as authoritative."
+    ],
+    "verification": [
+      "Run frontend install, lint, typecheck, unit test, and production build commands.",
+      "Run API generation followed by a clean-tree drift assertion.",
+      "Run a manifest/service-worker configuration test for installability and cache exclusions.",
+      "Build the Go executable with the generated frontend assets."
+    ],
+    "proof_required": [
+      "Frontend command transcript",
+      "Generated-client drift test",
+      "PWA manifest/cache assertion",
+      "Go embed build output"
+    ],
+    "edge_cases": [
+      "API unavailable at initial load",
+      "Service-worker update available",
+      "App served on a non-default loopback port",
+      "Frontend build not yet generated"
+    ],
+    "non_goals": [
+      "Feature screens",
+      "Offline article mutation queue",
+      "Remote deployment",
+      "Handwritten duplicate API types"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "pwa",
+      "contract-drift",
+      "build"
+    ],
+    "handoff_notes": "All later frontend work imports generated types through one wrapper module and treats service responses as authoritative."
+  },
+  {
+    "id": "INGEST-002",
+    "title": "Implement article normalization and deduplication",
+    "summary": "Convert adapter records into canonical articles, normalize identifiers and metadata, enforce content permissions, and resolve duplicates deterministically.",
+    "objective": "Ensure every source type writes consistent, rights-aware article records before ranking or presentation.",
+    "context": "Different feeds may omit fields, republish the same story, or provide content that cannot be retained in full.",
+    "owner_role": "backend-core-implementer",
+    "lane": "ingestion",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/domain/**",
+      "internal/application/ingestion/**",
+      "internal/adapters/sqlite/**",
+      "test/fixtures/ingestion/**",
+      "tests/integration/**"
+    ],
+    "depends_on": [
+      "CONTRACT-002",
+      "CONTRACT-004",
+      "CONTRACT-005",
+      "BACKEND-002"
+    ],
+    "inputs": [
+      "Adapter-neutral item contract",
+      "Article repository",
+      "Content permission mode",
+      "Normalization fixtures"
+    ],
+    "outputs": [
+      "Normalization pipeline",
+      "Canonical URL and fingerprint rules",
+      "Upsert/deduplication service",
+      "Permission-aware content retention"
+    ],
+    "implementation_notes": [
+      "Keep canonicalization conservative: never merge solely on a fuzzy title match.",
+      "Use source item identifiers when stable, canonical URLs when valid, and a documented fallback fingerprint.",
+      "Sanitize permitted HTML before storage or persist a safe normalized representation.",
+      "Metadata-only mode must discard supplied full bodies while retaining allowed title, excerpt, and publisher link."
+    ],
+    "acceptance_criteria": [
+      "Equivalent repeated items update one article instead of creating duplicates.",
+      "Distinct articles with similar titles remain separate unless a stable identity rule matches.",
+      "Missing authors, dates, excerpts, or language values are handled without fabricating data.",
+      "Full content is retained only for sources whose recorded permission mode allows it and is sanitized before later rendering.",
+      "Normalization produces stable results for identical input fixtures."
+    ],
+    "verification": [
+      "Run table-driven normalization and canonical-URL tests.",
+      "Run temporary-SQLite integration tests for insert, repeat, update, and collision cases.",
+      "Run sanitizer tests with malicious markup and metadata-only bodies.",
+      "Run deterministic fixture snapshots with fixed clock and identifiers."
+    ],
+    "proof_required": [
+      "Normalization test output",
+      "Deduplication fixture matrix",
+      "Content-permission and sanitizer negative tests"
+    ],
+    "edge_cases": [
+      "Tracking query parameters",
+      "Relative or malformed URLs",
+      "Changed canonical URL",
+      "Same GUID reused incorrectly",
+      "Future or absent publication time",
+      "Malicious HTML"
+    ],
+    "non_goals": [
+      "Cross-article semantic clustering",
+      "Copyright inference",
+      "Ranking score computation"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "content-permission",
+      "deduplication",
+      "xss",
+      "data-quality"
+    ],
+    "handoff_notes": "All adapters return neutral items to this service; they must not write article rows directly."
+  },
+  {
+    "id": "BACKEND-004",
+    "title": "Implement profile and source-management services",
+    "summary": "Implement application use cases for the single local profile, bounded ranking settings, starter/custom sources, scraper policy metadata, and credential lifecycle commands.",
+    "objective": "Provide validated local configuration before ingestion and ranking features consume it.",
+    "context": "Demographics are explicit, optional, disableable, and capped; location is manually selected; starter sources remain editable; scrapers require an approved policy record.",
+    "owner_role": "backend-core-implementer",
+    "lane": "backend-core",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/application/**",
+      "internal/domain/**",
+      "internal/adapters/sqlite/**",
+      "internal/adapters/credentials/**",
+      "test/fixtures/**",
+      "tests/integration/**"
+    ],
+    "depends_on": [
+      "BACKEND-002",
+      "BACKEND-003"
+    ],
+    "inputs": [
+      "Profile/source domain ports",
+      "SQLite repositories",
+      "Credential adapter",
+      "Starter-source fixture contract"
+    ],
+    "outputs": [
+      "Profile query/update use cases",
+      "Ranking-configuration validation use cases",
+      "Source CRUD and starter-catalog import use cases",
+      "Credential configure/delete orchestration"
+    ],
+    "implementation_notes": [
+      "Use one stable profile identity and idempotent first-run initialization.",
+      "Validate URL scheme, adapter kind, permission mode, and scraper policy metadata before enabling a source.",
+      "Enforce configured low-weight ceilings for demographic signals at the application boundary.",
+      "Keep the starter catalog data-driven and editable without recompiling application logic."
+    ],
+    "acceptance_criteria": [
+      "Profile updates preserve absence versus disabled state and reject inferred or out-of-range demographic/ranking values.",
+      "Location accepts manual country/region and optional city without invoking geolocation or IP services.",
+      "Source CRUD supports starter and custom RSS/API/scraper records with type-specific validation.",
+      "A scraper cannot be enabled without explicit policy-review metadata and allowed content mode.",
+      "Credential commands store/delete secrets through the vault while database records retain only references/configured state."
+    ],
+    "verification": [
+      "Run table-driven unit tests for profile, weights, source types, URLs, permission modes, and scraper policy validation.",
+      "Run integration tests proving profile/source state survives restart.",
+      "Run credential lifecycle tests with a fake vault and sentinel-secret leak assertions.",
+      "Test idempotent starter-catalog import and user edits."
+    ],
+    "proof_required": [
+      "Application-service test output",
+      "Validation case matrix",
+      "Restart persistence proof"
+    ],
+    "edge_cases": [
+      "All demographic signals disabled",
+      "Duplicate source URL",
+      "Starter source edited then catalog reloaded",
+      "Credential write succeeds but database update fails",
+      "Deleting a source with articles"
+    ],
+    "non_goals": [
+      "Fetching news",
+      "Computing ranks",
+      "Choosing final live source catalog entries"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "privacy",
+      "validation",
+      "credentials"
+    ],
+    "handoff_notes": "Ingestion tasks consume only enabled, validated sources; ranking tasks consume the normalized bounded configuration."
+  },
+  {
+    "id": "FRONTEND-002",
+    "title": "Build the accessible application shell and routing",
+    "summary": "Implement the responsive application frame, navigation, route structure, install affordance, loading boundaries, and global error presentation.",
+    "objective": "Give every MVP workflow a consistent keyboard-accessible shell suitable for a Windows desktop browser or installed PWA window.",
+    "context": "The accepted screens are first-run setup, ranked feed, article reader, personal library, sources/refresh, and profile/ranking settings.",
+    "owner_role": "frontend-implementer",
+    "lane": "frontend",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "web/src/app/**",
+      "web/src/router/**",
+      "web/src/components/layout/**",
+      "web/src/styles/**",
+      "web/public/**",
+      "web/tests/**"
+    ],
+    "depends_on": [
+      "FRONTEND-001"
+    ],
+    "inputs": [
+      "Accepted frontend screen list",
+      "PWA scaffold",
+      "Local application constraints"
+    ],
+    "outputs": [
+      "Application shell",
+      "Named routes and navigation",
+      "Responsive layout primitives",
+      "Global loading/error/not-found boundaries",
+      "Install/update UI states"
+    ],
+    "implementation_notes": [
+      "Use semantic landmarks, visible focus, keyboard navigation, and reduced-motion preferences from the start.",
+      "Do not hide local-server failures behind infinite loaders; show actionable retry/relaunch guidance.",
+      "Keep navigation usable in both browser tab and standalone PWA display modes.",
+      "Use route placeholders only as structural boundaries, not fake completed features."
+    ],
+    "acceptance_criteria": [
+      "Each accepted MVP screen has a stable route and navigation entry or contextual path.",
+      "The shell works at common desktop widths and a narrow responsive viewport without horizontal navigation loss.",
+      "All navigation and global actions are keyboard operable with meaningful accessible names and visible focus.",
+      "Unknown routes, local API unavailability, recoverable errors, and PWA update availability have explicit states.",
+      "The shell does not store authoritative profile, article, source, ranking, or library data in browser storage."
+    ],
+    "verification": [
+      "Run component tests for route navigation, not-found, loading, API-down, install, and update states.",
+      "Run automated accessibility checks on the shell and navigation.",
+      "Run keyboard-only navigation checks in the browser test runner.",
+      "Capture desktop and narrow-viewport screenshots."
+    ],
+    "proof_required": [
+      "Component/a11y test output",
+      "Keyboard navigation result",
+      "Desktop and narrow screenshots"
+    ],
+    "edge_cases": [
+      "Direct deep link",
+      "Browser back/forward",
+      "API drops after load",
+      "PWA install unsupported",
+      "Service-worker update waiting"
+    ],
+    "non_goals": [
+      "Final visual branding",
+      "Feature data loading",
+      "Mobile-native layout",
+      "Authentication navigation"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "accessibility",
+      "routing",
+      "pwa-lifecycle"
+    ],
+    "handoff_notes": "Feature screens should reuse shell status and error boundaries instead of implementing global behavior independently."
+  },
+  {
+    "id": "FRONTEND-003",
+    "title": "Implement the typed API and server-state layer",
+    "summary": "Create the frontend API wrapper, query/mutation state, cancellation, polling, validation-error mapping, and safe cache policy around generated bindings.",
+    "objective": "Give feature screens a consistent, testable route to authoritative backend state without duplicating domain or ranking rules.",
+    "context": "The app is same-origin and local, but still needs robust startup, refresh polling, retries, mutation invalidation, and contract error handling.",
+    "owner_role": "frontend-implementer",
+    "lane": "frontend",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "web/src/api/**",
+      "web/src/state/**",
+      "web/src/composables/**",
+      "web/tests/**",
+      "test/fixtures/api/**"
+    ],
+    "depends_on": [
+      "FRONTEND-001",
+      "CONTRACT-005"
+    ],
+    "inputs": [
+      "Generated TypeScript bindings",
+      "Shared API fixtures",
+      "Canonical error and refresh-status schemas"
+    ],
+    "outputs": [
+      "Thin generated-client wrapper",
+      "Typed server-state/query keys",
+      "Mutation invalidation rules",
+      "Refresh-status polling primitive",
+      "User-safe error mapping"
+    ],
+    "implementation_notes": [
+      "Choose one modest server-state mechanism and avoid parallel ad hoc fetch stores.",
+      "Cancel obsolete requests on route/query changes and stop polling on terminal refresh state or component disposal.",
+      "Never log request bodies from credential endpoints or persist their inputs.",
+      "Keep client-side optimistic state limited to reversible UI feedback; reconcile with mutation responses."
+    ],
+    "acceptance_criteria": [
+      "Feature code consumes typed wrapper functions rather than raw fetch calls or handwritten response shapes.",
+      "Queries and mutations have explicit loading, empty, success, validation, conflict, unavailable, and unexpected-error behavior.",
+      "Refresh polling stops on success, partial success, failure, cancellation, timeout, or unmount.",
+      "Successful mutations invalidate only relevant server state and use returned authoritative values.",
+      "Credential values are absent from caches, logs, persisted stores, error messages, and test snapshots."
+    ],
+    "verification": [
+      "Run unit tests with generated-contract fixtures for every error family and mutation invalidation rule.",
+      "Run fake-timer tests for polling lifecycle and cancellation.",
+      "Run a sentinel-secret test across logger, cache serialization, and snapshots.",
+      "Run TypeScript and generated-client drift checks."
+    ],
+    "proof_required": [
+      "API/state unit-test output",
+      "Polling lifecycle test",
+      "Sentinel-secret negative test",
+      "Typecheck output"
+    ],
+    "edge_cases": [
+      "API returns unknown error code",
+      "Component unmounts mid-request",
+      "Refresh status disappears",
+      "Rapid repeated mutation",
+      "Network failure after server committed mutation"
+    ],
+    "non_goals": [
+      "Reimplementing backend validation",
+      "Client-side ranking",
+      "Persistent offline mutations",
+      "Reading credentials back"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "state-consistency",
+      "contract-drift",
+      "secret-leak"
+    ],
+    "handoff_notes": "Document query keys and mutation invalidations so independently developed screens do not create conflicting caches."
+  },
+  {
+    "id": "RANK-001",
+    "title": "Implement deterministic local text similarity",
+    "summary": "Implement local tokenization, indexing, and TF-IDF/BM25-style similarity behind the accepted ranking port.",
+    "objective": "Provide lightweight content-interest matching without external AI services, model runtimes, or network calls.",
+    "context": "The MVP chose replaceable lightweight local text similarity. Results must be deterministic, explainable, restart-safe, and suitable for one user's local corpus.",
+    "owner_role": "backend-core-implementer",
+    "lane": "ranking",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/application/ranking/**",
+      "internal/domain/**",
+      "internal/adapters/sqlite/**",
+      "test/fixtures/ranking/**",
+      "tests/integration/**"
+    ],
+    "depends_on": [
+      "CONTRACT-002",
+      "CONTRACT-004",
+      "CONTRACT-005",
+      "BACKEND-002",
+      "INGEST-002"
+    ],
+    "inputs": [
+      "Normalized article fields",
+      "Explicit user interests",
+      "Text-similarity port",
+      "Ranking fixtures"
+    ],
+    "outputs": [
+      "Deterministic tokenizer",
+      "Corpus statistics/index storage",
+      "TF-IDF or BM25-style scorer",
+      "Similarity contribution with version metadata"
+    ],
+    "implementation_notes": [
+      "Normalize case and Unicode predictably and document language limitations rather than inferring unsupported language semantics.",
+      "Use title and allowed excerpt/content fields with explicit field weighting; never fetch extra content for ranking.",
+      "Version tokenization and similarity parameters so stored results can be invalidated safely.",
+      "Keep the interface replaceable for a postponed embedding implementation."
+    ],
+    "acceptance_criteria": [
+      "Identical corpus, profile interests, configuration, clock, and algorithm version produce identical scores.",
+      "The scorer handles empty interests, empty text, small corpora, common terms, Unicode, and repeated tokens without invalid numeric results.",
+      "Index state can be rebuilt solely from permitted locally stored article fields.",
+      "Similarity produces a bounded normalized contribution and machine-readable matching terms/reasons.",
+      "No runtime network request, external AI service, embedding model, or separate model process is used."
+    ],
+    "verification": [
+      "Run golden ranking fixtures for tokenization, corpus statistics, and score ordering.",
+      "Run determinism tests across repeated builds and database reloads.",
+      "Run property/fuzz tests for finite bounded scores and malformed Unicode input.",
+      "Run a test proving the scorer has no outbound-network dependency."
+    ],
+    "proof_required": [
+      "Golden-fixture output",
+      "Determinism result",
+      "Bounded-score property-test output"
+    ],
+    "edge_cases": [
+      "Empty corpus",
+      "One-document corpus",
+      "All terms common",
+      "Unsupported language",
+      "HTML remnants",
+      "Very long article text"
+    ],
+    "non_goals": [
+      "Embeddings",
+      "Generative summaries",
+      "Language detection service",
+      "Cross-user collaborative filtering"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "ranking-quality",
+      "determinism",
+      "local-processing"
+    ],
+    "handoff_notes": "Expose contribution details, not UI prose; the combined scorer owns final explanation ordering."
+  },
+  {
+    "id": "BACKEND-005",
+    "title": "Expose profile and source APIs",
+    "summary": "Implement contract-compliant HTTP handlers for health/readiness, profile, ranking configuration, starter sources, source CRUD, and write/delete-only credentials.",
+    "objective": "Complete the backend platform API slice needed by first-run and source-management frontend work.",
+    "context": "Handlers must follow the accepted OpenAPI contract, remain thin over application services, and prevent secret or internal error leakage.",
+    "owner_role": "backend-core-implementer",
+    "lane": "backend-core",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/httpapi/**",
+      "internal/application/**",
+      "cmd/news-aggregator/**",
+      "api/openapi.yaml",
+      "test/fixtures/api/**",
+      "tests/integration/**"
+    ],
+    "depends_on": [
+      "BACKEND-001",
+      "BACKEND-004",
+      "CONTRACT-003",
+      "CONTRACT-005"
+    ],
+    "inputs": [
+      "OpenAPI contract and fixtures",
+      "Profile/source application services",
+      "Loopback host"
+    ],
+    "outputs": [
+      "Profile and ranking-config handlers",
+      "Starter/source CRUD handlers",
+      "Credential write/delete handlers",
+      "Consistent validation/error middleware and contract tests"
+    ],
+    "implementation_notes": [
+      "Decode with bounded body sizes and reject unknown fields where the contract is closed.",
+      "Return stable error codes and correlation identifiers without stack traces or secret-bearing causes.",
+      "Apply request timeouts and cancellation to application calls.",
+      "Do not add authentication as a substitute for the required loopback binding."
+    ],
+    "acceptance_criteria": [
+      "Implemented operations match canonical paths, methods, status codes, and schemas.",
+      "Invalid optional demographics, weights, source settings, and policy metadata produce stable validation errors.",
+      "Credential endpoints accept write/delete operations but never return stored secret values.",
+      "Handlers map not-found, conflict, unsupported-platform, and internal failures without leaking implementation details.",
+      "All endpoints are reachable through the composed loopback server and API 404 behavior remains isolated from SPA fallback."
+    ],
+    "verification": [
+      "Run handler unit tests for success and every documented error family.",
+      "Run OpenAPI response/request conformance tests using shared fixtures.",
+      "Run loopback integration tests through a temporary SQLite database and fake credential store.",
+      "Run sentinel-secret scans over responses and captured logs."
+    ],
+    "proof_required": [
+      "Handler and conformance test output",
+      "Endpoint coverage report",
+      "Secret-leak negative-test output"
+    ],
+    "edge_cases": [
+      "Malformed JSON",
+      "Oversized body",
+      "Unknown JSON fields",
+      "Cancelled request",
+      "Credential vault unavailable",
+      "Unsupported platform"
+    ],
+    "non_goals": [
+      "Refresh, feed, article, and library handlers",
+      "Remote access",
+      "Frontend implementation"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "api",
+      "validation",
+      "secret-leak"
+    ],
+    "handoff_notes": "Frontend first-run/source tasks may integrate after these conformance tests and the independent review gate pass."
+  },
+  {
+    "id": "INGEST-001",
+    "title": "Implement bounded and policy-aware HTTP fetching",
+    "summary": "Implement the shared outbound fetcher with timeouts, size limits, redirect controls, rate limiting, safe URL validation, and sanitized diagnostics.",
+    "objective": "Give all network ingestion adapters one enforceable safety boundary before they contact public sources.",
+    "context": "RSS, official APIs, and approved scrapers share outbound-network risks. Local-only use does not permit access-control, robots, rate-limit, or publisher-policy bypass.",
+    "owner_role": "backend-core-implementer",
+    "lane": "ingestion",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/adapters/httpfetch/**",
+      "internal/application/**",
+      "internal/domain/**",
+      "test/fixtures/http/**",
+      "tests/integration/**"
+    ],
+    "depends_on": [
+      "CONTRACT-002",
+      "CONTRACT-005",
+      "BACKEND-004"
+    ],
+    "inputs": [
+      "HTTP fetcher port",
+      "Validated enabled-source configuration",
+      "Safety boundaries and negative fixtures"
+    ],
+    "outputs": [
+      "Bounded HTTP fetcher adapter",
+      "Per-source request policy",
+      "Retry/rate-limit metadata",
+      "Sanitized fetch-result and error mapping"
+    ],
+    "implementation_notes": [
+      "Reject non-HTTP(S) URLs, embedded credentials, loopback/private/link-local destinations reached directly or through redirects, and unsupported redirects.",
+      "Enforce response byte limits before buffering and allow per-adapter content-type allowlists.",
+      "Use a descriptive User-Agent, conditional request headers, and bounded retry behavior that honors Retry-After.",
+      "Do not log authorization headers, query secrets, response bodies, or credential-bearing URLs."
+    ],
+    "acceptance_criteria": [
+      "Every ingestion adapter can fetch only through the shared bounded fetcher.",
+      "Timeouts, redirects, DNS/address validation, response limits, content types, conditional requests, and per-source pacing are configurable within safe caps.",
+      "Private-network and redirect-to-private-network attempts are rejected before content is returned.",
+      "429 and transient failures produce bounded retry metadata without bypassing provider limits.",
+      "Errors and logs contain source-safe context but no secrets or response content."
+    ],
+    "verification": [
+      "Run unit tests with a controlled HTTP server for timeout, redirect, size, type, ETag, Last-Modified, 429, and cancellation behavior.",
+      "Run negative tests for loopback/private/link-local targets and redirect chains.",
+      "Run sentinel-secret checks across errors and captured logs.",
+      "Run race-enabled tests where supported."
+    ],
+    "proof_required": [
+      "Fetcher test transcript",
+      "Blocked-target case matrix",
+      "Sentinel-secret scan"
+    ],
+    "edge_cases": [
+      "DNS rebinding between validation and connection",
+      "Compressed response expanding past limit",
+      "Redirect loop",
+      "Malformed Retry-After",
+      "Cancellation during body read"
+    ],
+    "non_goals": [
+      "Browser-like anti-bot circumvention",
+      "Proxy rotation",
+      "Paywall or login handling",
+      "Adapter-specific parsing"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "ssrf",
+      "rate-limit",
+      "network",
+      "secrets"
+    ],
+    "handoff_notes": "RSS, API, and scraper adapters must not instantiate independent unrestricted HTTP clients."
+  },
+  {
+    "id": "FRONTEND-004",
+    "title": "Create shared accessible UI primitives and test fixtures",
+    "summary": "Implement reusable form, status, article-summary, ranking-explanation, filtering, confirmation, and empty-state components backed by contract fixtures.",
+    "objective": "Prevent feature screens from duplicating sensitive controls, permission messaging, and interaction behavior.",
+    "context": "Optional demographics, credential writes, scraper policy state, article permissions, refresh failures, and ranking reasons need consistent explicit presentation.",
+    "owner_role": "frontend-implementer",
+    "lane": "frontend",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P1",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "web/src/components/**",
+      "web/src/styles/**",
+      "web/src/testing/**",
+      "web/tests/**",
+      "test/fixtures/api/**"
+    ],
+    "depends_on": [
+      "FRONTEND-002",
+      "FRONTEND-003"
+    ],
+    "inputs": [
+      "Application shell",
+      "Typed API/state layer",
+      "Shared profile/source/article/ranking/refresh fixtures"
+    ],
+    "outputs": [
+      "Accessible field and validation components",
+      "Article card and permission badge",
+      "Ranking explanation list",
+      "Refresh/status/error components",
+      "Filter and confirmation controls",
+      "Frontend fixture helpers"
+    ],
+    "implementation_notes": [
+      "Demographic fields must state that they are optional, local, low-weight, and individually disableable.",
+      "Credential inputs are write-only and must clear from component memory after submission or cancellation.",
+      "Do not render full-content HTML in summary components; reader sanitization belongs to the feature workflow.",
+      "Use stable reason codes from the API and provide an explicit fallback for unknown future codes."
+    ],
+    "acceptance_criteria": [
+      "Shared components cover all repeated interaction and status patterns required by the four workflow tasks.",
+      "Labels, descriptions, validation messages, keyboard behavior, focus movement, and live-region announcements are accessible.",
+      "Article components distinguish full-content-allowed from metadata-only and always preserve the canonical publisher link.",
+      "Ranking explanations reflect API contributions without recomputing or exaggerating causal meaning.",
+      "Credential inputs never retain submitted values in global state, browser persistence, logs, or snapshots."
+    ],
+    "verification": [
+      "Run component tests across default, loading, empty, error, disabled, and success variants.",
+      "Run automated accessibility checks and keyboard interaction tests.",
+      "Run malicious-content and unknown-reason fixtures.",
+      "Run sentinel-secret lifecycle and snapshot checks for credential controls."
+    ],
+    "proof_required": [
+      "Component and accessibility test output",
+      "Variant screenshot set",
+      "Credential lifecycle negative test",
+      "Unknown-reason fallback proof"
+    ],
+    "edge_cases": [
+      "Very long title or source name",
+      "Unknown reason code",
+      "No ranking contributions",
+      "Mixed partial refresh outcomes",
+      "Credential paste then cancel",
+      "Right-to-left or Unicode text"
+    ],
+    "non_goals": [
+      "Complete feature pages",
+      "Rich-text editing",
+      "Custom theme system",
+      "Client-side HTML trust"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "accessibility",
+      "privacy-ui",
+      "content-safety"
+    ],
+    "handoff_notes": "Workflow tasks should compose these primitives and add new shared behavior only with focused component tests."
+  },
+  {
+    "id": "RANK-002",
+    "title": "Implement primary ranking signal extractors",
+    "summary": "Compute bounded recency, explicit-interest, source-preference, library-feedback, and coarse-location contributions independently of final score aggregation.",
+    "objective": "Make each primary personalization signal testable and explainable before weights combine them.",
+    "context": "Explicit interests, selected sources, recency, and reading actions must lead ranking; coarse manually entered location may contribute without automatic geolocation.",
+    "owner_role": "backend-core-implementer",
+    "lane": "ranking",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/application/ranking/**",
+      "internal/domain/**",
+      "internal/adapters/sqlite/**",
+      "test/fixtures/ranking/**"
+    ],
+    "depends_on": [
+      "RANK-001",
+      "BACKEND-004",
+      "INGEST-002"
+    ],
+    "inputs": [
+      "Article metadata and normalized text",
+      "User profile and source preferences",
+      "Library state",
+      "Injected clock"
+    ],
+    "outputs": [
+      "Independent bounded signal extractors",
+      "Stable signal reason codes",
+      "Signal-level fixtures and tests"
+    ],
+    "implementation_notes": [
+      "Use an injected clock and explicit decay parameters for recency.",
+      "Treat hidden state as feed exclusion, not an arbitrarily large negative score.",
+      "Define reading-action effects conservatively so a single action cannot permanently dominate the feed.",
+      "Location matching uses only explicit coarse profile/source/article metadata and never infers physical location."
+    ],
+    "acceptance_criteria": [
+      "Each signal returns a finite documented range plus stable explanation data.",
+      "Empty or disabled signals contribute zero and do not fabricate evidence.",
+      "Recency behavior is deterministic under a fixed clock and handles missing/future timestamps safely.",
+      "Source and reading-action signals distinguish explicit preference from incidental availability.",
+      "Location uses manually selected country/region and optional city only."
+    ],
+    "verification": [
+      "Run table-driven tests for every signal at minimum, maximum, absent, disabled, and malformed-input boundaries.",
+      "Run fixed-clock recency tests including future and missing publication times.",
+      "Run behavior tests for read, saved, hidden, restored, and untouched articles.",
+      "Run coarse-location matching tests without geolocation or IP calls."
+    ],
+    "proof_required": [
+      "Per-signal range matrix",
+      "Fixed-clock test output",
+      "Disabled-signal zero-contribution proof"
+    ],
+    "edge_cases": [
+      "Future publication timestamp",
+      "No source preference",
+      "All articles read",
+      "Saved then hidden article",
+      "Missing region metadata"
+    ],
+    "non_goals": [
+      "Final weighted score",
+      "Demographic scoring",
+      "Machine-learned behavioral predictions"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "ranking-quality",
+      "feedback-loop",
+      "location-privacy"
+    ],
+    "handoff_notes": "The combined scorer may weight these contributions but must not duplicate or mutate their extraction rules."
+  },
+  {
+    "id": "INGEST-003",
+    "title": "Implement RSS and Atom ingestion",
+    "summary": "Implement the feed adapter for RSS and Atom variants using the bounded fetcher and normalization pipeline.",
+    "objective": "Deliver the baseline source type that can populate the MVP without API credentials or scraping.",
+    "context": "Feeds vary in date formats, namespaces, identifiers, relative links, summaries, and whether full content is supplied.",
+    "owner_role": "backend-core-implementer",
+    "lane": "ingestion",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/adapters/feeds/**",
+      "internal/application/ingestion/**",
+      "test/fixtures/feeds/**",
+      "tests/integration/**"
+    ],
+    "depends_on": [
+      "INGEST-001",
+      "INGEST-002"
+    ],
+    "inputs": [
+      "Bounded fetcher",
+      "Normalization service",
+      "RSS/Atom fixtures",
+      "Validated feed source configuration"
+    ],
+    "outputs": [
+      "RSS/Atom adapter",
+      "Conditional-fetch cursor handling",
+      "Feed parsing diagnostics",
+      "Fixture-driven integration tests"
+    ],
+    "implementation_notes": [
+      "Support common RSS 2.0 and Atom forms without relying on browser HTML repair.",
+      "Resolve relative links against the final allowed response URL.",
+      "Map feed content into the neutral adapter item and let normalization enforce retention permission.",
+      "A malformed item should be skipped with diagnostics when the rest of the feed remains usable."
+    ],
+    "acceptance_criteria": [
+      "Representative RSS and Atom fixtures produce normalized articles with stable identity and metadata.",
+      "ETag and Last-Modified values are persisted and a not-modified response performs no article writes.",
+      "Malformed feeds fail safely; isolated malformed items do not necessarily discard valid siblings.",
+      "Relative links, namespaces, date variants, encodings, summaries, and full-content elements follow documented mappings.",
+      "The adapter cannot bypass fetcher limits or content permission enforcement."
+    ],
+    "verification": [
+      "Run parser tests across the shared RSS/Atom fixture corpus.",
+      "Run controlled-server tests for conditional requests and not-modified responses.",
+      "Run partial-item failure and malformed-document tests.",
+      "Run an end-to-end adapter-to-temporary-SQLite test."
+    ],
+    "proof_required": [
+      "Feed fixture coverage report",
+      "Conditional request test output",
+      "End-to-end ingestion transcript"
+    ],
+    "edge_cases": [
+      "Namespace extensions",
+      "Duplicate GUIDs",
+      "Invalid character encoding",
+      "Relative URLs",
+      "Missing channel metadata",
+      "Very large feeds"
+    ],
+    "non_goals": [
+      "Automatic feed discovery",
+      "HTML scraping fallback",
+      "Choosing the final starter feed catalog"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "parser",
+      "data-quality",
+      "content-permission"
+    ],
+    "handoff_notes": "Provider-specific quirks belong in fixtures or narrowly scoped normalization rules, not source-name conditionals in the core domain."
+  },
+  {
+    "id": "INGEST-004",
+    "title": "Implement official API and approved scraper adapter foundations",
+    "summary": "Create configurable fixture-backed adapter foundations for one official JSON API shape and one allowlisted public-page scraper shape without selecting or contacting a live provider.",
+    "objective": "Prove the planned adapter boundaries, credentials, policy metadata, and permission enforcement while preserving unresolved provider choices.",
+    "context": "The merged intake accepts official APIs and narrowly approved scrapers, but the first live providers and targets remain intentionally unresolved.",
+    "owner_role": "backend-core-implementer",
+    "lane": "ingestion",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P1",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/adapters/newsapi/**",
+      "internal/adapters/scraper/**",
+      "internal/application/ingestion/**",
+      "internal/adapters/credentials/**",
+      "test/fixtures/api-providers/**",
+      "test/fixtures/scrapers/**",
+      "tests/integration/**"
+    ],
+    "depends_on": [
+      "INGEST-001",
+      "INGEST-002",
+      "BACKEND-003",
+      "BACKEND-004"
+    ],
+    "inputs": [
+      "Bounded fetcher",
+      "Resolve-for-use credential capability",
+      "Validated source and scraper policy records",
+      "Fictional provider fixtures"
+    ],
+    "outputs": [
+      "Configurable official-API adapter base",
+      "Selector-based approved scraper adapter base",
+      "Credential injection boundary",
+      "Policy and robots preflight enforcement",
+      "Fixture-only example configurations"
+    ],
+    "implementation_notes": [
+      "Do not embed a real provider hostname, key, or production scraper selector until a later accepted task names and reviews that target.",
+      "API credentials must be attached only at request time and never copied into source configuration or diagnostics.",
+      "Scraper activation requires explicit allowlist/policy metadata and a stored robots review result; runtime must fail closed when metadata is absent or stale under the accepted policy.",
+      "Selectors extract only fields allowed by the recorded permission mode."
+    ],
+    "acceptance_criteria": [
+      "A fictional official API fixture demonstrates pagination/cursor mapping, rate-limit metadata, credential use, and neutral-item output.",
+      "A fictional permitted public-page fixture demonstrates selector extraction, canonical URL handling, and metadata-only/full-content permission enforcement.",
+      "The scraper refuses execution without approved policy metadata and cannot request login/paywall/access-control bypass behavior.",
+      "Neither adapter stores, logs, returns, or fixtures a secret value.",
+      "Adding a future provider is isolated to a new configuration/adapter and tests rather than changes to core ingestion logic."
+    ],
+    "verification": [
+      "Run fixture-backed API pagination, 401/403, 429, invalid-shape, and cancellation tests.",
+      "Run fixture-backed scraper selector, robots/policy refusal, malicious markup, and permission tests.",
+      "Run sentinel-secret scans across logs, errors, fixtures, and temporary SQLite files.",
+      "Run a test proving no live network request is made by the fixture suite."
+    ],
+    "proof_required": [
+      "Adapter fixture test output",
+      "Policy fail-closed matrix",
+      "Secret-leak scan",
+      "Statement that no live provider was selected"
+    ],
+    "edge_cases": [
+      "Expired or missing credential",
+      "Provider cursor loop",
+      "Schema drift",
+      "Selector returns multiple candidates",
+      "Robots/policy metadata missing",
+      "Page redirects to a disallowed host"
+    ],
+    "non_goals": [
+      "Selecting live API providers",
+      "Selecting live scraper targets",
+      "Browser automation",
+      "Anti-bot circumvention",
+      "Authenticated scraping"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "provider-dependency",
+      "scraping-policy",
+      "secrets",
+      "schema-drift"
+    ],
+    "handoff_notes": "A later provider-specific task must name the source, confirm terms/robots/rate limits/content rights, add fixtures, and receive independent review."
+  },
+  {
+    "id": "FRONTEND-005",
+    "title": "Implement first-run setup and profile settings",
+    "summary": "Build the guided first-run and editable profile/ranking-settings screens for interests, starter sources, coarse location, optional demographics, and bounded signal controls.",
+    "objective": "Let the user establish transparent local personalization without an account, automatic location, or inferred demographic values.",
+    "context": "Explicit interests and source choices lead ranking. Country/region is manual; city, age, and gender are optional, local, disableable, and low-weight.",
+    "owner_role": "frontend-implementer",
+    "lane": "frontend",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "web/src/features/setup/**",
+      "web/src/features/profile/**",
+      "web/src/features/ranking-settings/**",
+      "web/src/router/**",
+      "web/tests/**",
+      "tests/e2e/**"
+    ],
+    "depends_on": [
+      "FRONTEND-002",
+      "FRONTEND-003",
+      "FRONTEND-004",
+      "BACKEND-005"
+    ],
+    "inputs": [
+      "Profile, ranking-config, and starter-source APIs",
+      "Accessible shared controls",
+      "Accepted privacy and demographic policy"
+    ],
+    "outputs": [
+      "First-run workflow",
+      "Profile settings screen",
+      "Ranking-signal settings screen",
+      "Saved-state and validation feedback",
+      "Setup/profile browser tests"
+    ],
+    "implementation_notes": [
+      "Determine first-run state from authoritative API data, not a browser-local completed flag.",
+      "Present demographic fields after primary preferences and explain their optional, local, capped effect before entry.",
+      "Use separate enabled controls so clearing a value and disabling its ranking effect are understandable.",
+      "Do not request browser geolocation or perform IP-based location lookup."
+    ],
+    "acceptance_criteria": [
+      "A new user can choose starter sources, enter interests, select country/region, optionally add city/age/gender, review signal controls, and save a valid local profile.",
+      "Age, gender, and city can be omitted; age/gender can be individually disabled and their capped influence is visible.",
+      "Invalid weights, locations, or profile fields show field-level contract errors without discarding valid unsaved entries.",
+      "Returning users bypass first-run setup and can edit or clear every accepted profile value.",
+      "No profile value is sent outside the same-origin local API or persisted as authoritative browser state."
+    ],
+    "verification": [
+      "Run component tests for new, partial, valid, invalid, saved, and API-error states.",
+      "Run accessibility and keyboard tests for all fields, enable controls, validation summaries, and save feedback.",
+      "Run a browser test from empty profile through completed setup and reload.",
+      "Assert no browser geolocation/IP request and no authoritative profile persistence in browser storage."
+    ],
+    "proof_required": [
+      "Component/a11y output",
+      "First-run browser trace",
+      "Profile reload proof",
+      "Network/storage privacy assertion"
+    ],
+    "edge_cases": [
+      "No starter source selected",
+      "All optional fields empty",
+      "Demographic value entered then disabled",
+      "Save conflict",
+      "API unavailable after editing"
+    ],
+    "non_goals": [
+      "Account creation",
+      "Automatic location",
+      "Inferring demographics",
+      "Final ranking-weight tuning from usage"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "privacy-ui",
+      "bias",
+      "onboarding"
+    ],
+    "handoff_notes": "Feed ranking explanations must reflect the server's saved configuration rather than unsaved form state."
+  },
+  {
+    "id": "RANK-003",
+    "title": "Combine scores with demographic caps and explanations",
+    "summary": "Implement normalized weighted aggregation, optional low-weight age/gender adjustments, deterministic ordering, and persisted ranking explanations.",
+    "objective": "Produce the final relevance order while enforcing the accepted transparency, privacy, and demographic-subordination policy.",
+    "context": "Demographics may make only small optional adjustments. Primary signals and text similarity lead, and every article must explain its placement.",
+    "owner_role": "backend-core-implementer",
+    "lane": "ranking",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/application/ranking/**",
+      "internal/domain/**",
+      "internal/adapters/sqlite/**",
+      "test/fixtures/ranking/**",
+      "tests/integration/**"
+    ],
+    "depends_on": [
+      "RANK-001",
+      "RANK-002",
+      "BACKEND-004"
+    ],
+    "inputs": [
+      "Text-similarity contribution",
+      "Primary signal contributions",
+      "Validated RankingConfiguration",
+      "Optional explicit demographic values"
+    ],
+    "outputs": [
+      "Weighted ranking engine",
+      "Demographic cap enforcement",
+      "Stable tie-break rules",
+      "Persisted RankingResult and explanation components"
+    ],
+    "implementation_notes": [
+      "Normalize configured weights and reject invalid, negative, non-finite, or all-zero active configurations according to the domain contract.",
+      "Enforce hard aggregate and per-signal caps for age/gender regardless of configured input.",
+      "Use stable tie-breakers such as score, publication time, then article identifier.",
+      "Build explanations from actual nonzero contributions and stable reason codes; do not claim causal facts not present in inputs."
+    ],
+    "acceptance_criteria": [
+      "Final scores are finite, bounded, deterministic, and accompanied by contributions that reconcile to the documented total.",
+      "Disabling or omitting age/gender produces exactly zero contribution and no demographic explanation.",
+      "Enabled demographic contributions cannot exceed accepted low-weight caps or outrank the aggregate primary-signal budget by themselves.",
+      "Tie ordering is stable across recomputation and restart.",
+      "Every visible result has at least one truthful explanation or an explicit neutral/default reason."
+    ],
+    "verification": [
+      "Run golden end-to-end ranking fixtures with contribution reconciliation.",
+      "Run property tests for finite bounds, deterministic order, and demographic caps across generated configurations.",
+      "Run metamorphic tests showing disabled demographics cannot change order or explanations.",
+      "Run persistence/reload tests for algorithm version and components."
+    ],
+    "proof_required": [
+      "Golden ranked fixture",
+      "Contribution reconciliation output",
+      "Demographic cap and disablement tests",
+      "Determinism proof"
+    ],
+    "edge_cases": [
+      "All active weights zero",
+      "NaN or infinite input attempt",
+      "Exact score ties",
+      "No matching interests",
+      "Only demographic fields populated"
+    ],
+    "non_goals": [
+      "Inferring age or gender",
+      "Opaque model-based explanations",
+      "Automated weight tuning from multiple users"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "bias",
+      "explainability",
+      "ranking-quality"
+    ],
+    "handoff_notes": "Expose stable contribution/reason structures through the API; the frontend may localize wording but must not change meaning."
+  },
+  {
+    "id": "INGEST-005",
+    "title": "Implement refresh orchestration and status API",
+    "summary": "Coordinate bounded manual refresh runs across enabled sources, persist per-source outcomes, isolate failures, and expose contract-compliant refresh start/status endpoints.",
+    "objective": "Turn the ingestion adapters into an observable user-triggered pipeline that updates articles safely while the app is running.",
+    "context": "The MVP supports manual refresh and refresh-while-running only. One bad source must not discard successful work from others.",
+    "owner_role": "backend-core-implementer",
+    "lane": "ingestion",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/application/ingestion/**",
+      "internal/httpapi/**",
+      "internal/adapters/**",
+      "cmd/news-aggregator/**",
+      "test/fixtures/ingestion/**",
+      "tests/integration/**"
+    ],
+    "depends_on": [
+      "INGEST-003",
+      "INGEST-004",
+      "BACKEND-002",
+      "BACKEND-005"
+    ],
+    "inputs": [
+      "Enabled validated sources",
+      "Ingestion adapters",
+      "Normalization/upsert service",
+      "RefreshRun repository",
+      "OpenAPI refresh contract"
+    ],
+    "outputs": [
+      "Refresh coordinator",
+      "Per-source concurrency and cancellation policy",
+      "Persisted RefreshRun results",
+      "POST refresh and GET refresh-status handlers"
+    ],
+    "implementation_notes": [
+      "Permit at most one active global refresh unless the contract explicitly defines source-scoped concurrency.",
+      "Bound source concurrency and propagate process/request cancellation without leaving a run permanently marked active.",
+      "Commit successful source results independently where the accepted transaction design permits.",
+      "Sanitize all user-facing errors and retain only bounded diagnostic summaries."
+    ],
+    "acceptance_criteria": [
+      "Starting a refresh returns a stable run identifier and status progresses through running to success, partial success, failure, or cancelled.",
+      "A concurrent start request receives the contract-defined conflict behavior rather than launching duplicate work.",
+      "One source failure is recorded without rolling back successful source ingestion.",
+      "Per-source fetched/inserted/updated/skipped/failed counts and sanitized messages persist across restart.",
+      "Shutdown or cancellation leaves a terminal, recoverable RefreshRun state."
+    ],
+    "verification": [
+      "Run integration tests with mixed successful, unchanged, malformed, rate-limited, and failed fixture sources.",
+      "Test concurrent refresh conflict, bounded concurrency, cancellation, shutdown, and restart status retrieval.",
+      "Validate refresh endpoints against OpenAPI fixtures.",
+      "Run race-enabled coordinator tests where supported."
+    ],
+    "proof_required": [
+      "Mixed-outcome refresh transcript",
+      "Concurrency/cancellation test output",
+      "OpenAPI conformance output"
+    ],
+    "edge_cases": [
+      "No enabled sources",
+      "All sources unchanged",
+      "All sources fail",
+      "Shutdown mid-refresh",
+      "Database failure after fetch",
+      "Repeated status polling"
+    ],
+    "non_goals": [
+      "Background scheduling",
+      "Ingestion while the executable is closed",
+      "Ranking computation",
+      "Push notifications"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "concurrency",
+      "partial-failure",
+      "data-integrity"
+    ],
+    "handoff_notes": "Ranking recomputation consumes committed article changes and must not block persistence of refresh outcomes."
+  },
+  {
+    "id": "FRONTEND-006",
+    "title": "Implement source management and manual refresh",
+    "summary": "Build source catalog/custom-source management, write-only credential controls, scraper policy visibility, refresh initiation, polling, and per-source outcome presentation.",
+    "objective": "Let the user safely control what is ingested and understand refresh progress and failures without exposing secrets.",
+    "context": "The MVP includes editable starter sources, manual RSS/API/approved-scraper configuration, and ingestion only while the executable runs.",
+    "owner_role": "frontend-implementer",
+    "lane": "frontend",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "web/src/features/sources/**",
+      "web/src/features/refresh/**",
+      "web/src/components/**",
+      "web/tests/**",
+      "tests/e2e/**"
+    ],
+    "depends_on": [
+      "FRONTEND-003",
+      "FRONTEND-004",
+      "BACKEND-005",
+      "INGEST-005"
+    ],
+    "inputs": [
+      "Source/starter/credential APIs",
+      "Refresh start/status APIs",
+      "Shared status and credential components"
+    ],
+    "outputs": [
+      "Sources screen",
+      "Add/edit/enable/delete flows",
+      "Write/delete credential flow",
+      "Refresh control and progress view",
+      "Per-source outcome and recovery UI"
+    ],
+    "implementation_notes": [
+      "Show adapter type, enabled state, permission mode, credential configured state, and scraper policy status without displaying credential content.",
+      "Clear credential inputs immediately after successful submission, cancellation, route change, or component disposal.",
+      "Explain that refresh runs only while the app process is open.",
+      "Differentiate success, unchanged, partial success, failure, cancelled, conflict, and rate-limited outcomes."
+    ],
+    "acceptance_criteria": [
+      "The user can enable/edit starter entries and add validated custom RSS, official API, or approved scraper source configurations.",
+      "Scraper configuration cannot appear enabled without required policy status and permission information from the API.",
+      "Credential UI supports configure/replace/delete and displays only configured/not-configured state.",
+      "One manual refresh can be started, duplicate-start conflict is explained, and polling stops at a terminal state.",
+      "Per-source counts and sanitized failures remain understandable after navigation or reload."
+    ],
+    "verification": [
+      "Run component tests for every source kind, validation family, credential lifecycle, and deletion confirmation.",
+      "Run fake-timer tests for refresh polling and component disposal.",
+      "Run browser coverage from source creation through mixed-outcome refresh.",
+      "Run sentinel-secret checks across DOM, logs, caches, snapshots, and browser storage."
+    ],
+    "proof_required": [
+      "Source/refresh component tests",
+      "Mixed-outcome browser trace",
+      "Credential secret-leak assertion",
+      "Accessible status announcement proof"
+    ],
+    "edge_cases": [
+      "No enabled sources",
+      "Duplicate URL",
+      "Vault unavailable",
+      "Refresh already active",
+      "Source deleted during refresh",
+      "Partial success after route change"
+    ],
+    "non_goals": [
+      "Automatic source discovery",
+      "Background scheduling",
+      "Viewing stored secrets",
+      "Policy bypass controls"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "secrets",
+      "scraping-policy",
+      "async-state"
+    ],
+    "handoff_notes": "Integration tests should use fictional fixtures; live provider setup remains an explicit later selection."
+  },
+  {
+    "id": "RANK-004",
+    "title": "Implement ranked feed and article query APIs",
+    "summary": "Implement paginated ranked-feed and article-detail queries with basic filters, permission-aware content, and contract-compliant explanations.",
+    "objective": "Expose the local ranked corpus to the PWA without duplicating ranking logic or leaking unauthorized content.",
+    "context": "The feed must support read/unread, saved, hidden, source, and basic search/filter behavior while SQLite remains authoritative.",
+    "owner_role": "backend-core-implementer",
+    "lane": "library",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/application/feed/**",
+      "internal/httpapi/**",
+      "internal/adapters/sqlite/**",
+      "api/openapi.yaml",
+      "test/fixtures/api/**",
+      "tests/integration/**"
+    ],
+    "depends_on": [
+      "RANK-003",
+      "BACKEND-002",
+      "BACKEND-005",
+      "INGEST-005"
+    ],
+    "inputs": [
+      "Persisted articles and RankingResults",
+      "Library state",
+      "OpenAPI feed/article schemas",
+      "Content permission mode"
+    ],
+    "outputs": [
+      "Ranked-feed query service",
+      "Article-detail query service",
+      "GET feed and article handlers",
+      "Stable pagination and filter implementation"
+    ],
+    "implementation_notes": [
+      "Default feed excludes hidden articles and returns current persisted rank order.",
+      "Use stable cursor/page keys that cannot duplicate or omit unchanged rows across adjacent pages.",
+      "Return sanitized full content only in full-content-allowed mode; otherwise return metadata/excerpt and canonical publisher URL.",
+      "Basic text filtering operates locally over permitted stored fields."
+    ],
+    "acceptance_criteria": [
+      "Feed results follow deterministic rank order with stable pagination and include machine-readable explanation components.",
+      "Filters cover source, read/unread, saved, hidden visibility, and accepted basic text/date behavior.",
+      "Article detail never returns stored or derived full content for metadata-only sources.",
+      "Unknown or malformed cursors/identifiers produce contract-defined errors.",
+      "Queries remain bounded and use the planned SQLite indexes for representative local data volumes."
+    ],
+    "verification": [
+      "Run API conformance tests for feed and article endpoints.",
+      "Run pagination tests for empty, single-page, multi-page, ties, and filtered datasets.",
+      "Run content-permission negative tests and malicious-content rendering fixtures.",
+      "Inspect representative query plans and run bounded performance checks on generated local data."
+    ],
+    "proof_required": [
+      "API conformance output",
+      "Pagination/filter matrix",
+      "Permission negative tests",
+      "Representative query-plan evidence"
+    ],
+    "edge_cases": [
+      "Empty database",
+      "Rank ties",
+      "Article hidden between pages",
+      "Invalid cursor",
+      "Metadata-only article with accidentally populated body"
+    ],
+    "non_goals": [
+      "Remote search service",
+      "Folders or annotations",
+      "Cross-article analysis",
+      "Frontend rendering"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "pagination",
+      "content-permission",
+      "query-performance"
+    ],
+    "handoff_notes": "Frontend feed/reader work must consume returned rank and permission state without recreating backend rules."
+  },
+  {
+    "id": "RANK-005",
+    "title": "Implement library actions and ranking recomputation",
+    "summary": "Implement persistent read, saved, and hidden mutations plus targeted ranking recomputation after ingestion, profile, configuration, or library changes.",
+    "objective": "Complete the feedback loop and preserve user state and rank behavior across restarts.",
+    "context": "Library actions are both user-visible state and bounded ranking inputs. Recalculation must not block successful ingestion indefinitely or produce stale explanations.",
+    "owner_role": "backend-core-implementer",
+    "lane": "library",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "internal/application/library/**",
+      "internal/application/ranking/**",
+      "internal/httpapi/**",
+      "internal/adapters/sqlite/**",
+      "cmd/news-aggregator/**",
+      "test/fixtures/api/**",
+      "tests/integration/**"
+    ],
+    "depends_on": [
+      "RANK-003",
+      "RANK-004",
+      "INGEST-005",
+      "BACKEND-004"
+    ],
+    "inputs": [
+      "Library repository",
+      "Ranking engine",
+      "Refresh completion events/results",
+      "Profile/ranking configuration changes",
+      "OpenAPI library-state contract"
+    ],
+    "outputs": [
+      "Idempotent library mutation service",
+      "PATCH library-state handler",
+      "Targeted/full recomputation coordinator",
+      "Restart-safe stale-result/version handling"
+    ],
+    "implementation_notes": [
+      "Model read, saved, and hidden as independently reversible timestamps/states.",
+      "Serialize or version recomputation so an older run cannot overwrite results calculated from newer inputs.",
+      "Prefer targeted recomputation when one article/library state changes and bounded full recomputation when corpus/configuration changes.",
+      "Hidden state excludes the article by default but restoring it must make the article eligible again."
+    ],
+    "acceptance_criteria": [
+      "Read/unread, save/unsave, and hide/restore operations are idempotent and persist across restart.",
+      "Library mutations return the contract-defined current state and trigger only the documented ranking updates.",
+      "Article ingestion, profile changes, ranking-config changes, and algorithm-version changes result in fresh compatible RankingResults.",
+      "Concurrent or cancelled recomputation cannot commit stale results over newer input versions.",
+      "A recomputation failure preserves readable prior data, reports sanitized status, and remains retryable."
+    ],
+    "verification": [
+      "Run table-driven state-transition tests for every action and reversal.",
+      "Run API conformance and restart-persistence tests.",
+      "Run concurrency tests for overlapping mutations, refresh completion, and configuration changes.",
+      "Run stale-version, cancellation, retry, and partial-failure recomputation tests."
+    ],
+    "proof_required": [
+      "Library transition matrix",
+      "Restart persistence output",
+      "Recomputation concurrency/version test output",
+      "API conformance output"
+    ],
+    "edge_cases": [
+      "Repeated identical mutation",
+      "Hide then save",
+      "Article deleted during recomputation",
+      "Profile update during refresh",
+      "Process exits during full recomputation"
+    ],
+    "non_goals": [
+      "Background scheduling while closed",
+      "Cross-device synchronization",
+      "Automatic ML-based weight learning"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "concurrency",
+      "stale-data",
+      "feedback-loop",
+      "persistence"
+    ],
+    "handoff_notes": "Frontend workflows may treat successful mutation responses as authoritative and then refresh affected feed queries."
+  },
+  {
+    "id": "FRONTEND-007",
+    "title": "Implement the ranked feed and permission-aware reader",
+    "summary": "Build the primary feed with pagination, filters, ranking explanations, article actions, refresh affordance, and an article reader that respects content permission mode.",
+    "objective": "Deliver the core daily-use experience: see relevant news first, understand why, and read permitted content or open the publisher.",
+    "context": "The backend owns score order and explanations. Hidden articles are excluded by default, and metadata-only articles must link out rather than render extracted full text.",
+    "owner_role": "frontend-implementer",
+    "lane": "frontend",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "web/src/features/feed/**",
+      "web/src/features/reader/**",
+      "web/src/features/refresh/**",
+      "web/src/components/**",
+      "web/tests/**",
+      "tests/e2e/**"
+    ],
+    "depends_on": [
+      "FRONTEND-003",
+      "FRONTEND-004",
+      "RANK-004",
+      "RANK-005",
+      "INGEST-005"
+    ],
+    "inputs": [
+      "Feed/article/library APIs",
+      "Refresh API state",
+      "Article and ranking-explanation components",
+      "Permission-mode fixtures"
+    ],
+    "outputs": [
+      "Ranked feed screen",
+      "Pagination and basic filters",
+      "Ranking explanation UI",
+      "Article reader and publisher-link fallback",
+      "Inline read/save/hide actions"
+    ],
+    "implementation_notes": [
+      "Preserve server order and display returned reason components without client-side score calculation.",
+      "Make publisher, publication time, permission mode, and outbound destination clear before navigation.",
+      "Render permitted content only through a reviewed sanitization boundary and block active markup/script execution.",
+      "Use mutation responses as authoritative and recover cleanly when optimistic interaction conflicts with server state."
+    ],
+    "acceptance_criteria": [
+      "The default feed shows server-ranked non-hidden articles with stable pagination, source/date metadata, and concise truthful reasons.",
+      "The user can filter by source, read/unread, saved state, and accepted basic text/date options and can clear filters.",
+      "Read, save, and hide actions update visibly, survive query refresh, and expose accessible success/failure feedback.",
+      "Full-content-allowed articles render sanitized content; metadata-only articles never render a body and always provide the canonical publisher link.",
+      "Empty, initial loading, additional-page loading, stale/retry, partial-refresh, and API-unavailable states are distinct."
+    ],
+    "verification": [
+      "Run component tests for feed ordering, filters, pagination, explanations, actions, and all status states.",
+      "Run malicious permitted-content fixtures through the reader and assert active content cannot execute.",
+      "Run browser coverage from refresh result to feed, explanation, reader/link-out, and inline actions.",
+      "Run accessibility tests for article lists, explanation disclosure, filters, and reader focus."
+    ],
+    "proof_required": [
+      "Feed/reader component output",
+      "Permission and sanitization negative tests",
+      "Critical-path browser trace",
+      "Desktop screenshots"
+    ],
+    "edge_cases": [
+      "Empty feed",
+      "Unknown reason code",
+      "Long title/content",
+      "Article disappears after hide",
+      "Invalid next cursor",
+      "Publisher URL unavailable",
+      "Mutation fails after optimistic state"
+    ],
+    "non_goals": [
+      "Client-side reranking",
+      "Generated summaries",
+      "Annotations",
+      "Offline full-article archive",
+      "Bypassing publisher access"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "core-workflow",
+      "content-safety",
+      "pagination",
+      "accessibility"
+    ],
+    "handoff_notes": "The end-to-end acceptance flow should exercise this screen with persisted fixture data and a real local backend."
+  },
+  {
+    "id": "VERIFY-001",
+    "title": "Review layered CI and contract verification",
+    "summary": "Independently verify that repository automation exercises Go, frontend, OpenAPI, generated bindings, migrations, fixtures, and cross-stack integration with enforceable failures.",
+    "objective": "Confirm every implementation PR has repeatable baseline evidence before product-level acceptance testing.",
+    "context": "The reviewer is an independent mandatory gate and must reject missing, bypassed, flaky, or non-enforcing checks.",
+    "owner_role": "independent-reviewer",
+    "lane": "verification",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "Read all repository files and PR diffs",
+      ".github/workflows/**",
+      "scripts/**",
+      "tests/**",
+      "test/fixtures/**",
+      "Review notes and verification reports"
+    ],
+    "depends_on": [
+      "CONTRACT-005",
+      "BACKEND-005",
+      "INGEST-005",
+      "RANK-005",
+      "FRONTEND-004"
+    ],
+    "inputs": [
+      "Merged implementation PR evidence",
+      "Shared contract checks",
+      "Backend and frontend verification commands",
+      "CI definitions"
+    ],
+    "outputs": [
+      "Independent CI coverage review",
+      "Reproduced command results",
+      "Explicit APPROVE or REJECT decision",
+      "Actionable blocking findings"
+    ],
+    "implementation_notes": [
+      "Review configuration and actual logs; a named check that skips relevant work is not proof.",
+      "Confirm generated-client drift and task-batch/lifecycle checks fail the build when inconsistent.",
+      "Do not repair production implementation while acting as its reviewer.",
+      "Treat unexplained skipped tests, ignored failures, or mutable unpinned generation as blocking."
+    ],
+    "acceptance_criteria": [
+      "Go formatting/static analysis/tests, frontend lint/typecheck/tests/build, OpenAPI validation, generated-client drift, migration tests, and integration tests run in documented automation.",
+      "Required checks return nonzero on seeded representative failures and do not silently skip due to missing prerequisites.",
+      "Test artifacts and logs contain no secrets, private profile payloads, or unpermitted article content.",
+      "The reviewer records APPROVE only when evidence is reproducible; otherwise the task ends REJECTED with corrections."
+    ],
+    "verification": [
+      "Re-run documented verification from a clean checkout.",
+      "Inspect CI triggers, permissions, caching, failure propagation, and Windows coverage.",
+      "Perform controlled negative checks for contract drift and failing tests.",
+      "Compare covered commands with each task's proof requirements."
+    ],
+    "proof_required": [
+      "Reviewer decision",
+      "CI run links or logs",
+      "Clean-checkout command transcript",
+      "Negative enforcement evidence"
+    ],
+    "edge_cases": [
+      "CI cache hides generated drift",
+      "Test command succeeds with zero tests",
+      "Windows job conditionally skipped",
+      "Forked PR lacks secret-dependent checks"
+    ],
+    "non_goals": [
+      "Approving product behavior before end-to-end checks",
+      "Implementing missing feature code",
+      "Merging PRs"
+    ],
+    "estimated_size": "S",
+    "risk_tags": [
+      "review-gate",
+      "ci",
+      "false-positive-proof"
+    ],
+    "handoff_notes": "A REJECT decision blocks final acceptance until implementers supply corrected automation and new evidence."
+  },
+  {
+    "id": "FRONTEND-008",
+    "title": "Implement personal library and settings integration",
+    "summary": "Build saved/read/hidden library views, reversible state management, persistent filters, and cohesive links among library, profile, ranking, sources, and feed settings.",
+    "objective": "Complete the persistent personal reading workflow and make all user-controlled ranking inputs discoverable and reversible.",
+    "context": "The user selected read/unread, save-for-later, hide/dismiss, and basic filtering as MVP features. SQLite is authoritative across restarts.",
+    "owner_role": "frontend-implementer",
+    "lane": "frontend",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "web/src/features/library/**",
+      "web/src/features/profile/**",
+      "web/src/features/ranking-settings/**",
+      "web/src/features/sources/**",
+      "web/src/router/**",
+      "web/tests/**",
+      "tests/e2e/**"
+    ],
+    "depends_on": [
+      "FRONTEND-005",
+      "FRONTEND-006",
+      "FRONTEND-007",
+      "RANK-005"
+    ],
+    "inputs": [
+      "Feed/library APIs",
+      "Profile and ranking settings workflows",
+      "Source workflow",
+      "Shared filters and article components"
+    ],
+    "outputs": [
+      "Saved-items view",
+      "Read/unread view",
+      "Hidden-items management and restore flow",
+      "Persistent disposable filter preferences",
+      "Integrated settings navigation"
+    ],
+    "implementation_notes": [
+      "Store only disposable view/filter preferences in browser storage; retrieve all article/library state from the API.",
+      "Make hidden items intentionally discoverable in a management view so hide remains reversible.",
+      "Keep filter URL/query state understandable for back/forward navigation where practical.",
+      "After profile or ranking changes, show backend recomputation progress/stale state if the contract exposes it."
+    ],
+    "acceptance_criteria": [
+      "Saved, read/unread, and hidden views load authoritative state and allow the accepted reversible actions.",
+      "Library state and server-backed filters survive application restart; disposable UI preferences may survive browser reload without becoming authoritative.",
+      "Restoring a hidden article makes it eligible for normal feed display after authoritative refresh.",
+      "Settings navigation clearly separates profile, ranking signals, sources, credentials, and refresh information.",
+      "The complete workflow remains usable by keyboard and presents useful empty/error states for each library view."
+    ],
+    "verification": [
+      "Run component tests for saved, read/unread, hidden/restore, filters, reload, and error states.",
+      "Run browser coverage that changes actions, restarts/reloads the app, and confirms SQLite-backed persistence.",
+      "Inspect browser storage to confirm it contains no authoritative library records, profile data, article content, or credentials.",
+      "Run accessibility checks and keyboard-only action reversal."
+    ],
+    "proof_required": [
+      "Library component output",
+      "Restart persistence browser trace",
+      "Browser-storage audit",
+      "Accessibility result"
+    ],
+    "edge_cases": [
+      "No saved items",
+      "All items hidden",
+      "Article state changes from another open tab",
+      "Filter yields no results",
+      "Server recomputation in progress",
+      "Restore fails"
+    ],
+    "non_goals": [
+      "Folders",
+      "Annotations",
+      "Exports",
+      "Cross-device library sync",
+      "Multiple local profiles"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "state-consistency",
+      "persistence",
+      "accessibility"
+    ],
+    "handoff_notes": "Integration-release must prove the complete daily-use workflow across a real process restart, not only a browser reload."
+  },
+  {
+    "id": "VERIFY-002",
+    "title": "Verify the complete daily-use browser workflow",
+    "summary": "Independently run the critical path from first launch through setup, source refresh, ranked reading, library actions, and process restart persistence.",
+    "objective": "Prove the assembled product satisfies the accepted daily-use MVP rather than only isolated component contracts.",
+    "context": "The selected acceptance threshold requires installation/launch, profile and sources, refresh, explainable ranking, permission-aware reading, filtering, and persistent state.",
+    "owner_role": "independent-reviewer",
+    "lane": "integration",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "Read all repository files and PR diffs",
+      "tests/e2e/**",
+      "test/fixtures/**",
+      "Review notes, screenshots, traces, and verification reports"
+    ],
+    "depends_on": [
+      "VERIFY-001",
+      "FRONTEND-005",
+      "FRONTEND-006",
+      "FRONTEND-007",
+      "FRONTEND-008"
+    ],
+    "inputs": [
+      "Built local application",
+      "Deterministic ingestion fixtures",
+      "Empty temporary user-data directory",
+      "Browser test suite"
+    ],
+    "outputs": [
+      "Critical-path review report",
+      "Browser trace/screenshots",
+      "Restart persistence evidence",
+      "Explicit APPROVE or REJECT decision"
+    ],
+    "implementation_notes": [
+      "Exercise the real Go process, SQLite database, served Vue build, and API rather than mocking the backend.",
+      "Use fictional/permitted deterministic source fixtures, not live provider availability, for the acceptance path.",
+      "Include keyboard interaction and at least one narrow viewport check even though Windows desktop is primary.",
+      "Restart means stop and relaunch the Go process, not merely reload the browser."
+    ],
+    "acceptance_criteria": [
+      "A clean user-data directory reaches first-run setup and saves explicit interests, coarse location, optional/disabled demographics, and starter source choices.",
+      "Manual refresh ingests fixtures, reports mixed outcomes correctly, and produces a ranked feed with truthful reason components.",
+      "Permitted content renders safely in-app while metadata-only content shows no body and opens the canonical publisher URL.",
+      "Read/unread, saved, hidden/restored, and filters behave correctly and authoritative state survives full process restart.",
+      "The reviewer issues APPROVE only if the workflow and accessibility evidence meet requirements; otherwise issues REJECT with reproduced failures."
+    ],
+    "verification": [
+      "Run the critical-path browser suite against a packaged-like local process and temporary SQLite database.",
+      "Repeat key assertions after stopping and relaunching the process.",
+      "Run automated accessibility checks plus keyboard-only navigation through the core path.",
+      "Inspect browser storage and outbound requests for privacy-boundary violations."
+    ],
+    "proof_required": [
+      "Reviewer decision",
+      "Browser trace and screenshots",
+      "Process-restart persistence transcript",
+      "Accessibility output",
+      "Outbound-request/browser-storage audit"
+    ],
+    "edge_cases": [
+      "Empty feed",
+      "Partial refresh",
+      "API interruption during navigation",
+      "Hidden article restore",
+      "Metadata-only article",
+      "Optional demographics all disabled"
+    ],
+    "non_goals": [
+      "Live-source reliability trial",
+      "Background ingestion while closed",
+      "Non-Windows platform acceptance"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "review-gate",
+      "e2e",
+      "persistence",
+      "accessibility"
+    ],
+    "handoff_notes": "Preserve deterministic artifacts so failures can be replayed by an implementer without access to reviewer-local state."
+  },
+  {
+    "id": "VERIFY-003",
+    "title": "Verify Windows executable packaging and runtime boundaries",
+    "summary": "Independently build and smoke-test the Windows executable, embedded PWA, loopback binding, browser launch, credential integration, migrations, and shutdown behavior.",
+    "objective": "Prove the MVP can be used directly on Windows 11 with the promised single-executable launch model.",
+    "context": "Windows behavior cannot be inferred solely from Linux cross-compilation, especially browser launch and Credential Manager integration.",
+    "owner_role": "independent-reviewer",
+    "lane": "verification",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "Read all repository files and PR diffs",
+      "packaging/windows/**",
+      ".github/workflows/**",
+      "tests/integration/**",
+      "Review notes, build logs, and smoke-test artifacts"
+    ],
+    "depends_on": [
+      "VERIFY-001",
+      "BACKEND-001",
+      "BACKEND-002",
+      "BACKEND-003",
+      "FRONTEND-001",
+      "FRONTEND-008"
+    ],
+    "inputs": [
+      "Release build procedure",
+      "Windows 11 test environment",
+      "Embedded frontend assets",
+      "Fresh and existing test data directories"
+    ],
+    "outputs": [
+      "Windows build/runtime review",
+      "Executable and checksum metadata",
+      "Native smoke-test log",
+      "Explicit APPROVE or REJECT decision"
+    ],
+    "implementation_notes": [
+      "Require native Windows execution evidence in addition to any cross-build.",
+      "Test from a path containing spaces and without assuming administrator privileges.",
+      "Inspect listening sockets to prove no wildcard/LAN binding.",
+      "Use a sentinel API key and prove Credential Manager cleanup and absence from database/logs."
+    ],
+    "acceptance_criteria": [
+      "A documented clean build produces the intended Windows executable with embedded frontend assets.",
+      "Launching without administrator privileges initializes/migrates local data, binds only to loopback, becomes ready, and opens the default browser once.",
+      "Credential create/use/replace/delete works through Windows Credential Manager and the sentinel value is absent from SQLite, logs, errors, and artifacts.",
+      "A second-instance or occupied-port case behaves according to documented safe behavior, and shutdown leaves no corrupt active refresh/migration state.",
+      "The reviewer records APPROVE only with native evidence; otherwise records REJECT and the exact failed boundary."
+    ],
+    "verification": [
+      "Run the release build and checksum step.",
+      "Run native Windows startup, readiness, browser-open, embedded-route, socket-binding, and shutdown smoke tests.",
+      "Run fresh/current/unsupported-newer migration cases on Windows.",
+      "Run Windows Credential Manager lifecycle and sentinel-secret scans."
+    ],
+    "proof_required": [
+      "Reviewer decision",
+      "Windows build log and checksum",
+      "Native runtime smoke log",
+      "Listening-socket evidence",
+      "Credential leak-scan output"
+    ],
+    "edge_cases": [
+      "Path contains spaces",
+      "No administrator rights",
+      "Default browser unavailable",
+      "Port occupied",
+      "Credential vault access denied",
+      "Unsupported newer database"
+    ],
+    "non_goals": [
+      "MSI installer",
+      "Code signing",
+      "Windows service",
+      "Automatic startup",
+      "Non-Windows packages"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "review-gate",
+      "windows",
+      "packaging",
+      "secrets",
+      "network-boundary"
+    ],
+    "handoff_notes": "Cross-compilation alone is insufficient; a native Windows run is required before approval."
+  },
+  {
+    "id": "VERIFY-004",
+    "title": "Perform final privacy, policy, and MVP acceptance review",
+    "summary": "Audit the complete implementation and evidence against merged requirements, safety boundaries, architecture, ownership rules, and every MVP acceptance signal.",
+    "objective": "Issue the mandatory final reviewer decision that determines whether the MVP task set is acceptable for release consideration.",
+    "context": "Reviewer rejection is binding. Unresolved blocking findings, missing proof, deferred-scope leakage, or unsafe source behavior prevent approval.",
+    "owner_role": "independent-reviewer",
+    "lane": "review-gate",
+    "repo_target": "news-aggregator",
+    "status": "ready",
+    "priority": "P0",
+    "milestone": "MVP",
+    "allowed_areas": [
+      "Read all repository files, history, PR diffs, task runs, submissions, reviews, tests, artifacts, and generated lifecycle state",
+      "Review notes and final acceptance report"
+    ],
+    "depends_on": [
+      "VERIFY-001",
+      "VERIFY-002",
+      "VERIFY-003"
+    ],
+    "inputs": [
+      "Merged requirements and planning package",
+      "Canonical task backlog",
+      "All implementation PRs and task-run proof",
+      "CI, browser, Windows, privacy, and policy evidence"
+    ],
+    "outputs": [
+      "Requirement-by-requirement acceptance matrix",
+      "Residual-risk report",
+      "Explicit final APPROVE or REJECT decision",
+      "Actionable blocking findings when rejected"
+    ],
+    "implementation_notes": [
+      "Trace every accepted must-have and safety boundary to implementation plus observable proof.",
+      "Inspect actual scraper/API configurations; fictional adapter foundations do not authorize an unreviewed live target.",
+      "Confirm postponed features did not enter the implementation through convenience additions.",
+      "Do not downgrade missing evidence to a non-blocking note when the task requires proof."
+    ],
+    "acceptance_criteria": [
+      "Every MVP must-have and acceptance signal has implementation and passing evidence, or the review is REJECTED.",
+      "No external AI/profile processing, automatic geolocation, inferred demographics, plaintext credentials, unauthorized full content, prohibited scraping, non-loopback exposure, account/sync feature, or background-service scope is present.",
+      "All implementation PRs have an independent approved review with blocking findings resolved and no self-approval conflict.",
+      "The canonical backlog, collaboration state, task-run proof, and repository state agree on completion without stale or fabricated status.",
+      "The final decision is a single explicit APPROVE or REJECT with evidence-linked rationale."
+    ],
+    "verification": [
+      "Run or inspect the full required verification suite and compare it with merged acceptance signals.",
+      "Perform repository-wide secret, private-data, prohibited-scope, network-binding, and content-permission audits.",
+      "Trace representative requirements through task, PR, code, test, and proof records.",
+      "Check dependency completion and reviewer independence in collaboration history."
+    ],
+    "proof_required": [
+      "Final reviewer decision",
+      "Acceptance traceability matrix",
+      "Safety/privacy audit output",
+      "Residual-risk report",
+      "All required CI/browser/Windows evidence references"
+    ],
+    "edge_cases": [
+      "A check passed on an older commit",
+      "Task marked done without accepted proof",
+      "Live source added after adapter review",
+      "Reviewer authored production code",
+      "Deferred feature partially enabled"
+    ],
+    "non_goals": [
+      "Merging or releasing the application",
+      "Implementing fixes",
+      "Expanding MVP scope",
+      "Accepting risks on the user's behalf"
+    ],
+    "estimated_size": "M",
+    "risk_tags": [
+      "mandatory-review",
+      "privacy",
+      "scraping-policy",
+      "release-acceptance"
+    ],
+    "handoff_notes": "Any REJECT decision returns work to the responsible implementation task/PR; only an explicit APPROVE satisfies the accepted review gate."
+  }
+]

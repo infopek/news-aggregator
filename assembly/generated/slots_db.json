@@ -2,7 +2,7 @@
   {
     "slot_id": "backend-core-lane",
     "role": "backend-core-implementer",
-    "status": "planned",
+    "status": "ready",
     "inputs": [
       "Merged requirements and planning package",
       "Task Splitter assignment",
@@ -52,7 +52,7 @@
   {
     "slot_id": "review-gate",
     "role": "independent-reviewer",
-    "status": "planned",
+    "status": "ready",
     "inputs": [
       "Implementation PR diff",
       "Merged requirements and planning package",
