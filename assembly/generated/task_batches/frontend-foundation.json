@@ -1,0 +1,175 @@
+{
+  "schema_version": "0.1.0",
+  "batch_id": "frontend-foundation",
+  "source_plan_path": "assembly/generated/project_spec.json",
+  "tasks": [
+    {
+      "id": "FRONTEND-001",
+      "title": "Configure the Vue TypeScript PWA and generated API client",
+      "summary": "Complete the Vue 3, TypeScript, Vite, and PWA setup and wire deterministic TypeScript client/type generation from the canonical OpenAPI contract.",
+      "objective": "Provide an installable, buildable frontend boundary that cannot silently drift from the Go API.",
+      "context": "The compiled SPA is embedded in the Go executable. Authoritative data remains behind the local API, and generated API files are never hand-edited.",
+      "owner_role": "frontend-implementer",
+      "lane": "frontend",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["web/**", "api/openapi.yaml", "scripts/**", "test/fixtures/api/**"],
+      "depends_on": ["CONTRACT-001", "CONTRACT-003", "CONTRACT-005"],
+      "inputs": ["Vue workspace scaffold", "Canonical OpenAPI contract", "Shared API fixtures", "Go embedded-asset location"],
+      "outputs": ["Production Vue TypeScript build", "PWA manifest and service-worker configuration", "Generated API client/types", "Generated-client drift check", "Frontend lint/typecheck/unit-test commands"],
+      "implementation_notes": [
+        "Choose a minimal state and routing setup supported by the accepted Vue stack; do not add alternative UI frameworks without need.",
+        "Scope service-worker caching to static application assets and explicitly safe GET responses; never cache credential mutations or secret-bearing requests.",
+        "Use same-origin relative `/api/v1` URLs so the embedded app talks only to its local host.",
+        "Keep generated bindings in the planned generated directory and regenerate them through one pinned command."
+      ],
+      "acceptance_criteria": [
+        "The frontend passes lint, type checking, unit-test startup, and a production build from a clean checkout.",
+        "The generated client covers every canonical MVP endpoint and a drift check fails after an incompatible OpenAPI edit.",
+        "The production output lands in the exact location consumed by the Go embed build.",
+        "The manifest has stable application identity, install metadata, icons, display mode, and localhost-compatible start behavior.",
+        "Offline caching excludes credential operations and does not present stale mutation success as authoritative."
+      ],
+      "verification": [
+        "Run frontend install, lint, typecheck, unit test, and production build commands.",
+        "Run API generation followed by a clean-tree drift assertion.",
+        "Run a manifest/service-worker configuration test for installability and cache exclusions.",
+        "Build the Go executable with the generated frontend assets."
+      ],
+      "proof_required": ["Frontend command transcript", "Generated-client drift test", "PWA manifest/cache assertion", "Go embed build output"],
+      "edge_cases": ["API unavailable at initial load", "Service-worker update available", "App served on a non-default loopback port", "Frontend build not yet generated"],
+      "non_goals": ["Feature screens", "Offline article mutation queue", "Remote deployment", "Handwritten duplicate API types"],
+      "estimated_size": "M",
+      "risk_tags": ["pwa", "contract-drift", "build"],
+      "handoff_notes": "All later frontend work imports generated types through one wrapper module and treats service responses as authoritative."
+    },
+    {
+      "id": "FRONTEND-002",
+      "title": "Build the accessible application shell and routing",
+      "summary": "Implement the responsive application frame, navigation, route structure, install affordance, loading boundaries, and global error presentation.",
+      "objective": "Give every MVP workflow a consistent keyboard-accessible shell suitable for a Windows desktop browser or installed PWA window.",
+      "context": "The accepted screens are first-run setup, ranked feed, article reader, personal library, sources/refresh, and profile/ranking settings.",
+      "owner_role": "frontend-implementer",
+      "lane": "frontend",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["web/src/app/**", "web/src/router/**", "web/src/components/layout/**", "web/src/styles/**", "web/public/**", "web/tests/**"],
+      "depends_on": ["FRONTEND-001"],
+      "inputs": ["Accepted frontend screen list", "PWA scaffold", "Local application constraints"],
+      "outputs": ["Application shell", "Named routes and navigation", "Responsive layout primitives", "Global loading/error/not-found boundaries", "Install/update UI states"],
+      "implementation_notes": [
+        "Use semantic landmarks, visible focus, keyboard navigation, and reduced-motion preferences from the start.",
+        "Do not hide local-server failures behind infinite loaders; show actionable retry/relaunch guidance.",
+        "Keep navigation usable in both browser tab and standalone PWA display modes.",
+        "Use route placeholders only as structural boundaries, not fake completed features."
+      ],
+      "acceptance_criteria": [
+        "Each accepted MVP screen has a stable route and navigation entry or contextual path.",
+        "The shell works at common desktop widths and a narrow responsive viewport without horizontal navigation loss.",
+        "All navigation and global actions are keyboard operable with meaningful accessible names and visible focus.",
+        "Unknown routes, local API unavailability, recoverable errors, and PWA update availability have explicit states.",
+        "The shell does not store authoritative profile, article, source, ranking, or library data in browser storage."
+      ],
+      "verification": [
+        "Run component tests for route navigation, not-found, loading, API-down, install, and update states.",
+        "Run automated accessibility checks on the shell and navigation.",
+        "Run keyboard-only navigation checks in the browser test runner.",
+        "Capture desktop and narrow-viewport screenshots."
+      ],
+      "proof_required": ["Component/a11y test output", "Keyboard navigation result", "Desktop and narrow screenshots"],
+      "edge_cases": ["Direct deep link", "Browser back/forward", "API drops after load", "PWA install unsupported", "Service-worker update waiting"],
+      "non_goals": ["Final visual branding", "Feature data loading", "Mobile-native layout", "Authentication navigation"],
+      "estimated_size": "M",
+      "risk_tags": ["accessibility", "routing", "pwa-lifecycle"],
+      "handoff_notes": "Feature screens should reuse shell status and error boundaries instead of implementing global behavior independently."
+    },
+    {
+      "id": "FRONTEND-003",
+      "title": "Implement the typed API and server-state layer",
+      "summary": "Create the frontend API wrapper, query/mutation state, cancellation, polling, validation-error mapping, and safe cache policy around generated bindings.",
+      "objective": "Give feature screens a consistent, testable route to authoritative backend state without duplicating domain or ranking rules.",
+      "context": "The app is same-origin and local, but still needs robust startup, refresh polling, retries, mutation invalidation, and contract error handling.",
+      "owner_role": "frontend-implementer",
+      "lane": "frontend",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["web/src/api/**", "web/src/state/**", "web/src/composables/**", "web/tests/**", "test/fixtures/api/**"],
+      "depends_on": ["FRONTEND-001", "CONTRACT-005"],
+      "inputs": ["Generated TypeScript bindings", "Shared API fixtures", "Canonical error and refresh-status schemas"],
+      "outputs": ["Thin generated-client wrapper", "Typed server-state/query keys", "Mutation invalidation rules", "Refresh-status polling primitive", "User-safe error mapping"],
+      "implementation_notes": [
+        "Choose one modest server-state mechanism and avoid parallel ad hoc fetch stores.",
+        "Cancel obsolete requests on route/query changes and stop polling on terminal refresh state or component disposal.",
+        "Never log request bodies from credential endpoints or persist their inputs.",
+        "Keep client-side optimistic state limited to reversible UI feedback; reconcile with mutation responses."
+      ],
+      "acceptance_criteria": [
+        "Feature code consumes typed wrapper functions rather than raw fetch calls or handwritten response shapes.",
+        "Queries and mutations have explicit loading, empty, success, validation, conflict, unavailable, and unexpected-error behavior.",
+        "Refresh polling stops on success, partial success, failure, cancellation, timeout, or unmount.",
+        "Successful mutations invalidate only relevant server state and use returned authoritative values.",
+        "Credential values are absent from caches, logs, persisted stores, error messages, and test snapshots."
+      ],
+      "verification": [
+        "Run unit tests with generated-contract fixtures for every error family and mutation invalidation rule.",
+        "Run fake-timer tests for polling lifecycle and cancellation.",
+        "Run a sentinel-secret test across logger, cache serialization, and snapshots.",
+        "Run TypeScript and generated-client drift checks."
+      ],
+      "proof_required": ["API/state unit-test output", "Polling lifecycle test", "Sentinel-secret negative test", "Typecheck output"],
+      "edge_cases": ["API returns unknown error code", "Component unmounts mid-request", "Refresh status disappears", "Rapid repeated mutation", "Network failure after server committed mutation"],
+      "non_goals": ["Reimplementing backend validation", "Client-side ranking", "Persistent offline mutations", "Reading credentials back"],
+      "estimated_size": "M",
+      "risk_tags": ["state-consistency", "contract-drift", "secret-leak"],
+      "handoff_notes": "Document query keys and mutation invalidations so independently developed screens do not create conflicting caches."
+    },
+    {
+      "id": "FRONTEND-004",
+      "title": "Create shared accessible UI primitives and test fixtures",
+      "summary": "Implement reusable form, status, article-summary, ranking-explanation, filtering, confirmation, and empty-state components backed by contract fixtures.",
+      "objective": "Prevent feature screens from duplicating sensitive controls, permission messaging, and interaction behavior.",
+      "context": "Optional demographics, credential writes, scraper policy state, article permissions, refresh failures, and ranking reasons need consistent explicit presentation.",
+      "owner_role": "frontend-implementer",
+      "lane": "frontend",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P1",
+      "milestone": "MVP",
+      "allowed_areas": ["web/src/components/**", "web/src/styles/**", "web/src/testing/**", "web/tests/**", "test/fixtures/api/**"],
+      "depends_on": ["FRONTEND-002", "FRONTEND-003"],
+      "inputs": ["Application shell", "Typed API/state layer", "Shared profile/source/article/ranking/refresh fixtures"],
+      "outputs": ["Accessible field and validation components", "Article card and permission badge", "Ranking explanation list", "Refresh/status/error components", "Filter and confirmation controls", "Frontend fixture helpers"],
+      "implementation_notes": [
+        "Demographic fields must state that they are optional, local, low-weight, and individually disableable.",
+        "Credential inputs are write-only and must clear from component memory after submission or cancellation.",
+        "Do not render full-content HTML in summary components; reader sanitization belongs to the feature workflow.",
+        "Use stable reason codes from the API and provide an explicit fallback for unknown future codes."
+      ],
+      "acceptance_criteria": [
+        "Shared components cover all repeated interaction and status patterns required by the four workflow tasks.",
+        "Labels, descriptions, validation messages, keyboard behavior, focus movement, and live-region announcements are accessible.",
+        "Article components distinguish full-content-allowed from metadata-only and always preserve the canonical publisher link.",
+        "Ranking explanations reflect API contributions without recomputing or exaggerating causal meaning.",
+        "Credential inputs never retain submitted values in global state, browser persistence, logs, or snapshots."
+      ],
+      "verification": [
+        "Run component tests across default, loading, empty, error, disabled, and success variants.",
+        "Run automated accessibility checks and keyboard interaction tests.",
+        "Run malicious-content and unknown-reason fixtures.",
+        "Run sentinel-secret lifecycle and snapshot checks for credential controls."
+      ],
+      "proof_required": ["Component and accessibility test output", "Variant screenshot set", "Credential lifecycle negative test", "Unknown-reason fallback proof"],
+      "edge_cases": ["Very long title or source name", "Unknown reason code", "No ranking contributions", "Mixed partial refresh outcomes", "Credential paste then cancel", "Right-to-left or Unicode text"],
+      "non_goals": ["Complete feature pages", "Rich-text editing", "Custom theme system", "Client-side HTML trust"],
+      "estimated_size": "M",
+      "risk_tags": ["accessibility", "privacy-ui", "content-safety"],
+      "handoff_notes": "Workflow tasks should compose these primitives and add new shared behavior only with focused component tests."
+    }
+  ]
+}

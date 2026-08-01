@@ -65,7 +65,7 @@
       "expected_task_ids": ["FRONTEND-001", "FRONTEND-002", "FRONTEND-003", "FRONTEND-004"],
       "depends_on_batches": ["shared-contracts"],
       "output_path": "assembly/generated/task_batches/frontend-foundation.json",
-      "status": "planned",
+      "status": "generated",
       "notes": "Creates the Vue PWA, generated API binding flow, application shell, shared UI state, and accessible primitives against accepted contracts."
     },
     {
