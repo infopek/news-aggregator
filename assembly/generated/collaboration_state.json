@@ -51,6 +51,25 @@
       ],
       "notes": "Independent post-merge audit approved CONTRACT-001 without blocking findings. Future tasks must receive approval before merge.",
       "updated_at": "2026-08-01T17:20:56Z"
+    },
+    {
+      "task_id": "CONTRACT-002",
+      "assigned_to": "backend-core-agent",
+      "assignee_type": "local_ai",
+      "assignee_label": "Backend/Core Implementation Agent",
+      "status": "review",
+      "claimed_at": "2026-08-01T17:26:09Z",
+      "proof": [
+        {
+          "kind": "task_run",
+          "path": "assembly/generated/task_runs/CONTRACT-002-run-001.json",
+          "summary": "Domain/application contract implementation submitted for independent review.",
+          "status": "needs_review",
+          "recorded_at": "2026-08-01T17:30:29Z"
+        }
+      ],
+      "notes": "Implementation submitted on branch ai/task-contract-002; independent approval is required before merge.",
+      "updated_at": "2026-08-01T17:30:29Z"
     }
   ],
   "task_claims": [
@@ -62,6 +81,14 @@
       "claimed_at": "2026-08-01T17:10:24Z",
       "released_at": "2026-08-01T17:20:56Z",
       "notes": "Released after independent approval and completion."
+    },
+    {
+      "claim_id": "contract-002-run-001-claim",
+      "task_id": "CONTRACT-002",
+      "actor_id": "backend-core-agent",
+      "status": "submitted",
+      "claimed_at": "2026-08-01T17:26:09Z",
+      "notes": "Executing the accepted domain entities and application ports task."
     }
   ],
   "artifact_submissions": [
@@ -91,6 +118,28 @@
       ],
       "status": "accepted",
       "submitted_at": "2026-08-01T17:16:05Z"
+    },
+    {
+      "submission_id": "contract-002-run-001-submission",
+      "task_id": "CONTRACT-002",
+      "actor_id": "backend-core-agent",
+      "artifact_paths": [
+        "internal/domain",
+        "internal/application",
+        "assembly/generated/task_runs/CONTRACT-002-run-001.json"
+      ],
+      "summary": "Dependency-free domain entities and application port contracts with focused tests.",
+      "proof": [
+        {
+          "kind": "task_run",
+          "path": "assembly/generated/task_runs/CONTRACT-002-run-001.json",
+          "summary": "Task run contains passing focused tests, full verification, and dependency-import evidence.",
+          "status": "needs_review",
+          "recorded_at": "2026-08-01T17:30:29Z"
+        }
+      ],
+      "status": "submitted",
+      "submitted_at": "2026-08-01T17:30:29Z"
     }
   ],
   "reviews": [
@@ -165,6 +214,38 @@
       "target_id": "CONTRACT-001",
       "created_at": "2026-08-01T17:20:56Z",
       "details": "Marked CONTRACT-001 done after independent approval."
+    },
+    {
+      "event_id": "contract-002-claim-created",
+      "actor_id": "backend-core-agent",
+      "event_type": "claim_created",
+      "target_id": "contract-002-run-001-claim",
+      "created_at": "2026-08-01T17:26:09Z",
+      "details": "Claimed CONTRACT-002 on ai/task-contract-002."
+    },
+    {
+      "event_id": "contract-002-assignment-started",
+      "actor_id": "backend-core-agent",
+      "event_type": "assignment_updated",
+      "target_id": "CONTRACT-002",
+      "created_at": "2026-08-01T17:26:09Z",
+      "details": "Assignment moved to in_progress."
+    },
+    {
+      "event_id": "contract-002-artifact-submitted",
+      "actor_id": "backend-core-agent",
+      "event_type": "artifact_submitted",
+      "target_id": "contract-002-run-001-submission",
+      "created_at": "2026-08-01T17:30:29Z",
+      "details": "Submitted CONTRACT-002 implementation and proof for independent review."
+    },
+    {
+      "event_id": "contract-002-assignment-review",
+      "actor_id": "backend-core-agent",
+      "event_type": "assignment_updated",
+      "target_id": "CONTRACT-002",
+      "created_at": "2026-08-01T17:30:29Z",
+      "details": "Assignment moved to review."
     }
   ]
 }

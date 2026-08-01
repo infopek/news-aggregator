@@ -1,0 +1,69 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "CONTRACT-002",
+  "run_id": "CONTRACT-002-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "review",
+  "implementation_summary": "Defined dependency-free domain entities, validation-oriented value objects, typed commands and queries, repository and transaction ports, outbound fetch and credential boundaries, ingestion/ranking ports, service interfaces, stable error categories, and focused contract tests.",
+  "files_changed": [
+    {
+      "path": "internal/domain/**",
+      "change": "Added profile, source, article, library, ranking, refresh, identifier, validation, and package-contract types."
+    },
+    {
+      "path": "internal/application/**",
+      "change": "Added commands, queries, errors, repositories, transaction, clock, fetcher, credential, ingestion, ranking, and use-case service ports plus compile-time tests."
+    },
+    {
+      "path": "assembly/generated/collaboration_state.json",
+      "change": "Recorded task claim, submission, and review state without marking the task done."
+    }
+  ],
+  "verification": [
+    {
+      "command": "go test ./internal/domain/... ./internal/application/...",
+      "result": "passed",
+      "output": "Both packages passed focused validation and compile-time interface tests."
+    },
+    {
+      "command": "./scripts/verify.sh",
+      "result": "passed",
+      "output": "Full Go vet/test, frontend lint/typecheck/test/build, PWA build, and Go build passed."
+    },
+    {
+      "command": "go list import-boundary check for internal/domain and internal/application",
+      "result": "passed",
+      "output": "Domain imports only errors, math, net/url, strings, and time; application imports only context, errors, io, time, and internal/domain. No database, HTTP framework, adapters, SQLite, or Windows implementation import is present."
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed",
+      "output": "No whitespace errors."
+    }
+  ],
+  "proof": [
+    {
+      "kind": "test_output",
+      "summary": "Focused domain/application tests and full repository verification passed.",
+      "status": "passed",
+      "recorded_at": "2026-08-01T17:30:29Z"
+    },
+    {
+      "kind": "command_output",
+      "summary": "Import inspection confirms dependency inversion and absence of concrete infrastructure dependencies.",
+      "status": "passed",
+      "recorded_at": "2026-08-01T17:30:29Z"
+    },
+    {
+      "kind": "file",
+      "path": "internal/application/doc.go",
+      "summary": "Persistent port inventory and dependency boundary for downstream implementers.",
+      "status": "needs_review",
+      "recorded_at": "2026-08-01T17:30:29Z"
+    }
+  ],
+  "blockers": [],
+  "notes": "No concrete database, HTTP handler, live fetcher, source adapter, credential vault, or ranking formula was implemented. Independent reviewer approval is required before completion.",
+  "submitted_at": "2026-08-01T17:30:29Z",
+  "updated_at": "2026-08-01T17:30:29Z"
+}
