@@ -1,0 +1,217 @@
+{
+  "schema_version": "0.1.0",
+  "batch_id": "backend-platform",
+  "source_plan_path": "assembly/generated/project_spec.json",
+  "tasks": [
+    {
+      "id": "BACKEND-001",
+      "title": "Build the loopback application host",
+      "summary": "Implement the Go composition root that starts a loopback-only HTTP server, serves embedded frontend assets, opens the default browser after readiness, and shuts down cleanly.",
+      "objective": "Provide the secure local runtime boundary required by every backend endpoint and the single-executable Windows experience.",
+      "context": "The app is manually launched, has no authentication, and therefore must not listen on non-loopback interfaces by default.",
+      "owner_role": "backend-core-implementer",
+      "lane": "backend-core",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["cmd/news-aggregator/**", "internal/platform/**", "internal/httpapi/**", "web/dist/**", "packaging/windows/**"],
+      "depends_on": ["CONTRACT-001", "CONTRACT-003"],
+      "inputs": ["Repository scaffold", "Canonical OpenAPI contract", "Embedded frontend asset boundary"],
+      "outputs": ["Go composition root", "Loopback server lifecycle", "SPA fallback/static handler", "Browser-launch and graceful-shutdown adapters"],
+      "implementation_notes": [
+        "Bind explicitly to 127.0.0.1 or ::1 and use an available configured/default port without falling back to all interfaces.",
+        "Open the browser only after a readiness probe succeeds.",
+        "Use structured logs that exclude request bodies, credentials, and article content.",
+        "Make browser launching injectable so tests do not open a real browser."
+      ],
+      "acceptance_criteria": [
+        "The process serves `/api/v1` and embedded SPA assets only on loopback by default.",
+        "Direct navigation to a client-side route returns the SPA entrypoint without shadowing API 404 responses.",
+        "Browser launch occurs once after readiness and a launch failure does not terminate the server.",
+        "Interrupt or termination signals trigger bounded graceful shutdown with deterministic exit behavior.",
+        "Startup errors are actionable and sanitized."
+      ],
+      "verification": [
+        "Run Go unit tests with injected listener, clock, and browser launcher.",
+        "Run an integration test that asserts the bound address is loopback.",
+        "Test SPA fallback, API 404 isolation, readiness ordering, and graceful shutdown.",
+        "Build the command for Windows."
+      ],
+      "proof_required": ["Go test output", "Loopback binding assertion", "Windows cross-build or native build output"],
+      "edge_cases": ["Default port already occupied", "Missing embedded build assets in development", "Browser command unavailable", "Shutdown during an in-flight request"],
+      "non_goals": ["Windows service installation", "LAN exposure", "TLS or authentication", "Feature endpoint implementation"],
+      "estimated_size": "M",
+      "risk_tags": ["network-boundary", "windows", "packaging"],
+      "handoff_notes": "Expose a small composition interface so persistence and application services can be wired without putting business rules in main."
+    },
+    {
+      "id": "BACKEND-002",
+      "title": "Implement SQLite migrations and repositories",
+      "summary": "Implement the migration runner, connection lifecycle, transactions, and repositories for all authoritative MVP records.",
+      "objective": "Make profile, sources, articles, refresh runs, ranking state, and library state durable and queryable across restarts.",
+      "context": "The accepted migration set is the only schema authority, SQLite is local and authoritative, and API secret values must never enter the database.",
+      "owner_role": "backend-core-implementer",
+      "lane": "backend-core",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["internal/adapters/sqlite/**", "internal/application/**", "internal/domain/**", "db/migrations/**", "tests/integration/**"],
+      "depends_on": ["CONTRACT-002", "CONTRACT-004", "CONTRACT-005"],
+      "inputs": ["Domain repository ports", "Accepted migrations", "Deterministic database fixtures"],
+      "outputs": ["SQLite connection and migration implementation", "Transactional repositories", "Feed-query persistence primitives", "Temporary-database integration tests"],
+      "implementation_notes": [
+        "Enable and verify foreign keys for every connection.",
+        "Use bounded connection settings appropriate for one local process and document journal/busy-timeout choices.",
+        "Map storage errors to domain/application errors without leaking SQL details through the API.",
+        "Keep credential identifiers separate from credential values."
+      ],
+      "acceptance_criteria": [
+        "A fresh database migrates automatically and an existing current database opens without destructive changes.",
+        "Repository round trips preserve optional values, timestamps, permission mode, ranking components, and library state.",
+        "Refresh writes can commit successful source results while recording per-source failures according to application transaction boundaries.",
+        "Concurrent reads and serialized writes return predictable busy/cancellation errors rather than corrupting state.",
+        "No schema or repository method accepts API secret values."
+      ],
+      "verification": [
+        "Run repository integration tests against temporary SQLite files.",
+        "Test migration from empty, current, interrupted, and unsupported-newer schema states.",
+        "Test unique, foreign-key, transaction rollback, cancellation, and restart persistence behavior.",
+        "Search database fixtures and schema for credential values."
+      ],
+      "proof_required": ["SQLite integration-test output", "Migration compatibility matrix", "Schema secret-boundary audit"],
+      "edge_cases": ["Locked database", "Cancelled transaction", "Unknown newer schema", "Duplicate article fingerprint", "Deleted source with retained library history"],
+      "non_goals": ["Database encryption", "Cloud database support", "Ranking algorithm implementation"],
+      "estimated_size": "M",
+      "risk_tags": ["database", "migration", "data-integrity"],
+      "handoff_notes": "Document transaction boundaries and query primitives used by ingestion and ranked-feed tasks."
+    },
+    {
+      "id": "BACKEND-003",
+      "title": "Implement the Windows credential-store adapter",
+      "summary": "Implement the credential-store port with Windows Credential Manager and a non-secret test double for other build environments.",
+      "objective": "Allow optional official API adapters to use credentials without plaintext persistence, logging, or API disclosure.",
+      "context": "Windows 11 is the MVP target, but Linux-based development and CI must still compile or test through build-tagged adapters and fakes.",
+      "owner_role": "backend-core-implementer",
+      "lane": "backend-core",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["internal/adapters/credentials/**", "internal/platform/**", "internal/application/**", "packaging/windows/**", "tests/integration/**"],
+      "depends_on": ["CONTRACT-002", "CONTRACT-003", "CONTRACT-005"],
+      "inputs": ["Credential-store port", "Write/delete-only API contract", "Secret-negative fixtures"],
+      "outputs": ["Windows Credential Manager adapter", "Build-tagged portable test double", "Credential naming/lifecycle convention", "Secret-redaction tests"],
+      "implementation_notes": [
+        "Use a stable application namespace and opaque credential reference derived from source identity.",
+        "Never return secret bytes through domain views or HTTP responses.",
+        "Zero or discard in-memory buffers when practical and avoid formatting secrets into errors.",
+        "Do not silently fall back to plaintext storage on unsupported platforms."
+      ],
+      "acceptance_criteria": [
+        "On Windows, credentials can be written, resolved for adapter use, replaced, and deleted through the port.",
+        "Application-facing reads expose only configured state; only trusted adapter execution can resolve secret material.",
+        "Unsupported-platform behavior is explicit and tests can run without a real credential vault.",
+        "Logs, errors, API fixtures, SQLite, and snapshots contain no supplied secret values.",
+        "Deleting a source can follow a documented credential cleanup path without deleting unrelated entries."
+      ],
+      "verification": [
+        "Run portable unit tests with sentinel secrets and assert redaction across errors/log capture.",
+        "Run Windows integration tests for create, replace, resolve-for-use, and delete.",
+        "Build on Windows and the primary non-Windows CI environment.",
+        "Search test artifacts and temporary SQLite files for sentinel secrets."
+      ],
+      "proof_required": ["Cross-platform build output", "Windows credential integration output", "Sentinel-secret leak scan"],
+      "edge_cases": ["Credential missing", "Vault access denied", "Replacement interrupted", "Source renamed", "Unsupported OS"],
+      "non_goals": ["Cross-platform production vaults", "Displaying or exporting saved credentials", "OAuth account flows"],
+      "estimated_size": "M",
+      "risk_tags": ["secrets", "windows", "platform-specific"],
+      "handoff_notes": "Official API adapters receive a narrow resolve-for-use capability; HTTP handlers must never receive returned secret values."
+    },
+    {
+      "id": "BACKEND-004",
+      "title": "Implement profile and source-management services",
+      "summary": "Implement application use cases for the single local profile, bounded ranking settings, starter/custom sources, scraper policy metadata, and credential lifecycle commands.",
+      "objective": "Provide validated local configuration before ingestion and ranking features consume it.",
+      "context": "Demographics are explicit, optional, disableable, and capped; location is manually selected; starter sources remain editable; scrapers require an approved policy record.",
+      "owner_role": "backend-core-implementer",
+      "lane": "backend-core",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["internal/application/**", "internal/domain/**", "internal/adapters/sqlite/**", "internal/adapters/credentials/**", "test/fixtures/**", "tests/integration/**"],
+      "depends_on": ["BACKEND-002", "BACKEND-003"],
+      "inputs": ["Profile/source domain ports", "SQLite repositories", "Credential adapter", "Starter-source fixture contract"],
+      "outputs": ["Profile query/update use cases", "Ranking-configuration validation use cases", "Source CRUD and starter-catalog import use cases", "Credential configure/delete orchestration"],
+      "implementation_notes": [
+        "Use one stable profile identity and idempotent first-run initialization.",
+        "Validate URL scheme, adapter kind, permission mode, and scraper policy metadata before enabling a source.",
+        "Enforce configured low-weight ceilings for demographic signals at the application boundary.",
+        "Keep the starter catalog data-driven and editable without recompiling application logic."
+      ],
+      "acceptance_criteria": [
+        "Profile updates preserve absence versus disabled state and reject inferred or out-of-range demographic/ranking values.",
+        "Location accepts manual country/region and optional city without invoking geolocation or IP services.",
+        "Source CRUD supports starter and custom RSS/API/scraper records with type-specific validation.",
+        "A scraper cannot be enabled without explicit policy-review metadata and allowed content mode.",
+        "Credential commands store/delete secrets through the vault while database records retain only references/configured state."
+      ],
+      "verification": [
+        "Run table-driven unit tests for profile, weights, source types, URLs, permission modes, and scraper policy validation.",
+        "Run integration tests proving profile/source state survives restart.",
+        "Run credential lifecycle tests with a fake vault and sentinel-secret leak assertions.",
+        "Test idempotent starter-catalog import and user edits."
+      ],
+      "proof_required": ["Application-service test output", "Validation case matrix", "Restart persistence proof"],
+      "edge_cases": ["All demographic signals disabled", "Duplicate source URL", "Starter source edited then catalog reloaded", "Credential write succeeds but database update fails", "Deleting a source with articles"],
+      "non_goals": ["Fetching news", "Computing ranks", "Choosing final live source catalog entries"],
+      "estimated_size": "M",
+      "risk_tags": ["privacy", "validation", "credentials"],
+      "handoff_notes": "Ingestion tasks consume only enabled, validated sources; ranking tasks consume the normalized bounded configuration."
+    },
+    {
+      "id": "BACKEND-005",
+      "title": "Expose profile and source APIs",
+      "summary": "Implement contract-compliant HTTP handlers for health/readiness, profile, ranking configuration, starter sources, source CRUD, and write/delete-only credentials.",
+      "objective": "Complete the backend platform API slice needed by first-run and source-management frontend work.",
+      "context": "Handlers must follow the accepted OpenAPI contract, remain thin over application services, and prevent secret or internal error leakage.",
+      "owner_role": "backend-core-implementer",
+      "lane": "backend-core",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["internal/httpapi/**", "internal/application/**", "cmd/news-aggregator/**", "api/openapi.yaml", "test/fixtures/api/**", "tests/integration/**"],
+      "depends_on": ["BACKEND-001", "BACKEND-004", "CONTRACT-003", "CONTRACT-005"],
+      "inputs": ["OpenAPI contract and fixtures", "Profile/source application services", "Loopback host"],
+      "outputs": ["Profile and ranking-config handlers", "Starter/source CRUD handlers", "Credential write/delete handlers", "Consistent validation/error middleware and contract tests"],
+      "implementation_notes": [
+        "Decode with bounded body sizes and reject unknown fields where the contract is closed.",
+        "Return stable error codes and correlation identifiers without stack traces or secret-bearing causes.",
+        "Apply request timeouts and cancellation to application calls.",
+        "Do not add authentication as a substitute for the required loopback binding."
+      ],
+      "acceptance_criteria": [
+        "Implemented operations match canonical paths, methods, status codes, and schemas.",
+        "Invalid optional demographics, weights, source settings, and policy metadata produce stable validation errors.",
+        "Credential endpoints accept write/delete operations but never return stored secret values.",
+        "Handlers map not-found, conflict, unsupported-platform, and internal failures without leaking implementation details.",
+        "All endpoints are reachable through the composed loopback server and API 404 behavior remains isolated from SPA fallback."
+      ],
+      "verification": [
+        "Run handler unit tests for success and every documented error family.",
+        "Run OpenAPI response/request conformance tests using shared fixtures.",
+        "Run loopback integration tests through a temporary SQLite database and fake credential store.",
+        "Run sentinel-secret scans over responses and captured logs."
+      ],
+      "proof_required": ["Handler and conformance test output", "Endpoint coverage report", "Secret-leak negative-test output"],
+      "edge_cases": ["Malformed JSON", "Oversized body", "Unknown JSON fields", "Cancelled request", "Credential vault unavailable", "Unsupported platform"],
+      "non_goals": ["Refresh, feed, article, and library handlers", "Remote access", "Frontend implementation"],
+      "estimated_size": "M",
+      "risk_tags": ["api", "validation", "secret-leak"],
+      "handoff_notes": "Frontend first-run/source tasks may integrate after these conformance tests and the independent review gate pass."
+    }
+  ]
+}

@@ -26,7 +26,7 @@
       "expected_task_ids": ["BACKEND-001", "BACKEND-002", "BACKEND-003", "BACKEND-004", "BACKEND-005"],
       "depends_on_batches": ["shared-contracts"],
       "output_path": "assembly/generated/task_batches/backend-platform.json",
-      "status": "planned",
+      "status": "generated",
       "notes": "Builds the loopback host, persistence, credential integration, core profile/source use cases, and API infrastructure."
     },
     {
