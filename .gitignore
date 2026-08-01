@@ -1,0 +1,38 @@
+# Go build output
+/news-aggregator
+*.test
+*.out
+
+# Frontend dependencies and generated assets
+/web/node_modules/
+/web/coverage/
+*.tsbuildinfo
+/internal/webassets/dist/*
+!/internal/webassets/dist/.gitkeep
+
+# Local application state and downloaded content
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+/data/
+/downloads/
+/cache/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# Tool and editor caches
+__pycache__/
+*.py[cod]
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
