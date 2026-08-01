@@ -1,0 +1,98 @@
+{
+  "schema_version": "0.1.0",
+  "source_plan_path": "assembly/generated/project_spec.json",
+  "batching_strategy": "mixed",
+  "batches": [
+    {
+      "batch_id": "shared-contracts",
+      "owner_role": "backend-core-implementer",
+      "repo_targets": ["news-aggregator"],
+      "lanes": ["shared-contract"],
+      "milestones": ["MVP"],
+      "expected_task_count": 5,
+      "expected_task_ids": ["CONTRACT-001", "CONTRACT-002", "CONTRACT-003", "CONTRACT-004", "CONTRACT-005"],
+      "depends_on_batches": [],
+      "output_path": "assembly/generated/task_batches/shared-contracts.json",
+      "status": "validated",
+      "notes": "Establishes the repository scaffold, OpenAPI boundary, domain ports, migrations, and deterministic fixtures before parallel implementation."
+    },
+    {
+      "batch_id": "backend-platform",
+      "owner_role": "backend-core-implementer",
+      "repo_targets": ["news-aggregator"],
+      "lanes": ["backend-core"],
+      "milestones": ["MVP"],
+      "expected_task_count": 5,
+      "expected_task_ids": ["BACKEND-001", "BACKEND-002", "BACKEND-003", "BACKEND-004", "BACKEND-005"],
+      "depends_on_batches": ["shared-contracts"],
+      "output_path": "assembly/generated/task_batches/backend-platform.json",
+      "status": "validated",
+      "notes": "Builds the loopback host, persistence, credential integration, core profile/source use cases, and API infrastructure."
+    },
+    {
+      "batch_id": "backend-ingestion",
+      "owner_role": "backend-core-implementer",
+      "repo_targets": ["news-aggregator"],
+      "lanes": ["backend-core", "ingestion"],
+      "milestones": ["MVP"],
+      "expected_task_count": 5,
+      "expected_task_ids": ["INGEST-001", "INGEST-002", "INGEST-003", "INGEST-004", "INGEST-005"],
+      "depends_on_batches": ["shared-contracts", "backend-platform"],
+      "output_path": "assembly/generated/task_batches/backend-ingestion.json",
+      "status": "validated",
+      "notes": "Implements policy-aware adapters, normalization, deduplication, refresh orchestration, and partial-failure behavior."
+    },
+    {
+      "batch_id": "backend-ranking-library",
+      "owner_role": "backend-core-implementer",
+      "repo_targets": ["news-aggregator"],
+      "lanes": ["backend-core", "ranking", "library"],
+      "milestones": ["MVP"],
+      "expected_task_count": 5,
+      "expected_task_ids": ["RANK-001", "RANK-002", "RANK-003", "RANK-004", "RANK-005"],
+      "depends_on_batches": ["shared-contracts", "backend-platform", "backend-ingestion"],
+      "output_path": "assembly/generated/task_batches/backend-ranking-library.json",
+      "status": "validated",
+      "notes": "Implements local text similarity, bounded explainable scoring, recomputation, feed queries, and persistent library actions."
+    },
+    {
+      "batch_id": "frontend-foundation",
+      "owner_role": "frontend-implementer",
+      "repo_targets": ["news-aggregator"],
+      "lanes": ["frontend"],
+      "milestones": ["MVP"],
+      "expected_task_count": 4,
+      "expected_task_ids": ["FRONTEND-001", "FRONTEND-002", "FRONTEND-003", "FRONTEND-004"],
+      "depends_on_batches": ["shared-contracts"],
+      "output_path": "assembly/generated/task_batches/frontend-foundation.json",
+      "status": "validated",
+      "notes": "Creates the Vue PWA, generated API binding flow, application shell, shared UI state, and accessible primitives against accepted contracts."
+    },
+    {
+      "batch_id": "frontend-workflows",
+      "owner_role": "frontend-implementer",
+      "repo_targets": ["news-aggregator"],
+      "lanes": ["frontend"],
+      "milestones": ["MVP"],
+      "expected_task_count": 4,
+      "expected_task_ids": ["FRONTEND-005", "FRONTEND-006", "FRONTEND-007", "FRONTEND-008"],
+      "depends_on_batches": ["backend-platform", "backend-ingestion", "backend-ranking-library", "frontend-foundation"],
+      "output_path": "assembly/generated/task_batches/frontend-workflows.json",
+      "status": "validated",
+      "notes": "Delivers first-run/profile, source/refresh, ranked feed/reader, and personal-library workflows."
+    },
+    {
+      "batch_id": "integration-release",
+      "owner_role": "independent-reviewer",
+      "repo_targets": ["news-aggregator"],
+      "lanes": ["integration", "verification", "review-gate"],
+      "milestones": ["MVP"],
+      "expected_task_count": 4,
+      "expected_task_ids": ["VERIFY-001", "VERIFY-002", "VERIFY-003", "VERIFY-004"],
+      "depends_on_batches": ["backend-ingestion", "backend-ranking-library", "frontend-workflows"],
+      "output_path": "assembly/generated/task_batches/integration-release.json",
+      "status": "validated",
+      "notes": "Establishes cross-stack proof, Windows packaging smoke coverage, safety checks, and the mandatory independent acceptance review."
+    }
+  ]
+}

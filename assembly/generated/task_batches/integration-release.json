@@ -1,0 +1,174 @@
+{
+  "schema_version": "0.1.0",
+  "batch_id": "integration-release",
+  "source_plan_path": "assembly/generated/project_spec.json",
+  "tasks": [
+    {
+      "id": "VERIFY-001",
+      "title": "Review layered CI and contract verification",
+      "summary": "Independently verify that repository automation exercises Go, frontend, OpenAPI, generated bindings, migrations, fixtures, and cross-stack integration with enforceable failures.",
+      "objective": "Confirm every implementation PR has repeatable baseline evidence before product-level acceptance testing.",
+      "context": "The reviewer is an independent mandatory gate and must reject missing, bypassed, flaky, or non-enforcing checks.",
+      "owner_role": "independent-reviewer",
+      "lane": "verification",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["Read all repository files and PR diffs", ".github/workflows/**", "scripts/**", "tests/**", "test/fixtures/**", "Review notes and verification reports"],
+      "depends_on": ["CONTRACT-005", "BACKEND-005", "INGEST-005", "RANK-005", "FRONTEND-004"],
+      "inputs": ["Merged implementation PR evidence", "Shared contract checks", "Backend and frontend verification commands", "CI definitions"],
+      "outputs": ["Independent CI coverage review", "Reproduced command results", "Explicit APPROVE or REJECT decision", "Actionable blocking findings"],
+      "implementation_notes": [
+        "Review configuration and actual logs; a named check that skips relevant work is not proof.",
+        "Confirm generated-client drift and task-batch/lifecycle checks fail the build when inconsistent.",
+        "Do not repair production implementation while acting as its reviewer.",
+        "Treat unexplained skipped tests, ignored failures, or mutable unpinned generation as blocking."
+      ],
+      "acceptance_criteria": [
+        "Go formatting/static analysis/tests, frontend lint/typecheck/tests/build, OpenAPI validation, generated-client drift, migration tests, and integration tests run in documented automation.",
+        "Required checks return nonzero on seeded representative failures and do not silently skip due to missing prerequisites.",
+        "Test artifacts and logs contain no secrets, private profile payloads, or unpermitted article content.",
+        "The reviewer records APPROVE only when evidence is reproducible; otherwise the task ends REJECTED with corrections."
+      ],
+      "verification": [
+        "Re-run documented verification from a clean checkout.",
+        "Inspect CI triggers, permissions, caching, failure propagation, and Windows coverage.",
+        "Perform controlled negative checks for contract drift and failing tests.",
+        "Compare covered commands with each task's proof requirements."
+      ],
+      "proof_required": ["Reviewer decision", "CI run links or logs", "Clean-checkout command transcript", "Negative enforcement evidence"],
+      "edge_cases": ["CI cache hides generated drift", "Test command succeeds with zero tests", "Windows job conditionally skipped", "Forked PR lacks secret-dependent checks"],
+      "non_goals": ["Approving product behavior before end-to-end checks", "Implementing missing feature code", "Merging PRs"],
+      "estimated_size": "S",
+      "risk_tags": ["review-gate", "ci", "false-positive-proof"],
+      "handoff_notes": "A REJECT decision blocks final acceptance until implementers supply corrected automation and new evidence."
+    },
+    {
+      "id": "VERIFY-002",
+      "title": "Verify the complete daily-use browser workflow",
+      "summary": "Independently run the critical path from first launch through setup, source refresh, ranked reading, library actions, and process restart persistence.",
+      "objective": "Prove the assembled product satisfies the accepted daily-use MVP rather than only isolated component contracts.",
+      "context": "The selected acceptance threshold requires installation/launch, profile and sources, refresh, explainable ranking, permission-aware reading, filtering, and persistent state.",
+      "owner_role": "independent-reviewer",
+      "lane": "integration",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["Read all repository files and PR diffs", "tests/e2e/**", "test/fixtures/**", "Review notes, screenshots, traces, and verification reports"],
+      "depends_on": ["VERIFY-001", "FRONTEND-005", "FRONTEND-006", "FRONTEND-007", "FRONTEND-008"],
+      "inputs": ["Built local application", "Deterministic ingestion fixtures", "Empty temporary user-data directory", "Browser test suite"],
+      "outputs": ["Critical-path review report", "Browser trace/screenshots", "Restart persistence evidence", "Explicit APPROVE or REJECT decision"],
+      "implementation_notes": [
+        "Exercise the real Go process, SQLite database, served Vue build, and API rather than mocking the backend.",
+        "Use fictional/permitted deterministic source fixtures, not live provider availability, for the acceptance path.",
+        "Include keyboard interaction and at least one narrow viewport check even though Windows desktop is primary.",
+        "Restart means stop and relaunch the Go process, not merely reload the browser."
+      ],
+      "acceptance_criteria": [
+        "A clean user-data directory reaches first-run setup and saves explicit interests, coarse location, optional/disabled demographics, and starter source choices.",
+        "Manual refresh ingests fixtures, reports mixed outcomes correctly, and produces a ranked feed with truthful reason components.",
+        "Permitted content renders safely in-app while metadata-only content shows no body and opens the canonical publisher URL.",
+        "Read/unread, saved, hidden/restored, and filters behave correctly and authoritative state survives full process restart.",
+        "The reviewer issues APPROVE only if the workflow and accessibility evidence meet requirements; otherwise issues REJECT with reproduced failures."
+      ],
+      "verification": [
+        "Run the critical-path browser suite against a packaged-like local process and temporary SQLite database.",
+        "Repeat key assertions after stopping and relaunching the process.",
+        "Run automated accessibility checks plus keyboard-only navigation through the core path.",
+        "Inspect browser storage and outbound requests for privacy-boundary violations."
+      ],
+      "proof_required": ["Reviewer decision", "Browser trace and screenshots", "Process-restart persistence transcript", "Accessibility output", "Outbound-request/browser-storage audit"],
+      "edge_cases": ["Empty feed", "Partial refresh", "API interruption during navigation", "Hidden article restore", "Metadata-only article", "Optional demographics all disabled"],
+      "non_goals": ["Live-source reliability trial", "Background ingestion while closed", "Non-Windows platform acceptance"],
+      "estimated_size": "M",
+      "risk_tags": ["review-gate", "e2e", "persistence", "accessibility"],
+      "handoff_notes": "Preserve deterministic artifacts so failures can be replayed by an implementer without access to reviewer-local state."
+    },
+    {
+      "id": "VERIFY-003",
+      "title": "Verify Windows executable packaging and runtime boundaries",
+      "summary": "Independently build and smoke-test the Windows executable, embedded PWA, loopback binding, browser launch, credential integration, migrations, and shutdown behavior.",
+      "objective": "Prove the MVP can be used directly on Windows 11 with the promised single-executable launch model.",
+      "context": "Windows behavior cannot be inferred solely from Linux cross-compilation, especially browser launch and Credential Manager integration.",
+      "owner_role": "independent-reviewer",
+      "lane": "verification",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["Read all repository files and PR diffs", "packaging/windows/**", ".github/workflows/**", "tests/integration/**", "Review notes, build logs, and smoke-test artifacts"],
+      "depends_on": ["VERIFY-001", "BACKEND-001", "BACKEND-002", "BACKEND-003", "FRONTEND-001", "FRONTEND-008"],
+      "inputs": ["Release build procedure", "Windows 11 test environment", "Embedded frontend assets", "Fresh and existing test data directories"],
+      "outputs": ["Windows build/runtime review", "Executable and checksum metadata", "Native smoke-test log", "Explicit APPROVE or REJECT decision"],
+      "implementation_notes": [
+        "Require native Windows execution evidence in addition to any cross-build.",
+        "Test from a path containing spaces and without assuming administrator privileges.",
+        "Inspect listening sockets to prove no wildcard/LAN binding.",
+        "Use a sentinel API key and prove Credential Manager cleanup and absence from database/logs."
+      ],
+      "acceptance_criteria": [
+        "A documented clean build produces the intended Windows executable with embedded frontend assets.",
+        "Launching without administrator privileges initializes/migrates local data, binds only to loopback, becomes ready, and opens the default browser once.",
+        "Credential create/use/replace/delete works through Windows Credential Manager and the sentinel value is absent from SQLite, logs, errors, and artifacts.",
+        "A second-instance or occupied-port case behaves according to documented safe behavior, and shutdown leaves no corrupt active refresh/migration state.",
+        "The reviewer records APPROVE only with native evidence; otherwise records REJECT and the exact failed boundary."
+      ],
+      "verification": [
+        "Run the release build and checksum step.",
+        "Run native Windows startup, readiness, browser-open, embedded-route, socket-binding, and shutdown smoke tests.",
+        "Run fresh/current/unsupported-newer migration cases on Windows.",
+        "Run Windows Credential Manager lifecycle and sentinel-secret scans."
+      ],
+      "proof_required": ["Reviewer decision", "Windows build log and checksum", "Native runtime smoke log", "Listening-socket evidence", "Credential leak-scan output"],
+      "edge_cases": ["Path contains spaces", "No administrator rights", "Default browser unavailable", "Port occupied", "Credential vault access denied", "Unsupported newer database"],
+      "non_goals": ["MSI installer", "Code signing", "Windows service", "Automatic startup", "Non-Windows packages"],
+      "estimated_size": "M",
+      "risk_tags": ["review-gate", "windows", "packaging", "secrets", "network-boundary"],
+      "handoff_notes": "Cross-compilation alone is insufficient; a native Windows run is required before approval."
+    },
+    {
+      "id": "VERIFY-004",
+      "title": "Perform final privacy, policy, and MVP acceptance review",
+      "summary": "Audit the complete implementation and evidence against merged requirements, safety boundaries, architecture, ownership rules, and every MVP acceptance signal.",
+      "objective": "Issue the mandatory final reviewer decision that determines whether the MVP task set is acceptable for release consideration.",
+      "context": "Reviewer rejection is binding. Unresolved blocking findings, missing proof, deferred-scope leakage, or unsafe source behavior prevent approval.",
+      "owner_role": "independent-reviewer",
+      "lane": "review-gate",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["Read all repository files, history, PR diffs, task runs, submissions, reviews, tests, artifacts, and generated lifecycle state", "Review notes and final acceptance report"],
+      "depends_on": ["VERIFY-001", "VERIFY-002", "VERIFY-003"],
+      "inputs": ["Merged requirements and planning package", "Canonical task backlog", "All implementation PRs and task-run proof", "CI, browser, Windows, privacy, and policy evidence"],
+      "outputs": ["Requirement-by-requirement acceptance matrix", "Residual-risk report", "Explicit final APPROVE or REJECT decision", "Actionable blocking findings when rejected"],
+      "implementation_notes": [
+        "Trace every accepted must-have and safety boundary to implementation plus observable proof.",
+        "Inspect actual scraper/API configurations; fictional adapter foundations do not authorize an unreviewed live target.",
+        "Confirm postponed features did not enter the implementation through convenience additions.",
+        "Do not downgrade missing evidence to a non-blocking note when the task requires proof."
+      ],
+      "acceptance_criteria": [
+        "Every MVP must-have and acceptance signal has implementation and passing evidence, or the review is REJECTED.",
+        "No external AI/profile processing, automatic geolocation, inferred demographics, plaintext credentials, unauthorized full content, prohibited scraping, non-loopback exposure, account/sync feature, or background-service scope is present.",
+        "All implementation PRs have an independent approved review with blocking findings resolved and no self-approval conflict.",
+        "The canonical backlog, collaboration state, task-run proof, and repository state agree on completion without stale or fabricated status.",
+        "The final decision is a single explicit APPROVE or REJECT with evidence-linked rationale."
+      ],
+      "verification": [
+        "Run or inspect the full required verification suite and compare it with merged acceptance signals.",
+        "Perform repository-wide secret, private-data, prohibited-scope, network-binding, and content-permission audits.",
+        "Trace representative requirements through task, PR, code, test, and proof records.",
+        "Check dependency completion and reviewer independence in collaboration history."
+      ],
+      "proof_required": ["Final reviewer decision", "Acceptance traceability matrix", "Safety/privacy audit output", "Residual-risk report", "All required CI/browser/Windows evidence references"],
+      "edge_cases": ["A check passed on an older commit", "Task marked done without accepted proof", "Live source added after adapter review", "Reviewer authored production code", "Deferred feature partially enabled"],
+      "non_goals": ["Merging or releasing the application", "Implementing fixes", "Expanding MVP scope", "Accepting risks on the user's behalf"],
+      "estimated_size": "M",
+      "risk_tags": ["mandatory-review", "privacy", "scraping-policy", "release-acceptance"],
+      "handoff_notes": "Any REJECT decision returns work to the responsible implementation task/PR; only an explicit APPROVE satisfies the accepted review gate."
+    }
+  ]
+}

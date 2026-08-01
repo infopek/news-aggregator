@@ -2,7 +2,7 @@
   "schema_version": "0.2.0",
   "project_id": "news-aggregator",
   "name": "News Aggregator",
-  "status": "planning_review",
+  "status": "active",
   "default_view": "overview",
   "repository": {
     "provider": "github",
@@ -66,11 +66,12 @@
   ],
   "ai_guidance": {
     "onboarding_mode": "guided_pr",
-    "human_next_step": "Review and merge the planning pull request, then start Task Splitting from the merged planning artifacts.",
+    "human_next_step": "Review and merge the task-decomposition pull request, then open Dispatch and claim the first ready task.",
     "notes": [
       "Chat context is temporary; merged repository files are authoritative.",
       "The requirements/bootstrap pull request is merged.",
-      "Task decomposition remains deferred until the planning pull request is merged."
+      "The planning pull request is merged.",
+      "Dispatch must treat the task backlog as accepted only after the task-decomposition pull request is merged."
     ]
   }
 }
