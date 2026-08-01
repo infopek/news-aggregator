@@ -2,7 +2,7 @@
   "schema_version": "0.1.0",
   "task_id": "CONTRACT-004",
   "run_id": "CONTRACT-004-run-001",
-  "actor_id": "backend-core-implementer",
+  "actor_id": "backend-core-agent",
   "status": "done",
   "implementation_summary": "Defined and independently reviewed the initial SQLite persistence contract, strict forward-only migration protocol, and enforcing temporary-database verification.",
   "files_changed": [

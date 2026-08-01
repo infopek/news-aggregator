@@ -2,7 +2,7 @@
   "schema_version": "0.1.0",
   "task_id": "BACKEND-001",
   "run_id": "BACKEND-001-run-001",
-  "actor_id": "backend-core-implementer",
+  "actor_id": "backend-core-agent",
   "status": "done",
   "implementation_summary": "Implemented and independently reviewed the loopback-only host, contract-exact health readiness, embedded SPA routing, browser launch, and bounded graceful shutdown.",
   "files_changed": [
