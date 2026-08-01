@@ -148,6 +148,21 @@ func TestRankingConfigurationRejectsNonFiniteAndEmptyWeights(t *testing.T) {
 	}
 }
 
+func TestFeedFilterStateIsOwnedByLocalProfile(t *testing.T) {
+	valid := FeedFilterState{ProfileID: LocalProfileID, Read: ReadFilterUnread}
+	if !valid.Valid() {
+		t.Fatal("local profile filter state should be valid")
+	}
+	for _, invalid := range []FeedFilterState{
+		{ProfileID: "other", Read: ReadFilterAll},
+		{ProfileID: LocalProfileID, Read: "invalid"},
+	} {
+		if invalid.Valid() {
+			t.Fatalf("invalid filter state accepted: %+v", invalid)
+		}
+	}
+}
+
 func validArticle() Article {
 	return Article{
 		ID:                "article-1",

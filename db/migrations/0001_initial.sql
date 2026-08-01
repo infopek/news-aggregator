@@ -14,9 +14,13 @@ CREATE TABLE profiles (
     gender_enabled INTEGER NOT NULL DEFAULT 0 CHECK (gender_enabled IN (0, 1) AND gender_enabled <= gender_present),
     gender TEXT,
     updated_at_ms INTEGER NOT NULL,
-    CHECK (location_present = 0 OR (length(trim(country)) > 0 AND length(trim(region)) > 0)),
-    CHECK (age_present = 1 OR age IS NULL),
-    CHECK (gender_present = 1 OR gender IS NULL)
+    CHECK (
+        (location_present = 0 AND location_enabled = 0 AND country IS NULL AND region IS NULL AND city_present = 0 AND city_enabled = 0 AND city IS NULL) OR
+        (location_present = 1 AND country IS NOT NULL AND length(trim(country)) > 0 AND region IS NOT NULL AND length(trim(region)) > 0 AND
+            ((city_present = 0 AND city_enabled = 0 AND city IS NULL) OR (city_present = 1 AND city IS NOT NULL)))
+    ),
+    CHECK ((age_present = 0 AND age_enabled = 0 AND age IS NULL) OR (age_present = 1 AND age IS NOT NULL)),
+    CHECK ((gender_present = 0 AND gender_enabled = 0 AND gender IS NULL) OR (gender_present = 1 AND gender IS NOT NULL))
 );
 
 CREATE TABLE profile_interests (
@@ -53,12 +57,15 @@ CREATE TABLE sources (
     last_error TEXT NOT NULL DEFAULT '',
     retry_after_ms INTEGER,
     CHECK (
-        (kind = 'feed' AND feed_format IS NOT NULL AND api_provider IS NULL AND scraper_article_selector IS NULL) OR
-        (kind = 'api' AND api_provider IS NOT NULL AND length(trim(api_provider)) > 0 AND feed_format IS NULL AND scraper_article_selector IS NULL) OR
-        (kind = 'scraper' AND scraper_article_selector IS NOT NULL AND length(trim(scraper_article_selector)) > 0 AND scraper_title_selector IS NOT NULL AND length(trim(scraper_title_selector)) > 0 AND feed_format IS NULL AND api_provider IS NULL)
+        (kind = 'feed' AND feed_format IS NOT NULL AND api_provider IS NULL AND api_page_size IS NULL AND scraper_article_selector IS NULL AND scraper_title_selector IS NULL AND scraper_excerpt_selector IS NULL AND scraper_content_selector IS NULL) OR
+        (kind = 'api' AND api_provider IS NOT NULL AND length(trim(api_provider)) > 0 AND api_page_size IS NOT NULL AND feed_format IS NULL AND scraper_article_selector IS NULL AND scraper_title_selector IS NULL AND scraper_excerpt_selector IS NULL AND scraper_content_selector IS NULL) OR
+        (kind = 'scraper' AND scraper_article_selector IS NOT NULL AND length(trim(scraper_article_selector)) > 0 AND scraper_title_selector IS NOT NULL AND length(trim(scraper_title_selector)) > 0 AND feed_format IS NULL AND api_provider IS NULL AND api_page_size IS NULL)
     ),
-    CHECK (kind = 'scraper' OR scraper_policy_status = 'not_applicable'),
-    CHECK (kind != 'scraper' OR enabled = 0 OR scraper_policy_status = 'approved'),
+    CHECK (
+        (kind != 'scraper' AND scraper_policy_status = 'not_applicable' AND scraper_terms_url IS NULL AND scraper_robots_url IS NULL AND scraper_reviewed_at_ms IS NULL AND scraper_review_notes IS NULL) OR
+        (kind = 'scraper' AND scraper_policy_status IN ('pending', 'approved', 'rejected'))
+    ),
+    CHECK (kind != 'scraper' OR enabled = 0 OR (scraper_policy_status = 'approved' AND scraper_reviewed_at_ms IS NOT NULL)),
     CHECK (scraper_policy_status != 'approved' OR scraper_reviewed_at_ms IS NOT NULL)
 );
 
@@ -129,6 +136,16 @@ CREATE TABLE library_states (
 
 CREATE INDEX library_feed_state ON library_states(hidden_at_ms, read_at_ms, saved_at_ms, article_id);
 
+CREATE TABLE feed_filter_state (
+    profile_id TEXT PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
+    source_id TEXT REFERENCES sources(id) ON DELETE SET NULL,
+    read_filter TEXT NOT NULL DEFAULT 'all' CHECK (read_filter IN ('all', 'read', 'unread')),
+    saved_only INTEGER NOT NULL DEFAULT 0 CHECK (saved_only IN (0, 1)),
+    include_hidden INTEGER NOT NULL DEFAULT 0 CHECK (include_hidden IN (0, 1)),
+    search_query TEXT NOT NULL DEFAULT '',
+    updated_at_ms INTEGER NOT NULL
+);
+
 CREATE TABLE ranking_configurations (
     profile_id TEXT PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
     recency_enabled INTEGER NOT NULL CHECK (recency_enabled IN (0, 1)),
@@ -149,13 +166,13 @@ CREATE TABLE ranking_configurations (
     text_similarity_weight REAL NOT NULL CHECK (text_similarity_weight BETWEEN 0.0 AND 1.0),
     per_demographic_cap REAL NOT NULL CHECK (per_demographic_cap BETWEEN 0.0 AND 1.0),
     total_demographic_cap REAL NOT NULL CHECK (total_demographic_cap BETWEEN per_demographic_cap AND 1.0),
-    normalization_version TEXT NOT NULL
+    normalization_version TEXT NOT NULL CHECK (length(trim(normalization_version)) > 0)
 );
 
 CREATE TABLE ranking_results (
     article_id TEXT PRIMARY KEY REFERENCES articles(id) ON DELETE CASCADE,
     score REAL NOT NULL,
-    algorithm_version TEXT NOT NULL,
+    algorithm_version TEXT NOT NULL CHECK (length(trim(algorithm_version)) > 0),
     calculated_at_ms INTEGER NOT NULL
 );
 
@@ -168,7 +185,7 @@ CREATE TABLE ranking_contributions (
     raw_score REAL NOT NULL,
     weight REAL NOT NULL CHECK (weight BETWEEN 0.0 AND 1.0),
     weighted_score REAL NOT NULL,
-    reason_code TEXT NOT NULL,
+    reason_code TEXT NOT NULL CHECK (length(trim(reason_code)) > 0),
     reason_values_json TEXT NOT NULL DEFAULT '{}',
     PRIMARY KEY (article_id, ordinal)
 );

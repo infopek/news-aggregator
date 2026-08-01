@@ -2,7 +2,7 @@
   "version": 1,
   "tables": [
     "article_sources", "article_tokens", "article_topics", "articles",
-    "library_states", "profile_interests", "profile_preferred_sources",
+    "feed_filter_state", "library_states", "profile_interests", "profile_preferred_sources",
     "profiles", "ranking_configurations", "ranking_contributions",
     "ranking_results", "refresh_outcomes", "refresh_runs",
     "schema_migrations", "sources"

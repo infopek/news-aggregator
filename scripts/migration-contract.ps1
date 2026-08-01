@@ -1,4 +1,4 @@
 $ErrorActionPreference = "Stop"
 
-python scripts/verify-migrations.py
+node scripts/verify-migrations.mjs
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
