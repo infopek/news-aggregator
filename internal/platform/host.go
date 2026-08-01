@@ -3,9 +3,12 @@ package platform
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
+	"mime"
 	"net"
 	"net/http"
 	"net/url"
@@ -69,6 +72,9 @@ func (host Host) Run(ctx context.Context) error {
 		host.ReadinessDelay = defaultReadinessDelay
 	}
 
+	if !isLoopbackAddress(host.Address) {
+		return fmt.Errorf("refusing non-loopback listen address %q", host.Address)
+	}
 	listener, err := host.Listen("tcp", host.Address)
 	if err != nil {
 		return fmt.Errorf("listen on local address: %w", err)
@@ -121,15 +127,18 @@ func (host Host) Run(ctx context.Context) error {
 }
 
 func (host Host) waitUntilReady(ctx context.Context, localURL string, serveResult <-chan error) error {
+	readinessURL, err := url.JoinPath(localURL, "/api/v1/health")
+	if err != nil {
+		return fmt.Errorf("create readiness URL: %w", err)
+	}
 	for {
-		request, err := http.NewRequestWithContext(ctx, http.MethodHead, localURL, nil)
+		request, err := http.NewRequestWithContext(ctx, http.MethodGet, readinessURL, nil)
 		if err != nil {
 			return fmt.Errorf("create readiness request: %w", err)
 		}
 		response, err := host.HTTPClient.Do(request)
 		if err == nil {
-			_ = response.Body.Close()
-			if response.StatusCode < http.StatusInternalServerError {
+			if isReady(response) {
 				return nil
 			}
 		}
@@ -141,6 +150,36 @@ func (host Host) waitUntilReady(ctx context.Context, localURL string, serveResul
 		case <-host.Clock.After(host.ReadinessDelay):
 		}
 	}
+}
+
+func isReady(response *http.Response) bool {
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return false
+	}
+	mediaType, _, err := mime.ParseMediaType(response.Header.Get("Content-Type"))
+	if err != nil || mediaType != "application/json" {
+		return false
+	}
+	decoder := json.NewDecoder(io.LimitReader(response.Body, 4097))
+	decoder.DisallowUnknownFields()
+	var health struct {
+		Status  string `json:"status"`
+		Version string `json:"version"`
+	}
+	if err := decoder.Decode(&health); err != nil || health.Status != "ready" || health.Version == "" {
+		return false
+	}
+	return decoder.Decode(&struct{}{}) == io.EOF
+}
+
+func isLoopbackAddress(address string) bool {
+	host, _, err := net.SplitHostPort(address)
+	if err != nil {
+		return false
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
 }
 
 func isLoopback(address net.Addr) bool {

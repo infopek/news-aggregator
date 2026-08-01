@@ -59,7 +59,7 @@ func TestHostBindsLoopbackWaitsForReadinessAndShutsDown(t *testing.T) {
 		},
 		Handler: http.HandlerFunc(func(response http.ResponseWriter, _ *http.Request) {
 			requests.Add(1)
-			response.WriteHeader(http.StatusNoContent)
+			writeReady(response)
 		}),
 		Clock:      clock,
 		HTTPClient: &http.Client{Transport: &failOnceTransport{}, Timeout: time.Second},
@@ -104,6 +104,24 @@ func TestHostRejectsNonLoopbackListener(t *testing.T) {
 	}
 }
 
+func TestHostRejectsRequestedNonLoopbackBeforeListening(t *testing.T) {
+	listenCalls := 0
+	host := Host{
+		Address: "0.0.0.0:8080",
+		Listen: func(_, _ string) (net.Listener, error) {
+			listenCalls++
+			return nil, errors.New("must not be called")
+		},
+	}
+	err := host.Run(context.Background())
+	if err == nil || !strings.Contains(err.Error(), "refusing non-loopback listen address") {
+		t.Fatalf("Run error = %v, want requested-address rejection", err)
+	}
+	if listenCalls != 0 {
+		t.Fatalf("listener factory calls = %d, want 0", listenCalls)
+	}
+}
+
 func TestHostReturnsActionableListenError(t *testing.T) {
 	host := Host{
 		Address: "127.0.0.1:8080",
@@ -126,8 +144,8 @@ func TestHostGracefullyWaitsForInflightRequest(t *testing.T) {
 	host := Host{
 		Address: "127.0.0.1:0",
 		Handler: http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-			if request.Method == http.MethodHead {
-				response.WriteHeader(http.StatusNoContent)
+			if request.URL.Path == "/api/v1/health" {
+				writeReady(response)
 				return
 			}
 			once.Do(func() { close(requestStarted) })
@@ -155,4 +173,58 @@ func TestHostGracefullyWaitsForInflightRequest(t *testing.T) {
 	if err := host.Run(ctx); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestHostDoesNotLaunchBrowserUntilCanonicalHealthIsReady(t *testing.T) {
+	tests := []struct {
+		name   string
+		status int
+		body   string
+	}{
+		{name: "not found", status: http.StatusNotFound, body: `{"status":"ready","version":"0.1.0"}`},
+		{name: "other 4xx", status: http.StatusForbidden, body: `{"status":"ready","version":"0.1.0"}`},
+		{name: "malformed body", status: http.StatusOK, body: `{"status":`},
+		{name: "wrong status", status: http.StatusOK, body: `{"status":"starting","version":"0.1.0"}`},
+		{name: "missing version", status: http.StatusOK, body: `{"status":"ready"}`},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 25*time.Millisecond)
+			defer cancel()
+			var browserCalls atomic.Int32
+			var wrongPath atomic.Bool
+			host := Host{
+				Address: "127.0.0.1:0",
+				Handler: http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+					if request.Method != http.MethodGet || request.URL.Path != "/api/v1/health" {
+						wrongPath.Store(true)
+					}
+					response.Header().Set("Content-Type", "application/json")
+					response.WriteHeader(test.status)
+					_, _ = response.Write([]byte(test.body))
+				}),
+				Clock: &immediateClock{},
+				Browser: browserFunc(func(string) error {
+					browserCalls.Add(1)
+					return nil
+				}),
+				Logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
+			}
+			err := host.Run(ctx)
+			if err == nil || !strings.Contains(err.Error(), "startup cancelled") {
+				t.Fatalf("Run error = %v, want startup cancellation", err)
+			}
+			if browserCalls.Load() != 0 {
+				t.Fatalf("browser calls = %d, want 0", browserCalls.Load())
+			}
+			if wrongPath.Load() {
+				t.Fatal("readiness probe did not use GET /api/v1/health")
+			}
+		})
+	}
+}
+
+func writeReady(response http.ResponseWriter) {
+	response.Header().Set("Content-Type", "application/json")
+	_, _ = response.Write([]byte(`{"status":"ready","version":"0.1.0"}`))
 }

@@ -16,6 +16,8 @@ import (
 	"github.com/infopek/news-aggregator/internal/webassets"
 )
 
+const applicationVersion = "0.1.0"
+
 func main() {
 	if err := run(); err != nil {
 		slog.Error("application stopped", "error", err)
@@ -39,10 +41,7 @@ func run() error {
 	defer stop()
 
 	api := http.NewServeMux()
-	api.HandleFunc("GET /api/v1/health", func(response http.ResponseWriter, _ *http.Request) {
-		response.Header().Set("Content-Type", "application/json")
-		_, _ = response.Write([]byte(`{"status":"ok"}`))
-	})
+	api.Handle("GET /api/v1/health", httpapi.NewHealthHandler(applicationVersion))
 	host := platform.Host{
 		Address: "127.0.0.1:" + strconv.Itoa(port),
 		Handler: httpapi.NewLocalHandler(api, assets),
