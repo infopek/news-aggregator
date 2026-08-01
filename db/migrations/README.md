@@ -22,5 +22,8 @@ values must never be passed to or persisted by SQLite.
 
 Article full content may only be stored when `content_permission` explicitly
 allows it. Raw fetched payloads and disposable browser state are not stored.
+Individual ranking scores and contributions are constrained to the unit range;
+the ranking service must enforce cross-row contribution totals atomically before
+persistence because SQLite `CHECK` constraints cannot inspect sibling rows.
 Future schema changes must add a new numbered migration rather than modifying a
 migration that has shipped.

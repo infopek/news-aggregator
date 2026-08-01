@@ -106,7 +106,8 @@ CREATE TABLE article_sources (
     external_id TEXT NOT NULL DEFAULT '',
     first_seen_at_ms INTEGER NOT NULL,
     last_seen_at_ms INTEGER NOT NULL,
-    PRIMARY KEY (article_id, source_id)
+    PRIMARY KEY (article_id, source_id),
+    CHECK (last_seen_at_ms >= first_seen_at_ms)
 );
 
 CREATE UNIQUE INDEX article_sources_external_id_unique
@@ -171,7 +172,7 @@ CREATE TABLE ranking_configurations (
 
 CREATE TABLE ranking_results (
     article_id TEXT PRIMARY KEY REFERENCES articles(id) ON DELETE CASCADE,
-    score REAL NOT NULL,
+    score REAL NOT NULL CHECK (score BETWEEN 0.0 AND 1.0),
     algorithm_version TEXT NOT NULL CHECK (length(trim(algorithm_version)) > 0),
     calculated_at_ms INTEGER NOT NULL
 );
@@ -182,9 +183,9 @@ CREATE TABLE ranking_contributions (
     article_id TEXT NOT NULL REFERENCES ranking_results(article_id) ON DELETE CASCADE,
     ordinal INTEGER NOT NULL CHECK (ordinal >= 0),
     signal TEXT NOT NULL CHECK (signal IN ('recency', 'interest', 'source_preference', 'behavior', 'location', 'age', 'gender', 'text_similarity')),
-    raw_score REAL NOT NULL,
+    raw_score REAL NOT NULL CHECK (raw_score BETWEEN 0.0 AND 1.0),
     weight REAL NOT NULL CHECK (weight BETWEEN 0.0 AND 1.0),
-    weighted_score REAL NOT NULL,
+    weighted_score REAL NOT NULL CHECK (weighted_score BETWEEN 0.0 AND 1.0),
     reason_code TEXT NOT NULL CHECK (length(trim(reason_code)) > 0),
     reason_values_json TEXT NOT NULL DEFAULT '{}',
     PRIMARY KEY (article_id, ordinal)
@@ -195,7 +196,8 @@ CREATE TABLE refresh_runs (
     started_at_ms INTEGER NOT NULL,
     finished_at_ms INTEGER,
     status TEXT NOT NULL CHECK (status IN ('running', 'succeeded', 'partial_success', 'failed', 'cancelled')),
-    CHECK ((status = 'running' AND finished_at_ms IS NULL) OR (status != 'running' AND finished_at_ms IS NOT NULL))
+    CHECK ((status = 'running' AND finished_at_ms IS NULL) OR (status != 'running' AND finished_at_ms IS NOT NULL)),
+    CHECK (finished_at_ms IS NULL OR finished_at_ms >= started_at_ms)
 );
 
 CREATE UNIQUE INDEX refresh_runs_single_active ON refresh_runs((1)) WHERE status = 'running';
