@@ -1,0 +1,217 @@
+{
+  "schema_version": "0.1.0",
+  "batch_id": "backend-ingestion",
+  "source_plan_path": "assembly/generated/project_spec.json",
+  "tasks": [
+    {
+      "id": "INGEST-001",
+      "title": "Implement bounded and policy-aware HTTP fetching",
+      "summary": "Implement the shared outbound fetcher with timeouts, size limits, redirect controls, rate limiting, safe URL validation, and sanitized diagnostics.",
+      "objective": "Give all network ingestion adapters one enforceable safety boundary before they contact public sources.",
+      "context": "RSS, official APIs, and approved scrapers share outbound-network risks. Local-only use does not permit access-control, robots, rate-limit, or publisher-policy bypass.",
+      "owner_role": "backend-core-implementer",
+      "lane": "ingestion",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["internal/adapters/httpfetch/**", "internal/application/**", "internal/domain/**", "test/fixtures/http/**", "tests/integration/**"],
+      "depends_on": ["CONTRACT-002", "CONTRACT-005", "BACKEND-004"],
+      "inputs": ["HTTP fetcher port", "Validated enabled-source configuration", "Safety boundaries and negative fixtures"],
+      "outputs": ["Bounded HTTP fetcher adapter", "Per-source request policy", "Retry/rate-limit metadata", "Sanitized fetch-result and error mapping"],
+      "implementation_notes": [
+        "Reject non-HTTP(S) URLs, embedded credentials, loopback/private/link-local destinations reached directly or through redirects, and unsupported redirects.",
+        "Enforce response byte limits before buffering and allow per-adapter content-type allowlists.",
+        "Use a descriptive User-Agent, conditional request headers, and bounded retry behavior that honors Retry-After.",
+        "Do not log authorization headers, query secrets, response bodies, or credential-bearing URLs."
+      ],
+      "acceptance_criteria": [
+        "Every ingestion adapter can fetch only through the shared bounded fetcher.",
+        "Timeouts, redirects, DNS/address validation, response limits, content types, conditional requests, and per-source pacing are configurable within safe caps.",
+        "Private-network and redirect-to-private-network attempts are rejected before content is returned.",
+        "429 and transient failures produce bounded retry metadata without bypassing provider limits.",
+        "Errors and logs contain source-safe context but no secrets or response content."
+      ],
+      "verification": [
+        "Run unit tests with a controlled HTTP server for timeout, redirect, size, type, ETag, Last-Modified, 429, and cancellation behavior.",
+        "Run negative tests for loopback/private/link-local targets and redirect chains.",
+        "Run sentinel-secret checks across errors and captured logs.",
+        "Run race-enabled tests where supported."
+      ],
+      "proof_required": ["Fetcher test transcript", "Blocked-target case matrix", "Sentinel-secret scan"],
+      "edge_cases": ["DNS rebinding between validation and connection", "Compressed response expanding past limit", "Redirect loop", "Malformed Retry-After", "Cancellation during body read"],
+      "non_goals": ["Browser-like anti-bot circumvention", "Proxy rotation", "Paywall or login handling", "Adapter-specific parsing"],
+      "estimated_size": "M",
+      "risk_tags": ["ssrf", "rate-limit", "network", "secrets"],
+      "handoff_notes": "RSS, API, and scraper adapters must not instantiate independent unrestricted HTTP clients."
+    },
+    {
+      "id": "INGEST-002",
+      "title": "Implement article normalization and deduplication",
+      "summary": "Convert adapter records into canonical articles, normalize identifiers and metadata, enforce content permissions, and resolve duplicates deterministically.",
+      "objective": "Ensure every source type writes consistent, rights-aware article records before ranking or presentation.",
+      "context": "Different feeds may omit fields, republish the same story, or provide content that cannot be retained in full.",
+      "owner_role": "backend-core-implementer",
+      "lane": "ingestion",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["internal/domain/**", "internal/application/ingestion/**", "internal/adapters/sqlite/**", "test/fixtures/ingestion/**", "tests/integration/**"],
+      "depends_on": ["CONTRACT-002", "CONTRACT-004", "CONTRACT-005", "BACKEND-002"],
+      "inputs": ["Adapter-neutral item contract", "Article repository", "Content permission mode", "Normalization fixtures"],
+      "outputs": ["Normalization pipeline", "Canonical URL and fingerprint rules", "Upsert/deduplication service", "Permission-aware content retention"],
+      "implementation_notes": [
+        "Keep canonicalization conservative: never merge solely on a fuzzy title match.",
+        "Use source item identifiers when stable, canonical URLs when valid, and a documented fallback fingerprint.",
+        "Sanitize permitted HTML before storage or persist a safe normalized representation.",
+        "Metadata-only mode must discard supplied full bodies while retaining allowed title, excerpt, and publisher link."
+      ],
+      "acceptance_criteria": [
+        "Equivalent repeated items update one article instead of creating duplicates.",
+        "Distinct articles with similar titles remain separate unless a stable identity rule matches.",
+        "Missing authors, dates, excerpts, or language values are handled without fabricating data.",
+        "Full content is retained only for sources whose recorded permission mode allows it and is sanitized before later rendering.",
+        "Normalization produces stable results for identical input fixtures."
+      ],
+      "verification": [
+        "Run table-driven normalization and canonical-URL tests.",
+        "Run temporary-SQLite integration tests for insert, repeat, update, and collision cases.",
+        "Run sanitizer tests with malicious markup and metadata-only bodies.",
+        "Run deterministic fixture snapshots with fixed clock and identifiers."
+      ],
+      "proof_required": ["Normalization test output", "Deduplication fixture matrix", "Content-permission and sanitizer negative tests"],
+      "edge_cases": ["Tracking query parameters", "Relative or malformed URLs", "Changed canonical URL", "Same GUID reused incorrectly", "Future or absent publication time", "Malicious HTML"],
+      "non_goals": ["Cross-article semantic clustering", "Copyright inference", "Ranking score computation"],
+      "estimated_size": "M",
+      "risk_tags": ["content-permission", "deduplication", "xss", "data-quality"],
+      "handoff_notes": "All adapters return neutral items to this service; they must not write article rows directly."
+    },
+    {
+      "id": "INGEST-003",
+      "title": "Implement RSS and Atom ingestion",
+      "summary": "Implement the feed adapter for RSS and Atom variants using the bounded fetcher and normalization pipeline.",
+      "objective": "Deliver the baseline source type that can populate the MVP without API credentials or scraping.",
+      "context": "Feeds vary in date formats, namespaces, identifiers, relative links, summaries, and whether full content is supplied.",
+      "owner_role": "backend-core-implementer",
+      "lane": "ingestion",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["internal/adapters/feeds/**", "internal/application/ingestion/**", "test/fixtures/feeds/**", "tests/integration/**"],
+      "depends_on": ["INGEST-001", "INGEST-002"],
+      "inputs": ["Bounded fetcher", "Normalization service", "RSS/Atom fixtures", "Validated feed source configuration"],
+      "outputs": ["RSS/Atom adapter", "Conditional-fetch cursor handling", "Feed parsing diagnostics", "Fixture-driven integration tests"],
+      "implementation_notes": [
+        "Support common RSS 2.0 and Atom forms without relying on browser HTML repair.",
+        "Resolve relative links against the final allowed response URL.",
+        "Map feed content into the neutral adapter item and let normalization enforce retention permission.",
+        "A malformed item should be skipped with diagnostics when the rest of the feed remains usable."
+      ],
+      "acceptance_criteria": [
+        "Representative RSS and Atom fixtures produce normalized articles with stable identity and metadata.",
+        "ETag and Last-Modified values are persisted and a not-modified response performs no article writes.",
+        "Malformed feeds fail safely; isolated malformed items do not necessarily discard valid siblings.",
+        "Relative links, namespaces, date variants, encodings, summaries, and full-content elements follow documented mappings.",
+        "The adapter cannot bypass fetcher limits or content permission enforcement."
+      ],
+      "verification": [
+        "Run parser tests across the shared RSS/Atom fixture corpus.",
+        "Run controlled-server tests for conditional requests and not-modified responses.",
+        "Run partial-item failure and malformed-document tests.",
+        "Run an end-to-end adapter-to-temporary-SQLite test."
+      ],
+      "proof_required": ["Feed fixture coverage report", "Conditional request test output", "End-to-end ingestion transcript"],
+      "edge_cases": ["Namespace extensions", "Duplicate GUIDs", "Invalid character encoding", "Relative URLs", "Missing channel metadata", "Very large feeds"],
+      "non_goals": ["Automatic feed discovery", "HTML scraping fallback", "Choosing the final starter feed catalog"],
+      "estimated_size": "M",
+      "risk_tags": ["parser", "data-quality", "content-permission"],
+      "handoff_notes": "Provider-specific quirks belong in fixtures or narrowly scoped normalization rules, not source-name conditionals in the core domain."
+    },
+    {
+      "id": "INGEST-004",
+      "title": "Implement official API and approved scraper adapter foundations",
+      "summary": "Create configurable fixture-backed adapter foundations for one official JSON API shape and one allowlisted public-page scraper shape without selecting or contacting a live provider.",
+      "objective": "Prove the planned adapter boundaries, credentials, policy metadata, and permission enforcement while preserving unresolved provider choices.",
+      "context": "The merged intake accepts official APIs and narrowly approved scrapers, but the first live providers and targets remain intentionally unresolved.",
+      "owner_role": "backend-core-implementer",
+      "lane": "ingestion",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P1",
+      "milestone": "MVP",
+      "allowed_areas": ["internal/adapters/newsapi/**", "internal/adapters/scraper/**", "internal/application/ingestion/**", "internal/adapters/credentials/**", "test/fixtures/api-providers/**", "test/fixtures/scrapers/**", "tests/integration/**"],
+      "depends_on": ["INGEST-001", "INGEST-002", "BACKEND-003", "BACKEND-004"],
+      "inputs": ["Bounded fetcher", "Resolve-for-use credential capability", "Validated source and scraper policy records", "Fictional provider fixtures"],
+      "outputs": ["Configurable official-API adapter base", "Selector-based approved scraper adapter base", "Credential injection boundary", "Policy and robots preflight enforcement", "Fixture-only example configurations"],
+      "implementation_notes": [
+        "Do not embed a real provider hostname, key, or production scraper selector until a later accepted task names and reviews that target.",
+        "API credentials must be attached only at request time and never copied into source configuration or diagnostics.",
+        "Scraper activation requires explicit allowlist/policy metadata and a stored robots review result; runtime must fail closed when metadata is absent or stale under the accepted policy.",
+        "Selectors extract only fields allowed by the recorded permission mode."
+      ],
+      "acceptance_criteria": [
+        "A fictional official API fixture demonstrates pagination/cursor mapping, rate-limit metadata, credential use, and neutral-item output.",
+        "A fictional permitted public-page fixture demonstrates selector extraction, canonical URL handling, and metadata-only/full-content permission enforcement.",
+        "The scraper refuses execution without approved policy metadata and cannot request login/paywall/access-control bypass behavior.",
+        "Neither adapter stores, logs, returns, or fixtures a secret value.",
+        "Adding a future provider is isolated to a new configuration/adapter and tests rather than changes to core ingestion logic."
+      ],
+      "verification": [
+        "Run fixture-backed API pagination, 401/403, 429, invalid-shape, and cancellation tests.",
+        "Run fixture-backed scraper selector, robots/policy refusal, malicious markup, and permission tests.",
+        "Run sentinel-secret scans across logs, errors, fixtures, and temporary SQLite files.",
+        "Run a test proving no live network request is made by the fixture suite."
+      ],
+      "proof_required": ["Adapter fixture test output", "Policy fail-closed matrix", "Secret-leak scan", "Statement that no live provider was selected"],
+      "edge_cases": ["Expired or missing credential", "Provider cursor loop", "Schema drift", "Selector returns multiple candidates", "Robots/policy metadata missing", "Page redirects to a disallowed host"],
+      "non_goals": ["Selecting live API providers", "Selecting live scraper targets", "Browser automation", "Anti-bot circumvention", "Authenticated scraping"],
+      "estimated_size": "M",
+      "risk_tags": ["provider-dependency", "scraping-policy", "secrets", "schema-drift"],
+      "handoff_notes": "A later provider-specific task must name the source, confirm terms/robots/rate limits/content rights, add fixtures, and receive independent review."
+    },
+    {
+      "id": "INGEST-005",
+      "title": "Implement refresh orchestration and status API",
+      "summary": "Coordinate bounded manual refresh runs across enabled sources, persist per-source outcomes, isolate failures, and expose contract-compliant refresh start/status endpoints.",
+      "objective": "Turn the ingestion adapters into an observable user-triggered pipeline that updates articles safely while the app is running.",
+      "context": "The MVP supports manual refresh and refresh-while-running only. One bad source must not discard successful work from others.",
+      "owner_role": "backend-core-implementer",
+      "lane": "ingestion",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["internal/application/ingestion/**", "internal/httpapi/**", "internal/adapters/**", "cmd/news-aggregator/**", "test/fixtures/ingestion/**", "tests/integration/**"],
+      "depends_on": ["INGEST-003", "INGEST-004", "BACKEND-002", "BACKEND-005"],
+      "inputs": ["Enabled validated sources", "Ingestion adapters", "Normalization/upsert service", "RefreshRun repository", "OpenAPI refresh contract"],
+      "outputs": ["Refresh coordinator", "Per-source concurrency and cancellation policy", "Persisted RefreshRun results", "POST refresh and GET refresh-status handlers"],
+      "implementation_notes": [
+        "Permit at most one active global refresh unless the contract explicitly defines source-scoped concurrency.",
+        "Bound source concurrency and propagate process/request cancellation without leaving a run permanently marked active.",
+        "Commit successful source results independently where the accepted transaction design permits.",
+        "Sanitize all user-facing errors and retain only bounded diagnostic summaries."
+      ],
+      "acceptance_criteria": [
+        "Starting a refresh returns a stable run identifier and status progresses through running to success, partial success, failure, or cancelled.",
+        "A concurrent start request receives the contract-defined conflict behavior rather than launching duplicate work.",
+        "One source failure is recorded without rolling back successful source ingestion.",
+        "Per-source fetched/inserted/updated/skipped/failed counts and sanitized messages persist across restart.",
+        "Shutdown or cancellation leaves a terminal, recoverable RefreshRun state."
+      ],
+      "verification": [
+        "Run integration tests with mixed successful, unchanged, malformed, rate-limited, and failed fixture sources.",
+        "Test concurrent refresh conflict, bounded concurrency, cancellation, shutdown, and restart status retrieval.",
+        "Validate refresh endpoints against OpenAPI fixtures.",
+        "Run race-enabled coordinator tests where supported."
+      ],
+      "proof_required": ["Mixed-outcome refresh transcript", "Concurrency/cancellation test output", "OpenAPI conformance output"],
+      "edge_cases": ["No enabled sources", "All sources unchanged", "All sources fail", "Shutdown mid-refresh", "Database failure after fetch", "Repeated status polling"],
+      "non_goals": ["Background scheduling", "Ingestion while the executable is closed", "Ranking computation", "Push notifications"],
+      "estimated_size": "M",
+      "risk_tags": ["concurrency", "partial-failure", "data-integrity"],
+      "handoff_notes": "Ranking recomputation consumes committed article changes and must not block persistence of refresh outcomes."
+    }
+  ]
+}
