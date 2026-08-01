@@ -3,7 +3,7 @@
   "task_id": "CONTRACT-003",
   "run_id": "CONTRACT-003-run-001",
   "actor_id": "backend-core-agent",
-  "status": "review",
+  "status": "done",
   "implementation_summary": "Specified the OpenAPI 3.1 loopback HTTP API for profile, ranking, sources, credentials, refresh, feed, article, and library workflows; added deterministic TypeScript generation, pinned standards validation, positive and negative fixtures, compiled frontend consumers, and Go boundary invariants.",
   "files_changed": [
     {
@@ -71,19 +71,19 @@
       "kind": "file",
       "path": "api/openapi.yaml",
       "summary": "Canonical versioned API contract awaiting independent review.",
-      "status": "needs_review",
+      "status": "accepted",
       "recorded_at": "2026-08-01T17:52:46Z"
     },
     {
       "kind": "file",
       "path": "test/fixtures/api/endpoint-screen-coverage.md",
       "summary": "Maps all 18 operations to accepted MVP consumers and compiled application boundaries.",
-      "status": "needs_review",
+      "status": "accepted",
       "recorded_at": "2026-08-01T18:03:04Z"
     }
   ],
   "blockers": [],
-  "notes": "Reviewer revision 1 rejected missing path IDs, privacy-invalid article/source schemas, shallow validation, and absent coverage proof. Revision 2 addresses all findings with structured operation inputs, discriminated schemas, Redocly validation, negative fixtures, compiled consumers, a source-query boundary, and the endpoint-to-screen matrix. No HTTP handlers, persistence, authentication, remote services, or UI behavior were added.",
+  "notes": "Reviewer revision 1 rejected missing path IDs, privacy-invalid article/source schemas, shallow validation, and absent coverage proof. Revision afe7a85 resolved all findings with structured operation inputs, discriminated schemas, Redocly validation, negative fixtures, compiled consumers, a source-query boundary, and the endpoint-to-screen matrix, then received independent approval. No HTTP handlers, persistence, authentication, remote services, or UI behavior were added.",
   "submitted_at": "2026-08-01T17:52:46Z",
-  "updated_at": "2026-08-01T18:03:04Z"
+  "updated_at": "2026-08-01T18:05:24Z"
 }
