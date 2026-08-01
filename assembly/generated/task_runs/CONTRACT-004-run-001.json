@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "CONTRACT-004",
+  "run_id": "CONTRACT-004-run-001",
+  "actor_id": "backend-core-implementer",
+  "status": "done",
+  "implementation_summary": "Defined and independently reviewed the initial SQLite persistence contract, strict forward-only migration protocol, and enforcing temporary-database verification.",
+  "files_changed": [
+    {"path": "db/migrations/**", "change": "Added constrained initial schema and migration protocol documentation."},
+    {"path": "internal/domain/feed_filter.go", "change": "Added authoritative persisted feed-filter state."},
+    {"path": "scripts/**", "change": "Added Node SQLite migration, history, constraint, secret, and query-plan verification."},
+    {"path": "test/fixtures/db/**", "change": "Added the authoritative schema inventory."}
+  ],
+  "verification": [
+    {"command": "./scripts/migration-contract.sh", "result": "passed", "output": "Strict history, closed signals/adapters, complete constraints, indexed query plans, and secret absence passed."},
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Full Go, migration, frontend, and build verification passed."},
+    {"command": "git diff --check", "result": "passed", "output": "No whitespace errors."}
+  ],
+  "proof": [
+    {"kind": "command_output", "summary": "Negative probes enforce optional signals, adapter/policy sums, deduplication, FKs, ranking bounds, refresh invariants, causal timestamps, and migration history.", "status": "passed"},
+    {"kind": "review", "summary": "Independent reviewer approved revision 3f73e4416e77d9cccbf197da1c72aa17d8a2c390 after two correction rounds.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "Node's experimental node:sqlite warning is non-blocking; tooling requires the documented Node >=22.12 and is not an application runtime dependency.",
+  "submitted_at": "2026-08-01T18:24:04Z",
+  "updated_at": "2026-08-01T18:25:00Z"
+}
