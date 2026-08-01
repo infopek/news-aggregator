@@ -78,7 +78,7 @@
       "expected_task_ids": ["FRONTEND-005", "FRONTEND-006", "FRONTEND-007", "FRONTEND-008"],
       "depends_on_batches": ["backend-platform", "backend-ingestion", "backend-ranking-library", "frontend-foundation"],
       "output_path": "assembly/generated/task_batches/frontend-workflows.json",
-      "status": "planned",
+      "status": "generated",
       "notes": "Delivers first-run/profile, source/refresh, ranked feed/reader, and personal-library workflows."
     },
     {

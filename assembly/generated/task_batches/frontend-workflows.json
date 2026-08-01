@@ -1,0 +1,175 @@
+{
+  "schema_version": "0.1.0",
+  "batch_id": "frontend-workflows",
+  "source_plan_path": "assembly/generated/project_spec.json",
+  "tasks": [
+    {
+      "id": "FRONTEND-005",
+      "title": "Implement first-run setup and profile settings",
+      "summary": "Build the guided first-run and editable profile/ranking-settings screens for interests, starter sources, coarse location, optional demographics, and bounded signal controls.",
+      "objective": "Let the user establish transparent local personalization without an account, automatic location, or inferred demographic values.",
+      "context": "Explicit interests and source choices lead ranking. Country/region is manual; city, age, and gender are optional, local, disableable, and low-weight.",
+      "owner_role": "frontend-implementer",
+      "lane": "frontend",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["web/src/features/setup/**", "web/src/features/profile/**", "web/src/features/ranking-settings/**", "web/src/router/**", "web/tests/**", "tests/e2e/**"],
+      "depends_on": ["FRONTEND-002", "FRONTEND-003", "FRONTEND-004", "BACKEND-005"],
+      "inputs": ["Profile, ranking-config, and starter-source APIs", "Accessible shared controls", "Accepted privacy and demographic policy"],
+      "outputs": ["First-run workflow", "Profile settings screen", "Ranking-signal settings screen", "Saved-state and validation feedback", "Setup/profile browser tests"],
+      "implementation_notes": [
+        "Determine first-run state from authoritative API data, not a browser-local completed flag.",
+        "Present demographic fields after primary preferences and explain their optional, local, capped effect before entry.",
+        "Use separate enabled controls so clearing a value and disabling its ranking effect are understandable.",
+        "Do not request browser geolocation or perform IP-based location lookup."
+      ],
+      "acceptance_criteria": [
+        "A new user can choose starter sources, enter interests, select country/region, optionally add city/age/gender, review signal controls, and save a valid local profile.",
+        "Age, gender, and city can be omitted; age/gender can be individually disabled and their capped influence is visible.",
+        "Invalid weights, locations, or profile fields show field-level contract errors without discarding valid unsaved entries.",
+        "Returning users bypass first-run setup and can edit or clear every accepted profile value.",
+        "No profile value is sent outside the same-origin local API or persisted as authoritative browser state."
+      ],
+      "verification": [
+        "Run component tests for new, partial, valid, invalid, saved, and API-error states.",
+        "Run accessibility and keyboard tests for all fields, enable controls, validation summaries, and save feedback.",
+        "Run a browser test from empty profile through completed setup and reload.",
+        "Assert no browser geolocation/IP request and no authoritative profile persistence in browser storage."
+      ],
+      "proof_required": ["Component/a11y output", "First-run browser trace", "Profile reload proof", "Network/storage privacy assertion"],
+      "edge_cases": ["No starter source selected", "All optional fields empty", "Demographic value entered then disabled", "Save conflict", "API unavailable after editing"],
+      "non_goals": ["Account creation", "Automatic location", "Inferring demographics", "Final ranking-weight tuning from usage"],
+      "estimated_size": "M",
+      "risk_tags": ["privacy-ui", "bias", "onboarding"],
+      "handoff_notes": "Feed ranking explanations must reflect the server's saved configuration rather than unsaved form state."
+    },
+    {
+      "id": "FRONTEND-006",
+      "title": "Implement source management and manual refresh",
+      "summary": "Build source catalog/custom-source management, write-only credential controls, scraper policy visibility, refresh initiation, polling, and per-source outcome presentation.",
+      "objective": "Let the user safely control what is ingested and understand refresh progress and failures without exposing secrets.",
+      "context": "The MVP includes editable starter sources, manual RSS/API/approved-scraper configuration, and ingestion only while the executable runs.",
+      "owner_role": "frontend-implementer",
+      "lane": "frontend",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["web/src/features/sources/**", "web/src/features/refresh/**", "web/src/components/**", "web/tests/**", "tests/e2e/**"],
+      "depends_on": ["FRONTEND-003", "FRONTEND-004", "BACKEND-005", "INGEST-005"],
+      "inputs": ["Source/starter/credential APIs", "Refresh start/status APIs", "Shared status and credential components"],
+      "outputs": ["Sources screen", "Add/edit/enable/delete flows", "Write/delete credential flow", "Refresh control and progress view", "Per-source outcome and recovery UI"],
+      "implementation_notes": [
+        "Show adapter type, enabled state, permission mode, credential configured state, and scraper policy status without displaying credential content.",
+        "Clear credential inputs immediately after successful submission, cancellation, route change, or component disposal.",
+        "Explain that refresh runs only while the app process is open.",
+        "Differentiate success, unchanged, partial success, failure, cancelled, conflict, and rate-limited outcomes."
+      ],
+      "acceptance_criteria": [
+        "The user can enable/edit starter entries and add validated custom RSS, official API, or approved scraper source configurations.",
+        "Scraper configuration cannot appear enabled without required policy status and permission information from the API.",
+        "Credential UI supports configure/replace/delete and displays only configured/not-configured state.",
+        "One manual refresh can be started, duplicate-start conflict is explained, and polling stops at a terminal state.",
+        "Per-source counts and sanitized failures remain understandable after navigation or reload."
+      ],
+      "verification": [
+        "Run component tests for every source kind, validation family, credential lifecycle, and deletion confirmation.",
+        "Run fake-timer tests for refresh polling and component disposal.",
+        "Run browser coverage from source creation through mixed-outcome refresh.",
+        "Run sentinel-secret checks across DOM, logs, caches, snapshots, and browser storage."
+      ],
+      "proof_required": ["Source/refresh component tests", "Mixed-outcome browser trace", "Credential secret-leak assertion", "Accessible status announcement proof"],
+      "edge_cases": ["No enabled sources", "Duplicate URL", "Vault unavailable", "Refresh already active", "Source deleted during refresh", "Partial success after route change"],
+      "non_goals": ["Automatic source discovery", "Background scheduling", "Viewing stored secrets", "Policy bypass controls"],
+      "estimated_size": "M",
+      "risk_tags": ["secrets", "scraping-policy", "async-state"],
+      "handoff_notes": "Integration tests should use fictional fixtures; live provider setup remains an explicit later selection."
+    },
+    {
+      "id": "FRONTEND-007",
+      "title": "Implement the ranked feed and permission-aware reader",
+      "summary": "Build the primary feed with pagination, filters, ranking explanations, article actions, refresh affordance, and an article reader that respects content permission mode.",
+      "objective": "Deliver the core daily-use experience: see relevant news first, understand why, and read permitted content or open the publisher.",
+      "context": "The backend owns score order and explanations. Hidden articles are excluded by default, and metadata-only articles must link out rather than render extracted full text.",
+      "owner_role": "frontend-implementer",
+      "lane": "frontend",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["web/src/features/feed/**", "web/src/features/reader/**", "web/src/features/refresh/**", "web/src/components/**", "web/tests/**", "tests/e2e/**"],
+      "depends_on": ["FRONTEND-003", "FRONTEND-004", "RANK-004", "RANK-005", "INGEST-005"],
+      "inputs": ["Feed/article/library APIs", "Refresh API state", "Article and ranking-explanation components", "Permission-mode fixtures"],
+      "outputs": ["Ranked feed screen", "Pagination and basic filters", "Ranking explanation UI", "Article reader and publisher-link fallback", "Inline read/save/hide actions"],
+      "implementation_notes": [
+        "Preserve server order and display returned reason components without client-side score calculation.",
+        "Make publisher, publication time, permission mode, and outbound destination clear before navigation.",
+        "Render permitted content only through a reviewed sanitization boundary and block active markup/script execution.",
+        "Use mutation responses as authoritative and recover cleanly when optimistic interaction conflicts with server state."
+      ],
+      "acceptance_criteria": [
+        "The default feed shows server-ranked non-hidden articles with stable pagination, source/date metadata, and concise truthful reasons.",
+        "The user can filter by source, read/unread, saved state, and accepted basic text/date options and can clear filters.",
+        "Read, save, and hide actions update visibly, survive query refresh, and expose accessible success/failure feedback.",
+        "Full-content-allowed articles render sanitized content; metadata-only articles never render a body and always provide the canonical publisher link.",
+        "Empty, initial loading, additional-page loading, stale/retry, partial-refresh, and API-unavailable states are distinct."
+      ],
+      "verification": [
+        "Run component tests for feed ordering, filters, pagination, explanations, actions, and all status states.",
+        "Run malicious permitted-content fixtures through the reader and assert active content cannot execute.",
+        "Run browser coverage from refresh result to feed, explanation, reader/link-out, and inline actions.",
+        "Run accessibility tests for article lists, explanation disclosure, filters, and reader focus."
+      ],
+      "proof_required": ["Feed/reader component output", "Permission and sanitization negative tests", "Critical-path browser trace", "Desktop screenshots"],
+      "edge_cases": ["Empty feed", "Unknown reason code", "Long title/content", "Article disappears after hide", "Invalid next cursor", "Publisher URL unavailable", "Mutation fails after optimistic state"],
+      "non_goals": ["Client-side reranking", "Generated summaries", "Annotations", "Offline full-article archive", "Bypassing publisher access"],
+      "estimated_size": "M",
+      "risk_tags": ["core-workflow", "content-safety", "pagination", "accessibility"],
+      "handoff_notes": "The end-to-end acceptance flow should exercise this screen with persisted fixture data and a real local backend."
+    },
+    {
+      "id": "FRONTEND-008",
+      "title": "Implement personal library and settings integration",
+      "summary": "Build saved/read/hidden library views, reversible state management, persistent filters, and cohesive links among library, profile, ranking, sources, and feed settings.",
+      "objective": "Complete the persistent personal reading workflow and make all user-controlled ranking inputs discoverable and reversible.",
+      "context": "The user selected read/unread, save-for-later, hide/dismiss, and basic filtering as MVP features. SQLite is authoritative across restarts.",
+      "owner_role": "frontend-implementer",
+      "lane": "frontend",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "MVP",
+      "allowed_areas": ["web/src/features/library/**", "web/src/features/profile/**", "web/src/features/ranking-settings/**", "web/src/features/sources/**", "web/src/router/**", "web/tests/**", "tests/e2e/**"],
+      "depends_on": ["FRONTEND-005", "FRONTEND-006", "FRONTEND-007", "RANK-005"],
+      "inputs": ["Feed/library APIs", "Profile and ranking settings workflows", "Source workflow", "Shared filters and article components"],
+      "outputs": ["Saved-items view", "Read/unread view", "Hidden-items management and restore flow", "Persistent disposable filter preferences", "Integrated settings navigation"],
+      "implementation_notes": [
+        "Store only disposable view/filter preferences in browser storage; retrieve all article/library state from the API.",
+        "Make hidden items intentionally discoverable in a management view so hide remains reversible.",
+        "Keep filter URL/query state understandable for back/forward navigation where practical.",
+        "After profile or ranking changes, show backend recomputation progress/stale state if the contract exposes it."
+      ],
+      "acceptance_criteria": [
+        "Saved, read/unread, and hidden views load authoritative state and allow the accepted reversible actions.",
+        "Library state and server-backed filters survive application restart; disposable UI preferences may survive browser reload without becoming authoritative.",
+        "Restoring a hidden article makes it eligible for normal feed display after authoritative refresh.",
+        "Settings navigation clearly separates profile, ranking signals, sources, credentials, and refresh information.",
+        "The complete workflow remains usable by keyboard and presents useful empty/error states for each library view."
+      ],
+      "verification": [
+        "Run component tests for saved, read/unread, hidden/restore, filters, reload, and error states.",
+        "Run browser coverage that changes actions, restarts/reloads the app, and confirms SQLite-backed persistence.",
+        "Inspect browser storage to confirm it contains no authoritative library records, profile data, article content, or credentials.",
+        "Run accessibility checks and keyboard-only action reversal."
+      ],
+      "proof_required": ["Library component output", "Restart persistence browser trace", "Browser-storage audit", "Accessibility result"],
+      "edge_cases": ["No saved items", "All items hidden", "Article state changes from another open tab", "Filter yields no results", "Server recomputation in progress", "Restore fails"],
+      "non_goals": ["Folders", "Annotations", "Exports", "Cross-device library sync", "Multiple local profiles"],
+      "estimated_size": "M",
+      "risk_tags": ["state-consistency", "persistence", "accessibility"],
+      "handoff_notes": "Integration-release must prove the complete daily-use workflow across a real process restart, not only a browser reload."
+    }
+  ]
+}
