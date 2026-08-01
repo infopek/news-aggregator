@@ -3,7 +3,7 @@
   "task_id": "CONTRACT-002",
   "run_id": "CONTRACT-002-run-001",
   "actor_id": "backend-core-agent",
-  "status": "review",
+  "status": "done",
   "implementation_summary": "Defined dependency-free domain entities, validation-oriented value objects, typed commands and queries, repository and transaction ports, outbound fetch and credential boundaries, ingestion/ranking ports, service interfaces, stable error categories, and focused contract tests.",
   "files_changed": [
     {
@@ -68,7 +68,7 @@
     }
   ],
   "blockers": [],
-  "notes": "Reviewer revision 1 rejected mandatory location and free-form adapter configuration. The revision now models whole location as optional/disableable, enforces LocalProfileID, replaces the map with typed adapter configuration, rejects sensitive/unknown raw configuration keys, and adds regression tests. Independent re-review is required.",
+  "notes": "Reviewer revision 1 rejected mandatory location and free-form adapter configuration. Revision ba5683d corrected both findings and the independent reviewer approved it. Residual non-blocking risks are documented in collaboration review contract-002-review-002.",
   "submitted_at": "2026-08-01T17:30:29Z",
-  "updated_at": "2026-08-01T17:35:29Z"
+  "updated_at": "2026-08-01T17:37:12Z"
 }
