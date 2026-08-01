@@ -28,6 +28,41 @@ func TestOptionalSignalKeepsPresenceAndEnablementDistinct(t *testing.T) {
 	}
 }
 
+func TestProfileAllowsOptionalLocationStatesAndRequiresLocalIdentity(t *testing.T) {
+	base := UserProfile{ID: LocalProfileID}
+	if err := base.Validate(); err != nil {
+		t.Fatalf("absent location Validate() error = %v", err)
+	}
+
+	presentDisabled := base
+	presentDisabled.Location = OptionalSignal[Location]{
+		Value:   Location{Country: "HU", Region: "Budapest"},
+		Present: true,
+		Enabled: false,
+	}
+	if err := presentDisabled.Validate(); err != nil {
+		t.Fatalf("present disabled location Validate() error = %v", err)
+	}
+
+	presentEnabled := presentDisabled
+	presentEnabled.Location.Enabled = true
+	if err := presentEnabled.Validate(); err != nil {
+		t.Fatalf("present enabled location Validate() error = %v", err)
+	}
+
+	absentEnabled := base
+	absentEnabled.Location.Enabled = true
+	if err := absentEnabled.Validate(); !errors.Is(err, ErrInvalidProfile) {
+		t.Fatalf("absent enabled location Validate() error = %v, want %v", err, ErrInvalidProfile)
+	}
+
+	wrongIdentity := base
+	wrongIdentity.ID = "another-profile"
+	if err := wrongIdentity.Validate(); !errors.Is(err, ErrInvalidProfile) {
+		t.Fatalf("wrong profile identity Validate() error = %v, want %v", err, ErrInvalidProfile)
+	}
+}
+
 func TestArticleRejectsFullContentWithoutPermission(t *testing.T) {
 	article := validArticle()
 	article.ContentPermission = ContentMetadataOnly
@@ -46,7 +81,11 @@ func TestEnabledScraperRequiresApprovedReviewedPolicy(t *testing.T) {
 		Kind:              SourceKindScraper,
 		Enabled:           true,
 		ContentPermission: ContentMetadataOnly,
-		ScraperPolicy:     ScraperPolicy{Status: ScraperPolicyPending},
+		AdapterConfig: AdapterConfiguration{Scraper: &ScraperConfiguration{
+			ArticleSelector: "article",
+			TitleSelector:   "h1",
+		}},
+		ScraperPolicy: ScraperPolicy{Status: ScraperPolicyPending},
 	}
 	if err := source.Validate(); !errors.Is(err, ErrInvalidSource) {
 		t.Fatalf("pending scraper Validate() error = %v, want %v", err, ErrInvalidSource)
@@ -56,6 +95,32 @@ func TestEnabledScraperRequiresApprovedReviewedPolicy(t *testing.T) {
 	source.ScraperPolicy = ScraperPolicy{Status: ScraperPolicyApproved, ReviewedAt: &now}
 	if err := source.Validate(); err != nil {
 		t.Fatalf("approved scraper Validate() error = %v", err)
+	}
+}
+
+func TestAdapterConfigurationRejectsSecretBearingAndUnknownFields(t *testing.T) {
+	secretFields := []map[string]string{
+		{"api_key": "sentinel"},
+		{"access-token": "sentinel"},
+		{"credential": "sentinel"},
+		{"password": "sentinel"},
+	}
+	for _, fields := range secretFields {
+		if _, err := ParseAdapterConfiguration(SourceKindAPI, fields); !errors.Is(err, ErrSensitiveAdapterConfiguration) {
+			t.Fatalf("ParseAdapterConfiguration(%v) error = %v, want %v", fields, err, ErrSensitiveAdapterConfiguration)
+		}
+	}
+
+	if _, err := ParseAdapterConfiguration(SourceKindAPI, map[string]string{"provider": "fixture", "unknown": "value"}); !errors.Is(err, ErrInvalidSource) {
+		t.Fatalf("unknown field error = %v, want %v", err, ErrInvalidSource)
+	}
+
+	configuration, err := ParseAdapterConfiguration(SourceKindAPI, map[string]string{"provider": "fixture", "page_size": "25"})
+	if err != nil {
+		t.Fatalf("valid API configuration error = %v", err)
+	}
+	if !configuration.ValidFor(SourceKindAPI) {
+		t.Fatal("valid API configuration did not match API kind")
 	}
 }
 

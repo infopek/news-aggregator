@@ -39,6 +39,11 @@
       "command": "git diff --check",
       "result": "passed",
       "output": "No whitespace errors."
+    },
+    {
+      "command": "go test -race ./internal/domain/... ./internal/application/... && go vet ./internal/domain/... ./internal/application/... && ./scripts/verify.sh",
+      "result": "passed",
+      "output": "Post-review revision passed race-enabled focused tests, vet, and the complete repository verification suite."
     }
   ],
   "proof": [
@@ -63,7 +68,7 @@
     }
   ],
   "blockers": [],
-  "notes": "No concrete database, HTTP handler, live fetcher, source adapter, credential vault, or ranking formula was implemented. Independent reviewer approval is required before completion.",
+  "notes": "Reviewer revision 1 rejected mandatory location and free-form adapter configuration. The revision now models whole location as optional/disableable, enforces LocalProfileID, replaces the map with typed adapter configuration, rejects sensitive/unknown raw configuration keys, and adds regression tests. Independent re-review is required.",
   "submitted_at": "2026-08-01T17:30:29Z",
-  "updated_at": "2026-08-01T17:30:29Z"
+  "updated_at": "2026-08-01T17:35:29Z"
 }

@@ -156,6 +156,18 @@
         "A transitive deprecated glob package is non-blocking while npm audit reports zero vulnerabilities."
       ],
       "reviewed_at": "2026-08-01T17:20:56Z"
+    },
+    {
+      "review_id": "contract-002-review-001",
+      "submission_id": "contract-002-run-001-submission",
+      "reviewer_actor_id": "reviewer-agent",
+      "status": "changes_requested",
+      "findings": [
+        "P0: Whole coarse location was mandatory instead of absent/present-disabled/present-enabled, and arbitrary ProfileID values were accepted.",
+        "P0: Free-form AdapterConfig map values could carry secrets into domain records and persistence outside CredentialStore.",
+        "Revision required typed optional location with LocalProfileID enforcement and typed allowlisted non-secret adapter configuration with regression tests."
+      ],
+      "reviewed_at": "2026-08-01T17:35:29Z"
     }
   ],
   "audit_events": [
@@ -246,6 +258,22 @@
       "target_id": "CONTRACT-002",
       "created_at": "2026-08-01T17:30:29Z",
       "details": "Assignment moved to review."
+    },
+    {
+      "event_id": "contract-002-review-changes-requested",
+      "actor_id": "reviewer-agent",
+      "event_type": "review_added",
+      "target_id": "contract-002-review-001",
+      "created_at": "2026-08-01T17:35:29Z",
+      "details": "Reviewer rejected revision 1 with two P0 contract findings."
+    },
+    {
+      "event_id": "contract-002-revision-submitted",
+      "actor_id": "backend-core-agent",
+      "event_type": "artifact_submitted",
+      "target_id": "contract-002-run-001-submission",
+      "created_at": "2026-08-01T17:35:29Z",
+      "details": "Submitted location-semantics and typed-adapter-configuration corrections for re-review."
     }
   ]
 }

@@ -35,18 +35,24 @@ type UserProfile struct {
 	ID               ProfileID
 	Interests        []WeightedInterest
 	PreferredSources []SourceID
-	Location         Location
+	Location         OptionalSignal[Location]
 	Age              OptionalSignal[int]
 	Gender           OptionalSignal[string]
 	UpdatedAt        time.Time
 }
 
 func (profile UserProfile) Validate() error {
-	if profile.ID == "" || strings.TrimSpace(profile.Location.Country) == "" || strings.TrimSpace(profile.Location.Region) == "" {
+	if profile.ID != LocalProfileID {
 		return ErrInvalidProfile
 	}
-	if !profile.Age.Valid() || !profile.Gender.Valid() || !profile.Location.City.Valid() {
+	if !profile.Age.Valid() || !profile.Gender.Valid() || !profile.Location.Valid() {
 		return ErrInvalidProfile
+	}
+	if profile.Location.Present {
+		location := profile.Location.Value
+		if strings.TrimSpace(location.Country) == "" || strings.TrimSpace(location.Region) == "" || !location.City.Valid() {
+			return ErrInvalidProfile
+		}
 	}
 	if profile.Age.Present && (profile.Age.Value < 0 || profile.Age.Value > 130) {
 		return ErrInvalidProfile
