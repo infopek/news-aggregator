@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "tables": [
+    "article_sources", "article_tokens", "article_topics", "articles",
+    "library_states", "profile_interests", "profile_preferred_sources",
+    "profiles", "ranking_configurations", "ranking_contributions",
+    "ranking_results", "refresh_outcomes", "refresh_runs",
+    "schema_migrations", "sources"
+  ],
+  "indexes": [
+    "article_sources_external_id_unique", "article_tokens_term", "articles_canonical_url_unique",
+    "articles_feed_order", "articles_fingerprint_unique",
+    "articles_primary_source_feed", "library_feed_state",
+    "ranking_results_feed", "refresh_runs_history",
+    "refresh_runs_single_active", "sources_enabled_kind",
+    "sources_url_unique"
+  ],
+  "forbidden_schema_terms": [
+    "api_key", "password", "secret_value", "access_token", "refresh_token",
+    "inferred_age", "inferred_gender", "raw_payload"
+  ]
+}

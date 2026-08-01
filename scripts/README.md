@@ -22,6 +22,15 @@ npm --prefix scripts ci
 
 Both scripts format-check Go, run Go static analysis and tests, lint/type-check/test/build the frontend, and build the Go command after Vite writes assets to `internal/webassets/dist`.
 
+## SQLite migration contract
+
+Run `./scripts/migration-contract.sh` or `.\scripts\migration-contract.ps1` to
+apply every migration to a temporary SQLite database and verify repeat runs,
+schema inventory, relationship/deduplication constraints, interrupted rollback,
+unsupported-newer-version rejection, and forbidden schema terms. The harness
+uses Python's standard-library SQLite binding only for contract verification;
+the application runtime remains pure Go.
+
 ## API contract
 
 After editing `api/openapi.yaml`, regenerate the checked-in TypeScript bindings:
