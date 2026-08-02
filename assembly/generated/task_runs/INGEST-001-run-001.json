@@ -1,0 +1,31 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "INGEST-001",
+  "run_id": "INGEST-001-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "done",
+  "implementation_summary": "Implemented and independently reviewed a bounded policy-aware HTTP fetcher with dial-time public-address enforcement, redirect revalidation, response limits, pacing, retry metadata, and sanitized diagnostics.",
+  "files_changed": [
+    {"path": "internal/adapters/httpfetch/fetcher.go", "change": "Added the shared safe outbound fetcher, public-address dialer, redirect policy, bounds, pacing, retry metadata, and sanitized result mapping."},
+    {"path": "internal/adapters/httpfetch/fetcher_test.go", "change": "Added controlled-server coverage for SSRF, redirects, limits, compression, types, conditional requests, pacing, retry, cancellation, and secret safety."},
+    {"path": "internal/application/ports.go", "change": "Extended the accepted fetcher boundary with policy and result metadata needed by ingestion adapters."},
+    {"path": "test/fixtures/http/blocked-targets.json", "change": "Added the enforced blocked-target matrix."},
+    {"path": "tests/integration/httpfetch_blocked_targets_test.go", "change": "Added fixture-backed private, loopback, and link-local rejection proof."}
+  ],
+  "verification": [
+    {"command": "go test -race ./internal/adapters/httpfetch ./tests/integration", "result": "passed", "output": "Focused fetcher and blocked-target tests passed under the race detector."},
+    {"command": "go test ./... && go vet ./...", "result": "passed", "output": "Full Go tests and static analysis passed."},
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Full repository verification passed."},
+    {"command": "GOOS=windows GOARCH=amd64 CGO_ENABLED=0 compile checks", "result": "passed", "output": "Windows amd64 CGO-free compilation passed."},
+    {"command": "git diff --check and sentinel-secret transcript scan", "result": "passed", "output": "Diff and secret-safety checks passed; matches were limited to intentional test sentinels."}
+  ],
+  "proof": [
+    {"kind": "test_output", "summary": "Dial-time IP pinning, all-address rejection, redirect revalidation, nil proxy, and cross-origin credential stripping passed.", "status": "passed"},
+    {"kind": "test_output", "summary": "Timeouts, cancellation, raw and gzip-decoded bounds, type allowlists, pacing, conditional headers, and bounded Retry-After behavior passed.", "status": "passed"},
+    {"kind": "manual_note", "summary": "Independent reviewer approved exact revision ab527a176321175dfe807f96da378e989b99a6d9 with no unresolved findings.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "The shared fetcher performs no proxying or unrestricted client fallback and returns no response content on blocked targets.",
+  "submitted_at": "2026-08-02T20:42:42Z",
+  "updated_at": "2026-08-02T20:42:42Z"
+}
