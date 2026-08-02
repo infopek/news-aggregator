@@ -24,7 +24,7 @@ func TestMigrationCompatibilityMatrix(t *testing.T) {
 		before := migrationCount(t, path)
 		store = reopenStore(t, path)
 		defer store.Close()
-		if after := migrationCount(t, path); before != 2 || after != before {
+		if after := migrationCount(t, path); before != 3 || after != before {
 			t.Fatalf("migration counts before=%d after=%d", before, after)
 		}
 	})
@@ -209,12 +209,40 @@ func TestConstraintsTransactionsCancellationAndHistory(t *testing.T) {
 	if result.ArticleID != "a1" {
 		t.Fatalf("external merge=%+v", result)
 	}
+	early := byExternal
+	early.ID = "early-id"
+	early.Fingerprint = "early-fp"
+	early.CanonicalURL = "https://example.com/early"
+	early.SourceExternalID = "external-1"
+	early.FetchedAt = article.FetchedAt.Add(-time.Hour)
+	result, err = store.Articles().Upsert(ctx, early)
+	must(t, err)
+	if result.ArticleID != "a1" {
+		t.Fatalf("first alias no longer resolves: %+v", result)
+	}
+	late := byExternal
+	late.ID = "late-id"
+	late.Fingerprint = "late-fp"
+	late.CanonicalURL = "https://example.com/late"
+	late.SourceExternalID = "external-2"
+	late.FetchedAt = byExternal.FetchedAt.Add(time.Hour)
+	result, err = store.Articles().Upsert(ctx, late)
+	must(t, err)
+	if result.ArticleID != "a1" {
+		t.Fatalf("second alias no longer resolves: %+v", result)
+	}
 	var articleCount int
 	db := rawDB(t, path)
 	must(t, db.QueryRow(`SELECT count(*) FROM articles`).Scan(&articleCount))
+	var canonicalExternal, aliasesJSON string
+	var firstSeen, lastSeen int64
+	must(t, db.QueryRow(`SELECT external_id,external_ids_json,first_seen_at_ms,last_seen_at_ms FROM article_sources WHERE article_id='a1' AND source_id='s1'`).Scan(&canonicalExternal, &aliasesJSON, &firstSeen, &lastSeen))
 	db.Close()
 	if articleCount != 1 {
 		t.Fatalf("dedup left %d articles", articleCount)
+	}
+	if canonicalExternal != "external-1" || aliasesJSON != `["external-1","external-2","external-3"]` || firstSeen != early.FetchedAt.UnixMilli() || lastSeen != late.FetchedAt.UnixMilli() {
+		t.Fatalf("provenance external=%q aliases=%s first=%d last=%d", canonicalExternal, aliasesJSON, firstSeen, lastSeen)
 	}
 	merged, err := store.Articles().Get(ctx, "a1")
 	must(t, err)
@@ -300,16 +328,31 @@ func TestQueryFeedRejectsInvalidCursorAndPropagatesRepositoryErrors(t *testing.T
 	if _, err = store.Articles().QueryFeed(cancelled, application.FeedQuery{}); !errors.Is(err, context.Canceled) {
 		t.Fatalf("cancelled feed error=%v", err)
 	}
-	if _, err = store.Articles().QueryFeed(ctx, application.FeedQuery{}); !errors.Is(err, application.ErrNotFound) {
-		t.Fatalf("missing library error=%v", err)
+	page, err := store.Articles().QueryFeed(ctx, application.FeedQuery{})
+	must(t, err)
+	if len(page.Articles) != 1 || page.Articles[0].Library.ArticleID != article.ID || page.Articles[0].Ranking.ArticleID != article.ID {
+		t.Fatalf("empty optional state feed=%+v", page)
 	}
-	value := false
+	value := true
 	_, err = store.Libraries().Apply(ctx, article.ID, domain.LibraryPatch{Read: &value}, time.Now())
 	must(t, err)
-	if _, err = store.Articles().QueryFeed(ctx, application.FeedQuery{}); !errors.Is(err, application.ErrNotFound) {
-		t.Fatalf("missing ranking error=%v", err)
+	page, err = store.Articles().QueryFeed(ctx, application.FeedQuery{})
+	must(t, err)
+	if page.Articles[0].Library.ReadAt == nil || page.Articles[0].Ranking.ArticleID != article.ID {
+		t.Fatalf("missing ranking feed=%+v", page)
 	}
+	ranking := domain.RankingResult{ArticleID: article.ID, Score: .5, AlgorithmVersion: "test", CalculatedAt: time.Now()}
+	must(t, store.Rankings().SaveResults(ctx, []domain.RankingResult{ranking}))
 	db := rawDB(t, path)
+	_, err = db.Exec(`DELETE FROM library_states WHERE article_id='feed-a'`)
+	must(t, err)
+	db.Close()
+	page, err = store.Articles().QueryFeed(ctx, application.FeedQuery{})
+	must(t, err)
+	if page.Articles[0].Library.ArticleID != article.ID || page.Articles[0].Ranking.Score != .5 {
+		t.Fatalf("missing library feed=%+v", page)
+	}
+	db = rawDB(t, path)
 	_, err = db.Exec(`DROP TABLE ranking_contributions; DROP TABLE ranking_results`)
 	must(t, err)
 	db.Close()

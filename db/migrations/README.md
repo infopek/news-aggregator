@@ -33,3 +33,9 @@ source from normal configuration reads while retaining its row for article and
 library provenance. Saving the same source identifier restores it. Credential
 references are cleared and the source is disabled when tombstoned; credential
 values are never stored here.
+
+`article_sources.external_id` is the first non-empty identity observed for a
+source/article pair and is never replaced. `external_ids_json` is the sorted,
+deduplicated alias set used to resolve every later identity emitted by that
+source. Observation bounds monotonically expand: first-seen is the minimum and
+last-seen is the maximum timestamp across all observations.

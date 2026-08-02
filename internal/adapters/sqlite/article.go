@@ -4,7 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -59,7 +62,15 @@ func (s *Store) upsertArticle(ctx context.Context, a domain.Article) (applicatio
 		}
 		_, _ = result.RowsAffected()
 		out = application.ArticleWriteResult{ArticleID: a.ID, Inserted: !existed, Updated: existed}
-		if _, err = s.q(ctx).ExecContext(ctx, `INSERT INTO article_sources(article_id,source_id,external_id,first_seen_at_ms,last_seen_at_ms) VALUES(?,?,?,?,?) ON CONFLICT(article_id,source_id) DO UPDATE SET external_id=CASE WHEN excluded.external_id!='' THEN excluded.external_id ELSE article_sources.external_id END,last_seen_at_ms=MAX(article_sources.last_seen_at_ms,excluded.last_seen_at_ms)`, a.ID, observationSource, observationExternalID, millis(observedAt), millis(observedAt)); err != nil {
+		aliases, err := s.externalAliases(ctx, a.ID, observationSource, observationExternalID)
+		if err != nil {
+			return err
+		}
+		aliasesJSON, err := json.Marshal(aliases)
+		if err != nil {
+			return application.ErrInvalidInput
+		}
+		if _, err = s.q(ctx).ExecContext(ctx, `INSERT INTO article_sources(article_id,source_id,external_id,first_seen_at_ms,last_seen_at_ms,external_ids_json) VALUES(?,?,?,?,?,?) ON CONFLICT(article_id,source_id) DO UPDATE SET external_id=CASE WHEN article_sources.external_id='' THEN excluded.external_id ELSE article_sources.external_id END,first_seen_at_ms=MIN(article_sources.first_seen_at_ms,excluded.first_seen_at_ms),last_seen_at_ms=MAX(article_sources.last_seen_at_ms,excluded.last_seen_at_ms),external_ids_json=excluded.external_ids_json`, a.ID, observationSource, observationExternalID, millis(observedAt), millis(observedAt), string(aliasesJSON)); err != nil {
 			return mapError(err)
 		}
 		if _, err = s.q(ctx).ExecContext(ctx, `DELETE FROM article_topics WHERE article_id=?`, a.ID); err != nil {
@@ -93,7 +104,7 @@ func (s *Store) resolveArticleIdentity(ctx context.Context, incoming domain.Arti
 	}
 	if incoming.SourceExternalID != "" {
 		var id domain.ArticleID
-		err = s.q(ctx).QueryRowContext(ctx, `SELECT article_id FROM article_sources WHERE source_id=? AND external_id=?`, incoming.SourceID, incoming.SourceExternalID).Scan(&id)
+		err = s.q(ctx).QueryRowContext(ctx, `SELECT article_id FROM article_sources WHERE source_id=? AND (external_id=? OR EXISTS(SELECT 1 FROM json_each(external_ids_json) WHERE value=?))`, incoming.SourceID, incoming.SourceExternalID, incoming.SourceExternalID).Scan(&id)
 		if err != nil && err != sql.ErrNoRows {
 			return "", false, mapError(err)
 		}
@@ -111,6 +122,35 @@ func (s *Store) resolveArticleIdentity(ctx context.Context, incoming domain.Arti
 		return id, true, nil
 	}
 	panic("unreachable")
+}
+
+func (s *Store) externalAliases(ctx context.Context, articleID domain.ArticleID, sourceID domain.SourceID, incoming string) ([]string, error) {
+	seen := map[string]struct{}{}
+	var raw string
+	err := s.q(ctx).QueryRowContext(ctx, `SELECT external_ids_json FROM article_sources WHERE article_id=? AND source_id=?`, articleID, sourceID).Scan(&raw)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, mapError(err)
+	}
+	if err == nil {
+		var existing []string
+		if json.Unmarshal([]byte(raw), &existing) != nil {
+			return nil, application.ErrUnavailable
+		}
+		for _, alias := range existing {
+			if alias != "" {
+				seen[alias] = struct{}{}
+			}
+		}
+	}
+	if incoming != "" {
+		seen[incoming] = struct{}{}
+	}
+	aliases := make([]string, 0, len(seen))
+	for alias := range seen {
+		aliases = append(aliases, alias)
+	}
+	sort.Strings(aliases)
+	return aliases, nil
 }
 
 func mergeArticle(stored, incoming domain.Article) domain.Article {
@@ -296,11 +336,15 @@ func (s *Store) queryFeed(ctx context.Context, q application.FeedQuery) (applica
 	}
 	for _, a := range articles {
 		library, err := s.Libraries().Get(ctx, a.ID)
-		if err != nil {
+		if errors.Is(err, application.ErrNotFound) {
+			library = domain.LibraryState{ArticleID: a.ID}
+		} else if err != nil {
 			return page, err
 		}
 		ranking, err := s.Rankings().GetResult(ctx, a.ID)
-		if err != nil {
+		if errors.Is(err, application.ErrNotFound) {
+			ranking = domain.RankingResult{ArticleID: a.ID}
+		} else if err != nil {
 			return page, err
 		}
 		page.Articles = append(page.Articles, application.RankedArticle{Article: a, Library: library, Ranking: ranking})
