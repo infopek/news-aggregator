@@ -98,7 +98,8 @@ func (configuration AdapterConfiguration) ValidFor(kind SourceKind) bool {
 func ParseAdapterConfiguration(kind SourceKind, fields map[string]string) (AdapterConfiguration, error) {
 	for key := range fields {
 		normalized := strings.ToLower(strings.ReplaceAll(key, "-", "_"))
-		if strings.Contains(normalized, "secret") || strings.Contains(normalized, "credential") || strings.Contains(normalized, "password") || strings.Contains(normalized, "token") || normalized == "api_key" || normalized == "authorization" {
+		compact := strings.ReplaceAll(normalized, "_", "")
+		if strings.Contains(compact, "secret") || strings.Contains(compact, "credential") || strings.Contains(compact, "password") || strings.Contains(compact, "token") || compact == "apikey" || compact == "authorization" {
 			return AdapterConfiguration{}, ErrSensitiveAdapterConfiguration
 		}
 	}

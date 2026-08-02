@@ -1,8 +1,8 @@
 {
-  "invalid-article-metadata-leak.json": "ArticleDetail",
-  "invalid-feed-scraper-config.json": "SourceWrite",
-  "invalid-enabled-scraper-policy.json": "SourceWrite",
-  "invalid-secret-source.fixture": "SourceWrite",
-  "invalid-ranking-weight.json": "RankingConfiguration",
-  "invalid-ranking-signal.json": "FeedPage"
+  "invalid-article-metadata-leak.json": {"schema":"ArticleDetail","path":"$negative-fixture:invalid-article-metadata-leak.json.fullContent","code":"type","reason":"must be null"},
+  "invalid-feed-scraper-config.json": {"schema":"SourceWrite","path":"$negative-fixture:invalid-feed-scraper-config.json.adapterConfig.format","code":"required","reason":"is required"},
+  "invalid-enabled-scraper-policy.json": {"schema":"SourceWrite","path":"$negative-fixture:invalid-enabled-scraper-policy.json.scraperPolicy.status","code":"const","reason":"must equal \"approved\""},
+  "invalid-secret-source.fixture": {"schema":"SourceWrite","path":"$negative-fixture:invalid-secret-source.fixture.adapterConfig.apiKey","code":"additional_property","reason":"is not allowed"},
+  "invalid-ranking-weight.json": {"schema":"RankingConfiguration","path":"$negative-fixture:invalid-ranking-weight.json.recency.weight","code":"numeric_bounds","reason":"is outside numeric bounds"},
+  "invalid-ranking-signal.json": {"schema":"FeedPage","path":"$negative-fixture:invalid-ranking-signal.json.items[0].ranking.contributions[0].signal","code":"enum","reason":"has invalid enum value"}
 }

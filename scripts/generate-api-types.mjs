@@ -11,6 +11,13 @@ const outputDir = resolve(root, 'web/src/api/generated')
 const fixtureDir = resolve(root, 'test/fixtures/api')
 const check = process.argv.includes('--check')
 
+class ContractValidationError extends Error {
+  constructor(issues) {
+    super(issues.map((issue) => `${issue.path} ${issue.reason}`).join('; '))
+    this.issues = issues
+  }
+}
+
 const specText = await readFile(specPath, 'utf8')
 const spec = JSON.parse(specText)
 validateOpenAPI(spec)
@@ -33,13 +40,18 @@ for (const [file, schemaName] of Object.entries(manifest)) {
 }
 const fixtureTest = generateFixtureTest(manifest, fixtureValues, digest)
 const invalidManifest = JSON.parse(await readFile(resolve(fixtureDir, 'invalid-manifest.json'), 'utf8'))
-for (const [file, schemaName] of Object.entries(invalidManifest)) {
-  if (!schemas[schemaName]) throw new Error(`negative fixture ${file} names unknown schema ${schemaName}`)
+for (const [file, expectation] of Object.entries(invalidManifest)) {
+  if (!schemas[expectation.schema]) throw new Error(`negative fixture ${file} names unknown schema ${expectation.schema}`)
   const fixture = await loadFixture(file)
-  let rejected = false
-  try { validateValue(fixture, schemas[schemaName], schemas, `$negative-fixture:${file}`) } catch { rejected = true }
-  if (!rejected) throw new Error(`negative fixture ${file} unexpectedly matches ${schemaName}`)
+  assertNegativeFixture(file, fixture, expectation)
 }
+// Regression guard: a negative expectation may not pass merely because the
+// fixture failed somewhere else.
+const [regressionFile, regressionExpectation] = Object.entries(invalidManifest)[0]
+const regressionFixture = await loadFixture(regressionFile)
+let wrongReasonRejected = false
+try { assertNegativeFixture(regressionFile, regressionFixture, { ...regressionExpectation, code: 'deliberately_wrong_code' }) } catch { wrongReasonRejected = true }
+if (!wrongReasonRejected) throw new Error('negative fixture harness accepted the wrong rejection reason')
 
 if (!check) await mkdir(outputDir, { recursive: true })
 await emit('models.ts', models)
@@ -50,6 +62,7 @@ await emit('operation-contract.test.ts', operationTest)
 console.log(`RESULT OK openapi_valid=true operations=${operationEntries(spec.paths).length} schemas=${Object.keys(schemas).length}`)
 console.log(`RESULT OK api_fixtures_valid=true fixtures=${Object.keys(manifest).length}`)
 console.log(`RESULT OK api_negative_fixtures_rejected=true fixtures=${Object.keys(invalidManifest).length}`)
+console.log('RESULT OK api_negative_wrong_reason_rejected=true')
 console.log(`RESULT OK api_types_${check ? 'current' : 'generated'}=true digest=${digest}`)
 console.log('RESULT OK openapi_format_invariant=true')
 
@@ -201,6 +214,22 @@ async function loadFixture(file) {
   return JSON.parse(await readFile(resolve(fixtureDir, file), 'utf8'))
 }
 
+function assertNegativeFixture(file, fixture, expectation) {
+  try {
+    validateValue(fixture, schemas[expectation.schema], schemas, `$negative-fixture:${file}`)
+  } catch (error) {
+    const issues = error instanceof ContractValidationError ? error.issues : []
+    const exact = issues.some((issue) => issue.path === expectation.path && issue.code === expectation.code && issue.reason === expectation.reason)
+    if (!exact) throw new Error(`negative fixture ${file} failed for an undocumented reason; expected ${JSON.stringify(expectation)}, got ${JSON.stringify(issues)}`)
+    return
+  }
+  throw new Error(`negative fixture ${file} unexpectedly matches ${expectation.schema}`)
+}
+
+function invalid(path, code, reason) {
+  throw new ContractValidationError([{ path, code, reason }])
+}
+
 function validateValue(value, schema, schemas, path) {
   if (schema.$ref) return validateValue(value, schemas[schema.$ref.replace('#/components/schemas/', '')], schemas, path)
   if (schema.allOf) {
@@ -210,46 +239,46 @@ function validateValue(value, schema, schemas, path) {
   if (schema.anyOf || schema.oneOf) {
     const failures = []
     const matches = (schema.anyOf ?? schema.oneOf).filter((candidate) => {
-      try { validateValue(value, candidate, schemas, path); return true } catch (error) { failures.push(error.message); return false }
+      try { validateValue(value, candidate, schemas, path); return true } catch (error) { failures.push(...(error instanceof ContractValidationError ? error.issues : [{ path, code: 'validation', reason: error.message }])); return false }
     })
     const expected = schema.oneOf ? 1 : Math.max(1, matches.length)
-    if (matches.length !== expected) throw new Error(`${path} does not match ${schema.oneOf ? 'exactly one' : 'any'} variant: ${failures.join('; ')}`)
+    if (matches.length !== expected) throw new ContractValidationError(failures)
     return
   }
   if (schema.const !== undefined) {
-    if (value !== schema.const) throw new Error(`${path} must equal ${schema.const}`)
+    if (value !== schema.const) invalid(path, 'const', `must equal ${JSON.stringify(schema.const)}`)
     return
   }
-  if (schema.enum && !schema.enum.includes(value)) throw new Error(`${path} has invalid enum value`)
+  if (schema.enum && !schema.enum.includes(value)) invalid(path, 'enum', 'has invalid enum value')
   const types = Array.isArray(schema.type) ? schema.type : [schema.type]
   if (types.includes('null') && value === null) return
   const type = types.find((candidate) => candidate !== 'null') ?? 'null'
   if (type === 'object' || schema.properties) {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`${path} must be an object`)
-    for (const required of schema.required ?? []) if (!Object.hasOwn(value, required)) throw new Error(`${path}.${required} is required`)
-    if (schema.additionalProperties === false) for (const key of Object.keys(value)) if (!schema.properties?.[key]) throw new Error(`${path}.${key} is not allowed`)
+    if (!value || typeof value !== 'object' || Array.isArray(value)) invalid(path, 'type', 'must be an object')
+    for (const required of schema.required ?? []) if (!Object.hasOwn(value, required)) invalid(`${path}.${required}`, 'required', 'is required')
+    if (schema.additionalProperties === false) for (const key of Object.keys(value)) if (!schema.properties?.[key]) invalid(`${path}.${key}`, 'additional_property', 'is not allowed')
     for (const [key, child] of Object.entries(value)) if (schema.properties?.[key]) validateValue(child, schema.properties[key], schemas, `${path}.${key}`)
-    if (schema.minProperties !== undefined && Object.keys(value).length < schema.minProperties) throw new Error(`${path} has too few properties`)
+    if (schema.minProperties !== undefined && Object.keys(value).length < schema.minProperties) invalid(path, 'min_properties', 'has too few properties')
     return
   }
   if (type === 'array') {
-    if (!Array.isArray(value)) throw new Error(`${path} must be an array`)
+    if (!Array.isArray(value)) invalid(path, 'type', 'must be an array')
     for (const [index, child] of value.entries()) validateValue(child, schema.items ?? {}, schemas, `${path}[${index}]`)
-    if (schema.uniqueItems && new Set(value.map((item) => JSON.stringify(item))).size !== value.length) throw new Error(`${path} contains duplicate items`)
+    if (schema.uniqueItems && new Set(value.map((item) => JSON.stringify(item))).size !== value.length) invalid(path, 'unique_items', 'contains duplicate items')
     return
   }
-  if (type === 'integer' && (!Number.isInteger(value))) throw new Error(`${path} must be an integer`)
-  if (type === 'number' && typeof value !== 'number') throw new Error(`${path} must be a number`)
-  if (type === 'boolean' && typeof value !== 'boolean') throw new Error(`${path} must be a boolean`)
-  if (type === 'null' && value !== null) throw new Error(`${path} must be null`)
-  if (type === 'string' && typeof value !== 'string') throw new Error(`${path} must be a string`)
-  if (typeof value === 'string' && schema.minLength !== undefined && value.length < schema.minLength) throw new Error(`${path} is too short`)
-  if (typeof value === 'string' && schema.maxLength !== undefined && value.length > schema.maxLength) throw new Error(`${path} is too long`)
-  if (typeof value === 'string' && schema.format === 'date-time' && Number.isNaN(Date.parse(value))) throw new Error(`${path} must be a date-time`)
+  if (type === 'integer' && (!Number.isInteger(value))) invalid(path, 'type', 'must be an integer')
+  if (type === 'number' && typeof value !== 'number') invalid(path, 'type', 'must be a number')
+  if (type === 'boolean' && typeof value !== 'boolean') invalid(path, 'type', 'must be a boolean')
+  if (type === 'null' && value !== null) invalid(path, 'type', 'must be null')
+  if (type === 'string' && typeof value !== 'string') invalid(path, 'type', 'must be a string')
+  if (typeof value === 'string' && schema.minLength !== undefined && value.length < schema.minLength) invalid(path, 'min_length', 'is too short')
+  if (typeof value === 'string' && schema.maxLength !== undefined && value.length > schema.maxLength) invalid(path, 'max_length', 'is too long')
+  if (typeof value === 'string' && schema.format === 'date-time' && Number.isNaN(Date.parse(value))) invalid(path, 'format_date_time', 'must be a date-time')
   if (typeof value === 'string' && schema.format === 'uri') {
-    try { new URL(value) } catch { throw new Error(`${path} must be a URI`) }
+    try { new URL(value) } catch { invalid(path, 'format_uri', 'must be a URI') }
   }
-  if (typeof value === 'number' && (value < (schema.minimum ?? -Infinity) || value > (schema.maximum ?? Infinity))) throw new Error(`${path} is outside numeric bounds`)
+  if (typeof value === 'number' && (value < (schema.minimum ?? -Infinity) || value > (schema.maximum ?? Infinity))) invalid(path, 'numeric_bounds', 'is outside numeric bounds')
 }
 
 function generateFixtureTest(manifest, fixtures, hash) {
