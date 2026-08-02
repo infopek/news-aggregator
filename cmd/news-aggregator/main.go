@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"io/fs"
 	"log/slog"
-	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -21,6 +21,9 @@ import (
 	"github.com/infopek/news-aggregator/internal/platform"
 	"github.com/infopek/news-aggregator/internal/webassets"
 )
+
+//go:embed migrations/*.sql
+var embeddedMigrations embed.FS
 
 const applicationVersion = "0.1.0"
 
@@ -53,7 +56,11 @@ func run() error {
 	if err := os.MkdirAll(dataDir, 0700); err != nil {
 		return errors.New("local data directory is unavailable")
 	}
-	store, err := sqlite.Open(ctx, sqlite.Config{Path: filepath.Join(dataDir, "news.db"), MigrationDir: "db/migrations"})
+	migrationDir, err := materializeMigrations(dataDir)
+	if err != nil {
+		return errors.New("database migrations are unavailable")
+	}
+	store, err := sqlite.Open(ctx, sqlite.Config{Path: filepath.Join(dataDir, "news.db"), MigrationDir: migrationDir})
 	if err != nil {
 		return errors.New("local database is unavailable")
 	}
@@ -64,15 +71,45 @@ func run() error {
 		return errors.New("local configuration could not be initialized")
 	}
 
-	api := http.NewServeMux()
-	api.Handle("GET /api/v1/health", httpapi.NewHealthHandler(applicationVersion))
-	api.Handle("/api/v1/", httpapi.NewConfigurationHandler(httpapi.ConfigurationAPI{Profiles: configuration, Sources: configuration, Starters: starterSources()}))
+	api := httpapi.NewAPIHandler(applicationVersion, httpapi.ConfigurationAPI{Profiles: configuration, Sources: configuration, Starters: starterSources()})
 	host := platform.Host{
 		Address: "127.0.0.1:" + strconv.Itoa(port),
 		Handler: httpapi.NewLocalHandler(api, assets),
 		Browser: platform.SystemBrowser{},
 	}
 	return host.Run(ctx)
+}
+
+func materializeMigrations(dataDir string) (string, error) {
+	dir := filepath.Join(dataDir, "migrations")
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return "", err
+	}
+	entries, err := fs.ReadDir(embeddedMigrations, "migrations")
+	if err != nil {
+		return "", err
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		contents, err := embeddedMigrations.ReadFile("migrations/" + entry.Name())
+		if err != nil {
+			return "", err
+		}
+		target := filepath.Join(dir, entry.Name())
+		existing, readErr := os.ReadFile(target)
+		if readErr == nil && string(existing) == string(contents) {
+			continue
+		}
+		if readErr != nil && !os.IsNotExist(readErr) {
+			return "", readErr
+		}
+		if err := os.WriteFile(target, contents, 0600); err != nil {
+			return "", err
+		}
+	}
+	return dir, nil
 }
 
 type systemClock struct{}

@@ -176,13 +176,13 @@ func rankingToResponse(c domain.RankingConfiguration) rankingResponse {
 }
 
 type adapterWrite struct {
-	Format          string `json:"format,omitempty"`
-	Provider        string `json:"provider,omitempty"`
-	PageSize        int    `json:"pageSize,omitempty"`
-	ArticleSelector string `json:"articleSelector,omitempty"`
-	TitleSelector   string `json:"titleSelector,omitempty"`
-	ExcerptSelector string `json:"excerptSelector,omitempty"`
-	ContentSelector string `json:"contentSelector,omitempty"`
+	Format          *string `json:"format,omitempty"`
+	Provider        *string `json:"provider,omitempty"`
+	PageSize        *int    `json:"pageSize,omitempty"`
+	ArticleSelector *string `json:"articleSelector,omitempty"`
+	TitleSelector   *string `json:"titleSelector,omitempty"`
+	ExcerptSelector *string `json:"excerptSelector,omitempty"`
+	ContentSelector *string `json:"contentSelector,omitempty"`
 }
 type policyWrite struct {
 	Status      domain.ScraperPolicyStatus `json:"status"`
@@ -228,11 +228,17 @@ func sourceFromWrite(id domain.SourceID, v sourceWrite) domain.Source {
 	}
 	switch v.Kind {
 	case domain.SourceKindFeed:
-		s.AdapterConfig.Feed = &domain.FeedConfiguration{Format: domain.FeedFormat(v.AdapterConfig.Format)}
+		if v.AdapterConfig.Format != nil {
+			s.AdapterConfig.Feed = &domain.FeedConfiguration{Format: domain.FeedFormat(*v.AdapterConfig.Format)}
+		}
 	case domain.SourceKindAPI:
-		s.AdapterConfig.API = &domain.APIConfiguration{Provider: v.AdapterConfig.Provider, PageSize: v.AdapterConfig.PageSize}
+		if v.AdapterConfig.Provider != nil && v.AdapterConfig.PageSize != nil {
+			s.AdapterConfig.API = &domain.APIConfiguration{Provider: *v.AdapterConfig.Provider, PageSize: *v.AdapterConfig.PageSize}
+		}
 	case domain.SourceKindScraper:
-		s.AdapterConfig.Scraper = &domain.ScraperConfiguration{ArticleSelector: v.AdapterConfig.ArticleSelector, TitleSelector: v.AdapterConfig.TitleSelector, ExcerptSelector: v.AdapterConfig.ExcerptSelector, ContentSelector: v.AdapterConfig.ContentSelector}
+		if v.AdapterConfig.ArticleSelector != nil && v.AdapterConfig.TitleSelector != nil {
+			s.AdapterConfig.Scraper = &domain.ScraperConfiguration{ArticleSelector: *v.AdapterConfig.ArticleSelector, TitleSelector: *v.AdapterConfig.TitleSelector, ExcerptSelector: stringValue(v.AdapterConfig.ExcerptSelector), ContentSelector: stringValue(v.AdapterConfig.ContentSelector)}
+		}
 	}
 	return s
 }
@@ -370,6 +376,10 @@ func (a ConfigurationAPI) createSource(w http.ResponseWriter, r *http.Request) {
 	if !decodeRequired(w, r, &v, "name", "url", "kind", "enabled", "contentPermission", "adapterConfig", "scraperPolicy") {
 		return
 	}
+	if !validAdapterShape(v) {
+		writeAPIError(w, http.StatusBadRequest, "validation_failed", "The request is invalid.", randomID())
+		return
+	}
 	id := domain.SourceID(a.NewID())
 	if id == "" {
 		a.fail(w, r, application.ErrUnavailable)
@@ -397,6 +407,10 @@ func (a ConfigurationAPI) updateSource(w http.ResponseWriter, r *http.Request) {
 	}
 	var v sourceWrite
 	if !decodeRequired(w, r, &v, "name", "url", "kind", "enabled", "contentPermission", "adapterConfig", "scraperPolicy") {
+		return
+	}
+	if !validAdapterShape(v) {
+		writeAPIError(w, http.StatusBadRequest, "validation_failed", "The request is invalid.", randomID())
 		return
 	}
 	s, e := a.Sources.SaveSource(r.Context(), application.SaveSourceCommand{Source: sourceFromWrite(id, v)})
@@ -508,4 +522,31 @@ func nonNil[T any](v []T) []T {
 		return []T{}
 	}
 	return v
+}
+
+func stringValue(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
+}
+func validAdapterShape(v sourceWrite) bool {
+	a := v.AdapterConfig
+	switch v.Kind {
+	case domain.SourceKindFeed:
+		return a.Format != nil && a.Provider == nil && a.PageSize == nil && a.ArticleSelector == nil && a.TitleSelector == nil && a.ExcerptSelector == nil && a.ContentSelector == nil
+	case domain.SourceKindAPI:
+		return a.Format == nil && a.Provider != nil && a.PageSize != nil && a.ArticleSelector == nil && a.TitleSelector == nil && a.ExcerptSelector == nil && a.ContentSelector == nil
+	case domain.SourceKindScraper:
+		return a.Format == nil && a.Provider == nil && a.PageSize == nil && a.ArticleSelector != nil && a.TitleSelector != nil
+	default:
+		return false
+	}
+}
+
+func NewAPIHandler(version string, configuration ConfigurationAPI) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle("GET /api/v1/health", NewHealthHandler(version))
+	mux.Handle("/api/v1/", NewConfigurationHandler(configuration))
+	return mux
 }

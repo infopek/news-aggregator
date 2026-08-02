@@ -127,6 +127,51 @@ func TestConfigurationRoutesSuccessAndStrictBodies(t *testing.T) {
 	}
 }
 
+func TestSourceAdaptersRejectCrossKindProperties(t *testing.T) {
+	feedBase := `{"name":"Feed","url":"https://example.com/feed","kind":"feed","enabled":true,"contentPermission":"metadata_only","adapterConfig":ADAPTER,"scraperPolicy":{"status":"not_applicable","termsUrl":null,"robotsUrl":null,"reviewedAt":null,"reviewNotes":null}}`
+	cases := map[string]string{
+		"feed with api field":    `{"format":"auto","provider":"wrong"}`,
+		"api with feed field":    `{"provider":"official","pageSize":0,"format":"rss"}`,
+		"scraper with api field": `{"articleSelector":"article","titleSelector":"h1","pageSize":10}`,
+	}
+	for name, adapter := range cases {
+		t.Run(name, func(t *testing.T) {
+			body := strings.Replace(feedBase, "ADAPTER", adapter, 1)
+			if strings.HasPrefix(name, "api ") {
+				body = strings.Replace(body, `"kind":"feed"`, `"kind":"api"`, 1)
+			}
+			if strings.HasPrefix(name, "scraper ") {
+				body = strings.Replace(body, `"kind":"feed"`, `"kind":"scraper"`, 1)
+			}
+			f := validFake()
+			w := request(t, NewConfigurationHandler(ConfigurationAPI{Profiles: f, Sources: f}), "POST", "/api/v1/sources", body)
+			if w.Code != 400 || !strings.Contains(w.Body.String(), `"code":"validation_failed"`) {
+				t.Fatalf("%d %s", w.Code, w.Body.String())
+			}
+		})
+	}
+}
+
+func TestCredentialDocumentedFailuresByOperation(t *testing.T) {
+	for _, method := range []string{"PUT", "DELETE"} {
+		for _, tc := range []struct {
+			err  error
+			code string
+		}{{application.ErrUnsupportedPlatform, "unsupported_platform"}, {application.ErrUnavailable, "unavailable"}} {
+			f := validFake()
+			f.err = tc.err
+			body := ""
+			if method == "PUT" {
+				body = `{"secret":"never-log-this"}`
+			}
+			w := request(t, NewConfigurationHandler(ConfigurationAPI{Profiles: f, Sources: f}), method, "/api/v1/sources/source-1/credential", body)
+			if w.Code != 503 || !strings.Contains(w.Body.String(), `"code":"`+tc.code+`"`) || strings.Contains(w.Body.String(), "never-log-this") {
+				t.Fatalf("%s %v: %d %s", method, tc.err, w.Code, w.Body.String())
+			}
+		}
+	}
+}
+
 func TestErrorFamiliesAreStableAndSanitized(t *testing.T) {
 	secret := "TOP-SECRET-SENTINEL"
 	var logs bytes.Buffer

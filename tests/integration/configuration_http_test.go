@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -35,9 +36,7 @@ func TestConfigurationHTTPThroughTemporarySQLiteAndFakeVault(t *testing.T) {
 	if err := service.Initialize(ctx, domain.UserProfile{ID: domain.LocalProfileID}, ranking); err != nil {
 		t.Fatal(err)
 	}
-	api := http.NewServeMux()
-	api.Handle("GET /api/v1/health", httpapi.NewHealthHandler("test"))
-	api.Handle("/api/v1/", httpapi.NewConfigurationHandler(httpapi.ConfigurationAPI{Profiles: service, Sources: service, NewID: func() string { return "integration-source" }}))
+	api := httpapi.NewAPIHandler("test", httpapi.ConfigurationAPI{Profiles: service, Sources: service, NewID: func() string { return "integration-source" }})
 	server := httptest.NewServer(httpapi.NewLocalHandler(api, nil))
 	defer server.Close()
 	source := `{"name":"Integration feed","url":"https://example.com/feed","kind":"feed","enabled":true,"contentPermission":"metadata_only","adapterConfig":{"format":"auto"},"scraperPolicy":{"status":"not_applicable","termsUrl":null,"robotsUrl":null,"reviewedAt":null,"reviewNotes":null}}`
@@ -57,6 +56,13 @@ func TestConfigurationHTTPThroughTemporarySQLiteAndFakeVault(t *testing.T) {
 			res.Body.Close()
 			t.Fatalf("%s %s = %d, want %d", step.method, step.path, res.StatusCode, step.status)
 		}
+		contents, readErr := io.ReadAll(res.Body)
 		res.Body.Close()
+		if readErr != nil {
+			t.Fatal(readErr)
+		}
+		if strings.Contains(string(contents), "HTTP-SECRET-SENTINEL") || strings.Contains(string(contents), "opaque-test-secret") {
+			t.Fatalf("secret leaked from %s %s", step.method, step.path)
+		}
 	}
 }
