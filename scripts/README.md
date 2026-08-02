@@ -47,6 +47,13 @@ YAML so generation remains deterministic.
 
 Generated frontend output is ignored by Git. The checked-in `internal/webassets/dist/.gitkeep` makes a clean-checkout Go build valid before the first frontend build.
 
+## Frontend contract
+
+Run `./scripts/frontend-contract.sh` or `.\scripts\frontend-contract.ps1` to
+install the pinned frontend dependencies, assert generated API bindings are
+current, run lint/typecheck/tests, build the PWA into the Go embed directory,
+and compile the executable.
+
 ## Shared cross-layer contract gate
 
 Run exactly one command before backend/frontend lane handoff:
