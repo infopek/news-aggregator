@@ -152,6 +152,70 @@ func TestSourceAdaptersRejectCrossKindProperties(t *testing.T) {
 	}
 }
 
+func TestNestedRequiredPropertiesRejectOmissionButAcceptFalseAndZero(t *testing.T) {
+	profile := `{"interests":[{"name":"technology","weight":0}],"preferredSourceIds":[],"location":{"present":true,"enabled":false,"value":{"country":"HU","region":"Central","city":{"present":false,"enabled":false}}},"age":{"present":true,"enabled":false,"value":0},"gender":{"present":false,"enabled":false}}`
+	ranking := `{"recency":{"enabled":true,"weight":1},"interest":{"enabled":false,"weight":0},"sourcePreference":{"enabled":false,"weight":0},"behavior":{"enabled":false,"weight":0},"location":{"enabled":false,"weight":0},"age":{"enabled":false,"weight":0},"gender":{"enabled":false,"weight":0},"textSimilarity":{"enabled":false,"weight":0}}`
+	f := validFake()
+	h := NewConfigurationHandler(ConfigurationAPI{Profiles: f, Sources: f})
+	if w := request(t, h, "PUT", "/api/v1/profile", profile); w.Code != 200 {
+		t.Fatalf("explicit false/zero profile rejected: %d %s", w.Code, w.Body.String())
+	}
+	if w := request(t, h, "PUT", "/api/v1/ranking-config", ranking); w.Code != 200 {
+		t.Fatalf("explicit false/zero ranking rejected: %d %s", w.Code, w.Body.String())
+	}
+	cases := []struct {
+		name, method, path, body string
+		mutate                   func(map[string]any)
+	}{
+		{"optional string present", "PUT", "/api/v1/profile", profile, func(v map[string]any) { delete(v["gender"].(map[string]any), "present") }},
+		{"optional string", "PUT", "/api/v1/profile", profile, func(v map[string]any) { delete(v["gender"].(map[string]any), "enabled") }},
+		{"optional integer", "PUT", "/api/v1/profile", profile, func(v map[string]any) { delete(v["age"].(map[string]any), "present") }},
+		{"optional integer enabled", "PUT", "/api/v1/profile", profile, func(v map[string]any) { delete(v["age"].(map[string]any), "enabled") }},
+		{"optional location present", "PUT", "/api/v1/profile", profile, func(v map[string]any) { delete(v["location"].(map[string]any), "present") }},
+		{"optional location", "PUT", "/api/v1/profile", profile, func(v map[string]any) { delete(v["location"].(map[string]any), "enabled") }},
+		{"location country", "PUT", "/api/v1/profile", profile, func(v map[string]any) { delete(v["location"].(map[string]any)["value"].(map[string]any), "country") }},
+		{"location value", "PUT", "/api/v1/profile", profile, func(v map[string]any) { delete(v["location"].(map[string]any)["value"].(map[string]any), "region") }},
+		{"location city", "PUT", "/api/v1/profile", profile, func(v map[string]any) { delete(v["location"].(map[string]any)["value"].(map[string]any), "city") }},
+		{"city optional string", "PUT", "/api/v1/profile", profile, func(v map[string]any) {
+			delete(v["location"].(map[string]any)["value"].(map[string]any)["city"].(map[string]any), "present")
+		}},
+		{"city optional string enabled", "PUT", "/api/v1/profile", profile, func(v map[string]any) {
+			delete(v["location"].(map[string]any)["value"].(map[string]any)["city"].(map[string]any), "enabled")
+		}},
+		{"weighted interest name", "PUT", "/api/v1/profile", profile, func(v map[string]any) { delete(v["interests"].([]any)[0].(map[string]any), "name") }},
+		{"weighted interest", "PUT", "/api/v1/profile", profile, func(v map[string]any) { delete(v["interests"].([]any)[0].(map[string]any), "weight") }},
+		{"signal weight", "PUT", "/api/v1/ranking-config", ranking, func(v map[string]any) { delete(v["interest"].(map[string]any), "enabled") }},
+		{"signal weight value", "PUT", "/api/v1/ranking-config", ranking, func(v map[string]any) { delete(v["interest"].(map[string]any), "weight") }},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var value map[string]any
+			if err := json.Unmarshal([]byte(tc.body), &value); err != nil {
+				t.Fatal(err)
+			}
+			tc.mutate(value)
+			body, _ := json.Marshal(value)
+			w := request(t, h, tc.method, tc.path, string(body))
+			if w.Code != 400 {
+				t.Fatalf("omission accepted: %d %s", w.Code, w.Body.String())
+			}
+		})
+	}
+	source := `{"name":"Feed","url":"https://example.com/feed","kind":"feed","enabled":true,"contentPermission":"metadata_only","adapterConfig":{"format":"auto"},"scraperPolicy":{"status":"not_applicable","termsUrl":null,"robotsUrl":null,"reviewedAt":null,"reviewNotes":null}}`
+	for _, field := range []string{"status", "termsUrl", "robotsUrl", "reviewedAt", "reviewNotes"} {
+		t.Run("policy "+field, func(t *testing.T) {
+			var value map[string]any
+			_ = json.Unmarshal([]byte(source), &value)
+			delete(value["scraperPolicy"].(map[string]any), field)
+			body, _ := json.Marshal(value)
+			w := request(t, h, "POST", "/api/v1/sources", string(body))
+			if w.Code != 400 {
+				t.Fatalf("omitted %s accepted: %d %s", field, w.Code, w.Body.String())
+			}
+		})
+	}
+}
+
 func TestCredentialDocumentedFailuresByOperation(t *testing.T) {
 	for _, method := range []string{"PUT", "DELETE"} {
 		for _, tc := range []struct {

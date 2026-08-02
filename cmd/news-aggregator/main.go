@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"embed"
 	"errors"
@@ -102,14 +103,51 @@ func materializeMigrations(dataDir string) (string, error) {
 		if readErr == nil && string(existing) == string(contents) {
 			continue
 		}
+		if readErr == nil {
+			return "", errors.New("installed migration differs from embedded migration")
+		}
 		if readErr != nil && !os.IsNotExist(readErr) {
 			return "", readErr
 		}
-		if err := os.WriteFile(target, contents, 0600); err != nil {
+		if err := installMigrationAtomically(dir, target, contents); err != nil {
 			return "", err
 		}
 	}
 	return dir, nil
+}
+
+func installMigrationAtomically(dir, target string, contents []byte) error {
+	temporary, err := os.CreateTemp(dir, ".migration-*.tmp")
+	if err != nil {
+		return err
+	}
+	temporaryName := temporary.Name()
+	defer os.Remove(temporaryName)
+	if err := temporary.Chmod(0600); err != nil {
+		temporary.Close()
+		return err
+	}
+	if _, err := temporary.Write(contents); err != nil {
+		temporary.Close()
+		return err
+	}
+	if err := temporary.Sync(); err != nil {
+		temporary.Close()
+		return err
+	}
+	if err := temporary.Close(); err != nil {
+		return err
+	}
+	if err := os.Rename(temporaryName, target); err == nil {
+		return nil
+	}
+	// On Windows rename does not replace an existing target. A concurrent
+	// process may have won the race; accept only the identical complete file.
+	existing, readErr := os.ReadFile(target)
+	if readErr == nil && bytes.Equal(existing, contents) {
+		return nil
+	}
+	return errors.New("migration installation failed")
 }
 
 type systemClock struct{}

@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/infopek/news-aggregator/internal/adapters/sqlite"
@@ -26,6 +28,41 @@ func TestConfiguredPort(t *testing.T) {
 			t.Errorf("configuredPort(%q) error = %v", test.value, err)
 		} else if err == nil && got != test.want {
 			t.Errorf("configuredPort(%q) = %d, want %d", test.value, got, test.want)
+		}
+	}
+}
+
+func TestConcurrentMigrationMaterializationIsAtomic(t *testing.T) {
+	data := t.TempDir()
+	const workers = 16
+	var wait sync.WaitGroup
+	errorsSeen := make(chan error, workers)
+	for i := 0; i < workers; i++ {
+		wait.Add(1)
+		go func() { defer wait.Done(); _, err := materializeMigrations(data); errorsSeen <- err }()
+	}
+	wait.Wait()
+	close(errorsSeen)
+	for err := range errorsSeen {
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	entries, err := fs.ReadDir(embeddedMigrations, "migrations")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		want, _ := embeddedMigrations.ReadFile("migrations/" + entry.Name())
+		got, err := os.ReadFile(filepath.Join(data, "migrations", entry.Name()))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(got) != string(want) {
+			t.Fatalf("partial migration %s", entry.Name())
 		}
 	}
 }

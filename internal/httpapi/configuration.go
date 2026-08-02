@@ -62,21 +62,45 @@ type optionalString struct {
 	Present bool    `json:"present"`
 	Enabled bool    `json:"enabled"`
 }
+
+func (v *optionalString) UnmarshalJSON(data []byte) error {
+	type plain optionalString
+	return unmarshalStrictRequired(data, (*plain)(v), "present", "enabled")
+}
+
 type optionalInt struct {
 	Value   *int `json:"value,omitempty"`
 	Present bool `json:"present"`
 	Enabled bool `json:"enabled"`
 }
+
+func (v *optionalInt) UnmarshalJSON(data []byte) error {
+	type plain optionalInt
+	return unmarshalStrictRequired(data, (*plain)(v), "present", "enabled")
+}
+
 type locationValue struct {
 	Country string         `json:"country"`
 	Region  string         `json:"region"`
 	City    optionalString `json:"city"`
 }
+
+func (v *locationValue) UnmarshalJSON(data []byte) error {
+	type plain locationValue
+	return unmarshalStrictRequired(data, (*plain)(v), "country", "region", "city")
+}
+
 type optionalLocation struct {
 	Value   *locationValue `json:"value,omitempty"`
 	Present bool           `json:"present"`
 	Enabled bool           `json:"enabled"`
 }
+
+func (v *optionalLocation) UnmarshalJSON(data []byte) error {
+	type plain optionalLocation
+	return unmarshalStrictRequired(data, (*plain)(v), "present", "enabled")
+}
+
 type profileWrite struct {
 	Interests          []weightedInterest `json:"interests"`
 	PreferredSourceIDs []domain.SourceID  `json:"preferredSourceIds"`
@@ -88,6 +112,12 @@ type weightedInterest struct {
 	Name   string  `json:"name"`
 	Weight float64 `json:"weight"`
 }
+
+func (v *weightedInterest) UnmarshalJSON(data []byte) error {
+	type plain weightedInterest
+	return unmarshalStrictRequired(data, (*plain)(v), "name", "weight")
+}
+
 type profileResponse struct {
 	ID domain.ProfileID `json:"id"`
 	profileWrite
@@ -157,6 +187,11 @@ type signalWeight struct {
 	Weight  float64 `json:"weight"`
 }
 
+func (v *signalWeight) UnmarshalJSON(data []byte) error {
+	type plain signalWeight
+	return unmarshalStrictRequired(data, (*plain)(v), "enabled", "weight")
+}
+
 func fromSignal(v signalWeight) domain.SignalWeight {
 	return domain.SignalWeight{Enabled: v.Enabled, Weight: v.Weight}
 }
@@ -191,6 +226,12 @@ type policyWrite struct {
 	ReviewedAt  *time.Time                 `json:"reviewedAt"`
 	ReviewNotes *string                    `json:"reviewNotes"`
 }
+
+func (v *policyWrite) UnmarshalJSON(data []byte) error {
+	type plain policyWrite
+	return unmarshalStrictRequired(data, (*plain)(v), "status", "termsUrl", "robotsUrl", "reviewedAt", "reviewNotes")
+}
+
 type sourceWrite struct {
 	Name              string                   `json:"name"`
 	URL               string                   `json:"url"`
@@ -482,6 +523,27 @@ func decodeRequired(w http.ResponseWriter, r *http.Request, d any, required ...s
 		}
 	}
 	return true
+}
+
+func unmarshalStrictRequired(data []byte, destination any, required ...string) error {
+	decoder := json.NewDecoder(strings.NewReader(string(data)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(destination); err != nil {
+		return err
+	}
+	if err := decoder.Decode(&struct{}{}); err != io.EOF {
+		return errors.New("invalid trailing JSON")
+	}
+	var object map[string]json.RawMessage
+	if err := json.Unmarshal(data, &object); err != nil {
+		return err
+	}
+	for _, field := range required {
+		if _, ok := object[field]; !ok {
+			return errors.New("missing required field")
+		}
+	}
+	return nil
 }
 func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
