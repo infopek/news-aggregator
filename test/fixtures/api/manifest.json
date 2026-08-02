@@ -1,10 +1,16 @@
 {
+  "health.json": "Health",
   "profile.json": "Profile",
+  "profile-optional-absent.json": "Profile",
+  "ranking-configuration.json": "RankingConfiguration",
   "source.json": "Source",
+  "source-list.json": "SourceList",
   "refresh-partial.json": "RefreshRun",
   "feed-empty.json": "FeedPage",
   "feed-page.json": "FeedPage",
   "article-metadata.json": "ArticleDetail",
+  "article-full-content.json": "ArticleDetail",
+  "library-state.json": "LibraryState",
   "validation-error.json": "APIError",
   "credential-status.json": "CredentialStatus"
 }

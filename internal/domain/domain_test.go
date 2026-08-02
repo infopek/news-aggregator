@@ -101,6 +101,7 @@ func TestEnabledScraperRequiresApprovedReviewedPolicy(t *testing.T) {
 func TestAdapterConfigurationRejectsSecretBearingAndUnknownFields(t *testing.T) {
 	secretFields := []map[string]string{
 		{"api_key": "sentinel"},
+		{"apiKey": "sentinel"},
 		{"access-token": "sentinel"},
 		{"credential": "sentinel"},
 		{"password": "sentinel"},

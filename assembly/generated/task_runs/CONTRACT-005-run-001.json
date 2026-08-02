@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "CONTRACT-005",
+  "run_id": "CONTRACT-005-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "done",
+  "implementation_summary": "Created and independently reviewed deterministic cross-layer API, domain, SQLite, generated-TypeScript, and ingestion fixtures with one offline enforcing contract gate.",
+  "files_changed": [
+    {"path": "test/fixtures/**", "change": "Added complete API-family, ingestion-shape, negative-boundary, coverage, and handoff fixtures."},
+    {"path": "tests/integration/**", "change": "Added strict family-specific Go decoding and fixture-derived domain/ingestion assertions."},
+    {"path": "scripts/**", "change": "Added Bash/PowerShell cross-layer gates, exact negative-reason enforcement, and semantic formatting-invariance checks."},
+    {"path": "web/src/api/generated/**", "change": "Regenerated deterministic bindings and typed positive-fixture consumers."},
+    {"path": "api/openapi.yaml and internal/domain/**", "change": "Aligned optional article metadata and hardened sensitive adapter-key normalization."}
+  ],
+  "verification": [
+    {"command": "./scripts/contract.sh", "result": "passed", "output": "OpenAPI, 14 positive/6 exact negative fixtures, wrong-reason regression, Go/domain, SQLite, generated TypeScript, ingestion shapes, offline and secret checks passed."},
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Full Go, migration, frontend lint/typecheck/test/build, PWA, and executable build passed."},
+    {"command": "git diff --exit-code && git status --short", "result": "passed", "output": "Generation and contract checks left the reviewed worktree clean."}
+  ],
+  "proof": [
+    {"kind": "artifact", "summary": "test/fixtures/CONTRACT_COVERAGE.md maps fixtures to all accepted screens and backend boundaries.", "status": "accepted"},
+    {"kind": "review", "summary": "Independent reviewer approved revision 11d11c17fa9622a7e679738504ccda2d9057ace3 after all P0/P1 findings were resolved.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "Native PowerShell execution remains later Windows integration proof; parity was inspected and command/failure ordering mirrors Bash.",
+  "submitted_at": "2026-08-02T08:55:30Z",
+  "updated_at": "2026-08-02T09:00:00Z"
+}

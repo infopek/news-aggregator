@@ -1,4 +1,4 @@
-// Generated from api/openapi.yaml (ee0ab217f61d00a7). Do not edit.
+// Generated from api/openapi.yaml (1fe1b3d388739840). Do not edit.
 export type Health = {
   "status": "ready"
   "version": string
@@ -202,12 +202,12 @@ export type ArticleSummary = {
   "sourceId": string
   "canonicalUrl": string
   "title": string
-  "author": string
+  "author"?: string
   "publishedAt": string | null
   "fetchedAt": string
-  "excerpt": string
+  "excerpt"?: string
   "contentPermission": "metadata_only" | "full_content_allowed"
-  "language": string
+  "language"?: string
   "topics": Array<string>
   "library": LibraryState
   "ranking": RankingResult

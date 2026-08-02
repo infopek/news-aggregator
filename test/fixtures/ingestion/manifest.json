@@ -1,0 +1,13 @@
+{
+  "network": "forbidden",
+  "credentials": "absent",
+  "fixtures": [
+    {"file":"rss.xml","adapter":"feed","format":"rss","permission":"metadata_only","itemId":"rss-001"},
+    {"file":"atom.xml","adapter":"feed","format":"atom","permission":"metadata_only","itemId":"atom-001"},
+    {"file":"official-api.json","adapter":"api","provider":"fictional-official-api","permission":"metadata_only","itemId":"api-001"},
+    {"file":"approved-scraper.html","adapter":"scraper","policy":"approved","permission":"metadata_only","itemId":"scraper-001","selectors":{"article":"article","title":"h1","canonical":"a.canonical","publishedAt":"time[datetime]","excerpt":"p.excerpt"},"expected":{"title":"Deterministic scraper item","canonicalUrl":"https://scrape.example.test/articles/scraper-001","publishedAt":"2026-08-01T10:00:00Z","excerpt":"Approved metadata-only excerpt."}}
+  ],
+  "negativeFixtures": [
+    {"file":"invalid-scraper-text.html","reason":"missing approved article structure"}
+  ]
+}

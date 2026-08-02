@@ -1,0 +1,1 @@
+{"provider":"fictional-official-api","nextCursor":"cursor-002","items":[{"id":"api-001","url":"https://api.example.test/articles/api-001","title":"Deterministic API item","publishedAt":"2026-08-01T10:00:00Z","excerpt":"Official API-shaped metadata."}]}

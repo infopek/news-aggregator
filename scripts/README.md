@@ -47,4 +47,18 @@ YAML so generation remains deterministic.
 
 Generated frontend output is ignored by Git. The checked-in `internal/webassets/dist/.gitkeep` makes a clean-checkout Go build valid before the first frontend build.
 
+## Shared cross-layer contract gate
+
+Run exactly one command before backend/frontend lane handoff:
+
+```bash
+./scripts/contract.sh
+```
+
+On Windows PowerShell use `.\scripts\contract.ps1`. It validates standards-valid
+OpenAPI, deterministic generated bindings and formatting invariance, typed
+frontend fixture consumers, Go/domain fixture semantics, SQLite migrations and
+constraints, and offline ingestion shapes. See
+`test/fixtures/CONTRACT_COVERAGE.md` for the fixture inventory and handoff rules.
+
 `web/go.mod` is an intentionally empty nested Go module boundary. It prevents root `go test ./...` and `go vet ./...` commands from traversing Go source files that may exist inside npm dependencies.

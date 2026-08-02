@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Fictional Atom</title><id>https://feeds.example.test/atom</id><updated>2026-08-01T10:00:00Z</updated><entry><id>atom-001</id><title>Deterministic Atom entry</title><link href="https://feeds.example.test/atom-001"/><updated>2026-08-01T10:00:00Z</updated><summary>Metadata-only summary.</summary></entry></feed>

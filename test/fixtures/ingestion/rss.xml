@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Fictional RSS</title><link>https://feeds.example.test/</link><item><guid>rss-001</guid><title>Deterministic RSS item</title><link>https://feeds.example.test/rss-001</link><description>Metadata-only excerpt.</description><pubDate>Fri, 01 Aug 2026 10:00:00 GMT</pubDate></item></channel></rss>
