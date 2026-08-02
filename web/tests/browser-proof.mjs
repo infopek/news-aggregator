@@ -1,6 +1,7 @@
 /* global URL, clearTimeout, document, console, fetch, process, setTimeout */
 import { spawn } from 'node:child_process'
 import { mkdir } from 'node:fs/promises'
+import { createServer } from 'node:net'
 import { chromium } from 'playwright-core'
 
 import { processTreeTermination, resolveBrowserExecutable } from './browser-runtime.mjs'
@@ -8,16 +9,18 @@ import { processTreeTermination, resolveBrowserExecutable } from './browser-runt
 const evidenceDirectory = new URL('./evidence/', import.meta.url)
 await mkdir(evidenceDirectory, { recursive: true })
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm'
-const preview = spawn(npmCommand, ['exec', 'vite', '--', 'preview', '--host', '127.0.0.1', '--port', '4173'], {
+const port = await availablePort()
+const baseUrl = `http://127.0.0.1:${port}`
+const preview = spawn(npmCommand, ['exec', 'vite', '--', 'preview', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], {
   detached: process.platform !== 'win32',
   stdio: 'ignore'
 })
 try {
-  await waitForServer('http://127.0.0.1:4173/')
+  await waitForServer(`${baseUrl}/`)
   const browser = await chromium.launch({ executablePath: resolveBrowserExecutable(), headless: true })
   try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
-    await page.goto('http://127.0.0.1:4173/library')
+    await page.goto(`${baseUrl}/library`)
     await page.screenshot({ path: new URL('desktop-library.png', evidenceDirectory).pathname, fullPage: true })
     await page.getByRole('link', { name: 'Sources' }).focus()
     await page.keyboard.press('Enter')
@@ -26,7 +29,7 @@ try {
     await page.getByRole('heading', { name: 'Personal library' }).waitFor()
 
     await page.setViewportSize({ width: 360, height: 740 })
-    await page.goto('http://127.0.0.1:4173/articles/direct-link')
+    await page.goto(`${baseUrl}/articles/direct-link`)
     await page.screenshot({ path: new URL('narrow-article.png', evidenceDirectory).pathname, fullPage: true })
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)
     if (overflow) throw new Error('Narrow viewport has horizontal page overflow')
@@ -41,6 +44,19 @@ try {
   }
 } finally {
   await stopProcessTree(preview)
+}
+
+const primitiveProof = spawn(process.execPath, ['tests/primitive-browser-proof.mjs'], { stdio: 'inherit' })
+const primitiveExit = await new Promise((resolve) => primitiveProof.once('exit', resolve))
+if (primitiveExit !== 0) throw new Error(`Primitive browser proof failed with exit code ${primitiveExit}`)
+
+async function availablePort() {
+  const server = createServer()
+  await new Promise((resolve, reject) => server.once('error', reject).listen(0, '127.0.0.1', resolve))
+  const address = server.address()
+  if (!address || typeof address === 'string') throw new Error('Could not reserve browser proof port')
+  await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()))
+  return address.port
 }
 
 async function waitForServer(url) {
