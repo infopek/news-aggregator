@@ -6,7 +6,7 @@ export interface ServiceWorkerUpdate {
 }
 
 export function registerApplicationServiceWorker(
-  onUpdateAvailable: (update: ServiceWorkerUpdate) => void = () => undefined
+  onUpdateAvailable: (update: ServiceWorkerUpdate) => void = notifyUpdateAvailable
 ): void {
   let dismissed = false
   const updateServiceWorker = registerSW({
@@ -24,4 +24,8 @@ export function registerApplicationServiceWorker(
       console.warn('Service worker registration failed; continuing online.', error)
     }
   })
+}
+
+function notifyUpdateAvailable(update: ServiceWorkerUpdate): void {
+  window.dispatchEvent(new CustomEvent('app:update-waiting', { detail: update }))
 }
