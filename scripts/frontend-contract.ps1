@@ -1,16 +1,8 @@
 $ErrorActionPreference = "Stop"
 
-$unformatted = gofmt -l cmd internal
-if ($unformatted) {
-    throw "Go files require formatting: $unformatted"
-}
-
-go vet ./...
+npm --prefix web ci
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-go test ./...
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-.\scripts\migration-contract.ps1
+node scripts/generate-api-types.mjs --check
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 npm --prefix web run lint
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

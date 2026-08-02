@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="News Aggregator">
-  <rect width="512" height="512" rx="96" fill="#172554"/>
+  <rect width="512" height="512" fill="#172554"/>
   <path fill="#f8fafc" d="M112 104h288v304H112z"/>
   <path fill="#172554" d="M152 152h208v40H152zm0 72h208v24H152zm0 48h208v24H152zm0 48h128v24H152z"/>
 </svg>
