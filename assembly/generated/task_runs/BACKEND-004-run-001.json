@@ -1,0 +1,30 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "BACKEND-004",
+  "run_id": "BACKEND-004-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "done",
+  "implementation_summary": "Implemented and independently reviewed local profile/ranking configuration, source/starter management, scraper-policy validation, and serialized stable-key credential orchestration with restart-safe persistence.",
+  "files_changed": [
+    {"path": "internal/application/**", "change": "Added configuration services, validation, source locking, stable credential ownership and failure recovery."},
+    {"path": "internal/domain/**", "change": "Added demographic ceilings and complete scraper approval metadata invariants."},
+    {"path": "internal/adapters/credentials/**", "change": "Aligned typed missing-error mapping with application orchestration."},
+    {"path": "test/fixtures/source-management/**", "change": "Added data-driven starter catalog and validation matrix."},
+    {"path": "tests/integration/**", "change": "Added restart, edit preservation, retained history, concurrency, rollback and secret lifecycle proof."}
+  ],
+  "verification": [
+    {"command": "go test -race -count=10 ./internal/application ./tests/integration", "result": "passed", "output": "Configuration and deterministic concurrency tests passed repeatedly under race detector."},
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Full Go/migration/frontend/browser/PWA suite passed."},
+    {"command": "Windows amd64 application and integration test cross-build", "result": "passed", "output": "Both PE binaries compiled successfully."},
+    {"command": "go vet ./... && git diff --check", "result": "passed", "output": "Vet and diff checks passed."}
+  ],
+  "proof": [
+    {"kind": "command_output", "summary": "Optional signals, demographic caps, source types/URLs/permissions, scraper review, starter idempotence/user edits and restart persistence are enforced.", "status": "passed"},
+    {"kind": "command_output", "summary": "Stable credential references, injection protection, serialized configure/delete/source update, rollback/repair, no orphan and unrelated-entry isolation are enforced.", "status": "passed"},
+    {"kind": "review", "summary": "Independent reviewer approved revision 5795105bec140c601ba8b59ae339bf84687b2912 after credential lifecycle correction.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "Windows-native vault behavior is inherited from approved BACKEND-003; this task's orchestration is portable and cross-compiled for Windows.",
+  "submitted_at": "2026-08-02T10:43:31Z",
+  "updated_at": "2026-08-02T10:47:00Z"
+}

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "id": "fixture-starter-feed",
+      "name": "Editable fixture feed",
+      "url": "https://example.com/news.xml",
+      "kind": "feed",
+      "enabled": true,
+      "contentPermission": "metadata_only",
+      "adapterConfig": { "format": "rss" },
+      "scraperPolicy": { "status": "not_applicable" }
+    }
+  ]
+}

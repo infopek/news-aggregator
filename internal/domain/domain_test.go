@@ -92,7 +92,7 @@ func TestEnabledScraperRequiresApprovedReviewedPolicy(t *testing.T) {
 	}
 
 	now := time.Now()
-	source.ScraperPolicy = ScraperPolicy{Status: ScraperPolicyApproved, ReviewedAt: &now}
+	source.ScraperPolicy = ScraperPolicy{Status: ScraperPolicyApproved, ReviewedAt: &now, TermsURL: "https://example.com/terms", RobotsURL: "https://example.com/robots.txt", ReviewNotes: "Manually reviewed"}
 	if err := source.Validate(); err != nil {
 		t.Fatalf("approved scraper Validate() error = %v", err)
 	}
