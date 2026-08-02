@@ -8,6 +8,11 @@ import (
 
 var ErrInvalidRankingConfiguration = errors.New("invalid ranking configuration")
 
+const (
+	MaximumPerDemographicWeight   = 0.10
+	MaximumTotalDemographicWeight = 0.20
+)
+
 type RankingSignal string
 
 const (
@@ -61,6 +66,23 @@ func (configuration RankingConfiguration) Validate() error {
 		}
 	}
 	if activeWeight == 0 || !validUnitWeight(configuration.PerDemographicCap) || !validUnitWeight(configuration.TotalDemographicCap) || configuration.TotalDemographicCap < configuration.PerDemographicCap {
+		return ErrInvalidRankingConfiguration
+	}
+	if configuration.PerDemographicCap > MaximumPerDemographicWeight || configuration.TotalDemographicCap > MaximumTotalDemographicWeight {
+		return ErrInvalidRankingConfiguration
+	}
+	for _, weight := range []SignalWeight{configuration.Location, configuration.Age, configuration.Gender} {
+		if weight.Weight > configuration.PerDemographicCap {
+			return ErrInvalidRankingConfiguration
+		}
+	}
+	demographicTotal := 0.0
+	for _, weight := range []SignalWeight{configuration.Location, configuration.Age, configuration.Gender} {
+		if weight.Enabled {
+			demographicTotal += weight.Weight
+		}
+	}
+	if demographicTotal > configuration.TotalDemographicCap {
 		return ErrInvalidRankingConfiguration
 	}
 	return nil

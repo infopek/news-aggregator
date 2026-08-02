@@ -202,7 +202,9 @@ func (source Source) Validate() error {
 		if source.Enabled && source.ScraperPolicy.Status != ScraperPolicyApproved {
 			return ErrInvalidSource
 		}
-		if source.ScraperPolicy.Status == ScraperPolicyApproved && source.ScraperPolicy.ReviewedAt == nil {
+		if source.ScraperPolicy.Status == ScraperPolicyApproved && (source.ScraperPolicy.ReviewedAt == nil ||
+			!validHTTPURL(source.ScraperPolicy.TermsURL) || !validHTTPURL(source.ScraperPolicy.RobotsURL) ||
+			strings.TrimSpace(source.ScraperPolicy.ReviewNotes) == "") {
 			return ErrInvalidSource
 		}
 	} else if source.ScraperPolicy.Status != "" && source.ScraperPolicy.Status != ScraperPolicyNotApplicable {

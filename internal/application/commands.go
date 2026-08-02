@@ -14,6 +14,10 @@ type SaveSourceCommand struct {
 	Source domain.Source
 }
 
+type ImportStarterSourcesCommand struct {
+	Sources []domain.Source
+}
+
 type DeleteSourceCommand struct {
 	SourceID domain.SourceID
 }
