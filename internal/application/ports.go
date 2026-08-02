@@ -84,12 +84,28 @@ type HTTPFetcher interface {
 	Fetch(context.Context, FetchRequest) (FetchResponse, error)
 }
 
-// CredentialStore never exposes a general read method. Trusted adapters may
-// resolve a credential only inside the callback scope.
-type CredentialStore interface {
+// CredentialStatusReader exposes configuration state, never credential bytes.
+type CredentialStatusReader interface {
+	Configured(context.Context, domain.CredentialID) (bool, error)
+}
+
+type CredentialWriter interface {
 	Store(context.Context, domain.CredentialID, []byte) error
 	Delete(context.Context, domain.CredentialID) error
+}
+
+// CredentialResolver is intentionally narrow. Only trusted adapter execution
+// should receive this capability; HTTP handlers should not.
+type CredentialResolver interface {
 	WithSecret(context.Context, domain.CredentialID, func([]byte) error) error
+}
+
+// CredentialStore is the platform adapter aggregate. It never exposes a
+// general read method.
+type CredentialStore interface {
+	CredentialStatusReader
+	CredentialWriter
+	CredentialResolver
 }
 
 type FetchCursor struct {

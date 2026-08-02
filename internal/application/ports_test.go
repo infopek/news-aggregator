@@ -55,6 +55,9 @@ func (fetcherStub) Fetch(context.Context, FetchRequest) (FetchResponse, error) {
 
 type credentialStoreStub struct{ secret []byte }
 
+func (credentialStoreStub) Configured(context.Context, domain.CredentialID) (bool, error) {
+	return true, nil
+}
 func (credentialStoreStub) Store(context.Context, domain.CredentialID, []byte) error { return nil }
 func (credentialStoreStub) Delete(context.Context, domain.CredentialID) error        { return nil }
 func (store credentialStoreStub) WithSecret(_ context.Context, _ domain.CredentialID, use func([]byte) error) error {
