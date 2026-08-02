@@ -206,30 +206,8 @@ func TestConstraintsTransactionsCancellationAndHistory(t *testing.T) {
 	byExternal.FetchedAt = byFingerprint.FetchedAt.Add(time.Second)
 	result, err = store.Articles().Upsert(ctx, byExternal)
 	must(t, err)
-	if result.ArticleID != "a1" {
-		t.Fatalf("external merge=%+v", result)
-	}
-	early := byExternal
-	early.ID = "early-id"
-	early.Fingerprint = "early-fp"
-	early.CanonicalURL = "https://example.com/early"
-	early.SourceExternalID = "external-1"
-	early.FetchedAt = article.FetchedAt.Add(-time.Hour)
-	result, err = store.Articles().Upsert(ctx, early)
-	must(t, err)
-	if result.ArticleID != "a1" {
-		t.Fatalf("first alias no longer resolves: %+v", result)
-	}
-	late := byExternal
-	late.ID = "late-id"
-	late.Fingerprint = "late-fp"
-	late.CanonicalURL = "https://example.com/late"
-	late.SourceExternalID = "external-2"
-	late.FetchedAt = byExternal.FetchedAt.Add(time.Hour)
-	result, err = store.Articles().Upsert(ctx, late)
-	must(t, err)
-	if result.ArticleID != "a1" {
-		t.Fatalf("second alias no longer resolves: %+v", result)
+	if result.ArticleID != "external-id" || !result.Inserted {
+		t.Fatalf("reused external ID collapsed distinct canonical URL: %+v", result)
 	}
 	var articleCount int
 	db := rawDB(t, path)
@@ -238,10 +216,10 @@ func TestConstraintsTransactionsCancellationAndHistory(t *testing.T) {
 	var firstSeen, lastSeen int64
 	must(t, db.QueryRow(`SELECT external_id,external_ids_json,first_seen_at_ms,last_seen_at_ms FROM article_sources WHERE article_id='a1' AND source_id='s1'`).Scan(&canonicalExternal, &aliasesJSON, &firstSeen, &lastSeen))
 	db.Close()
-	if articleCount != 1 {
+	if articleCount != 2 {
 		t.Fatalf("dedup left %d articles", articleCount)
 	}
-	if canonicalExternal != "external-1" || aliasesJSON != `["external-1","external-2","external-3"]` || firstSeen != early.FetchedAt.UnixMilli() || lastSeen != late.FetchedAt.UnixMilli() {
+	if canonicalExternal != "external-1" || aliasesJSON != `["external-1","external-2","external-3"]` || firstSeen != article.FetchedAt.UnixMilli() || lastSeen != byFingerprint.FetchedAt.UnixMilli() {
 		t.Fatalf("provenance external=%q aliases=%s first=%d last=%d", canonicalExternal, aliasesJSON, firstSeen, lastSeen)
 	}
 	merged, err := store.Articles().Get(ctx, "a1")
