@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "FRONTEND-004",
+  "run_id": "FRONTEND-004-run-001",
+  "actor_id": "frontend-agent",
+  "status": "done",
+  "implementation_summary": "Implemented and independently reviewed reusable feed, ranking, refresh, demographic disclosure, credential confirmation, accessibility, hostile-content, and responsive browser primitives.",
+  "files_changed": [
+    {"path": "web/src/components/shared/**", "change": "Added accessible article, ranking, refresh, demographic, and confirmation primitives with safe outbound-link handling."},
+    {"path": "web/src/components/shared/shared.test.ts", "change": "Added composition, keyboard focus, hostile content and URL, ranking, permission, credential, and accessibility coverage."},
+    {"path": "web/tests/**", "change": "Added enforced desktop and narrow responsive screenshot and overflow proofs."}
+  ],
+  "verification": [
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Full Go/frontend suite passed, including 13 frontend files and 74 tests plus enforced browser and deterministic primitive screenshot proofs."},
+    {"command": "npm --prefix web audit --audit-level=high", "result": "passed", "output": "Zero vulnerabilities reported."},
+    {"command": "node scripts/generate-api-types.mjs --check && git diff --check", "result": "passed", "output": "Generated API drift and whitespace checks passed."}
+  ],
+  "proof": [
+    {"kind": "command_output", "summary": "Repeated reusable components have unique accessible relationships; modal focus is contained and restored.", "status": "passed"},
+    {"kind": "command_output", "summary": "Publisher links fail closed outside absolute HTTP(S), and hostile text remains inert.", "status": "passed"},
+    {"kind": "command_output", "summary": "Standard verification enforces desktop and narrow screenshot baselines and overflow checks.", "status": "passed"},
+    {"kind": "manual_note", "summary": "Independent reviewer approved revision 1dc53d99fbe8d378aa5e35a80d0eb4c2db0ba90b after accessibility, content-safety, and evidence-integrity corrections.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "No browser credential persistence, client-side ranking recomputation, article-body rendering, or unrelated application workflow was added.",
+  "submitted_at": "2026-08-02T13:10:52Z",
+  "updated_at": "2026-08-02T13:10:52Z"
+}
