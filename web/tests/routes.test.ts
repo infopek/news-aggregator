@@ -14,6 +14,13 @@ describe('route contract', () => {
     expect(articleRoute.path).toBe('/articles/:articleId')
   })
 
+  it('makes every non-contextual screen reachable from primary navigation', () => {
+    const acceptedScreenNames = ['setup', 'feed', 'library', 'sources', 'settings']
+    expect(routes.filter((route) => route.navigation).map((route) => route.name)).toEqual(acceptedScreenNames)
+    expect(routes.filter((route) => route.navigation).every((route) => Boolean(route.navigationLabel))).toBe(true)
+    expect(articleRoute.path).toContain(':articleId')
+  })
+
   it('decodes contextual article paths and rejects partial matches', () => {
     expect(matchRoute('/articles/local%20news')).toEqual({ route: articleRoute, params: { articleId: 'local news' } })
     expect(matchRoute('/articles/one/extra').route).toBe(notFoundRoute)

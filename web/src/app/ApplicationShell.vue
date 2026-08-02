@@ -92,6 +92,9 @@ watch(pageTitle, async (title) => {
       <p v-else-if="lifecycle.state.install === 'unsupported'">
         Installation is not available in this browser. You can keep using this tab.
       </p>
+      <p v-else-if="lifecycle.state.install === 'dismissed'">
+        Installation was dismissed. Use your browser install menu or wait for another install prompt.
+      </p>
       <p v-else>
         Installed on this computer
       </p>

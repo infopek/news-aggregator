@@ -19,7 +19,7 @@ describe('application shell', () => {
     expect(wrapper.find('nav[aria-label="Primary navigation"]').exists()).toBe(true)
     expect(wrapper.find('main').exists()).toBe(true)
     expect(wrapper.find('footer').exists()).toBe(true)
-    expect(wrapper.findAll('nav a').map((link) => link.text())).toEqual(['Ranked feed', 'Library', 'Sources', 'Settings'])
+    expect(wrapper.findAll('nav a').map((link) => link.text())).toEqual(['Setup', 'Ranked feed', 'Library', 'Sources', 'Settings'])
     const result = await axe.run(wrapper.element)
     expect(result.violations).toEqual([])
     wrapper.unmount()
@@ -95,6 +95,31 @@ describe('application shell', () => {
     await flushPromises()
     await wrapper.get('.update-banner button').trigger('click')
     expect(apply).toHaveBeenCalledOnce()
+    wrapper.unmount()
+  })
+
+  it('removes a dismissed install action until the browser offers a new prompt', async () => {
+    const wrapper = mount(ApplicationShell)
+    const firstPrompt = vi.fn(async () => undefined)
+    const dismissed = new Event('beforeinstallprompt') as Event & { prompt: typeof firstPrompt; userChoice: Promise<{ outcome: 'dismissed' }> }
+    dismissed.prompt = firstPrompt
+    dismissed.userChoice = Promise.resolve({ outcome: 'dismissed' })
+    window.dispatchEvent(dismissed)
+    await flushPromises()
+    await wrapper.get('footer button').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('footer button').exists()).toBe(false)
+    expect(wrapper.get('footer').text()).toContain('Installation was dismissed')
+
+    const secondPrompt = vi.fn(async () => undefined)
+    const rearmed = new Event('beforeinstallprompt') as Event & { prompt: typeof secondPrompt; userChoice: Promise<{ outcome: 'accepted' }> }
+    rearmed.prompt = secondPrompt
+    rearmed.userChoice = Promise.resolve({ outcome: 'accepted' })
+    window.dispatchEvent(rearmed)
+    await flushPromises()
+    expect(wrapper.get('footer button').text()).toBe('Install app')
+    await wrapper.get('footer button').trigger('click')
+    expect(secondPrompt).toHaveBeenCalledOnce()
     wrapper.unmount()
   })
 })

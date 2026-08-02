@@ -5,7 +5,7 @@ interface InstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
-export type InstallState = 'unsupported' | 'available' | 'installed'
+export type InstallState = 'unsupported' | 'available' | 'dismissed' | 'installed'
 
 export function useInstallState() {
   const state = reactive<{ install: InstallState; update: 'current' | 'waiting'; applyUpdate?: () => Promise<void> }>({
@@ -42,7 +42,7 @@ export function useInstallState() {
       if (!promptEvent) return
       await promptEvent.prompt()
       const choice = await promptEvent.userChoice
-      if (choice.outcome === 'accepted') state.install = 'installed'
+      state.install = choice.outcome === 'accepted' ? 'installed' : 'dismissed'
       promptEvent = undefined
     },
     async update() {
