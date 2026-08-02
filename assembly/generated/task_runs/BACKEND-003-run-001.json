@@ -1,0 +1,29 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "BACKEND-003",
+  "run_id": "BACKEND-003-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "done",
+  "implementation_summary": "Implemented and independently reviewed the Windows Credential Manager adapter, source-stable opaque references, status/writer/resolver capability separation, portable fake, explicit unsupported behavior, cleanup, redaction, and memory handling.",
+  "files_changed": [
+    {"path": "internal/adapters/credentials/**", "change": "Added Windows vault, build-tagged unsupported adapter, non-secret fake, safe naming/errors, wiping, and tests."},
+    {"path": "internal/application/**", "change": "Separated status, writer, and trusted callback-scoped resolver capabilities with source cleanup orchestration."},
+    {"path": "tests/integration/**", "change": "Added sentinel leak proof and native Windows lifecycle integration test."},
+    {"path": "packaging/windows/CREDENTIAL_TESTING.md", "change": "Documented native namespace, lifecycle, cleanup, and verification."}
+  ],
+  "verification": [
+    {"command": "go test -race ./internal/adapters/credentials ./internal/application ./tests/integration", "result": "passed", "output": "Portable focused tests passed under race detector."},
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Full repository verification passed."},
+    {"command": "GOOS=windows GOARCH=amd64 CGO_ENABLED=0 build/vet/test compilation", "result": "passed", "output": "Windows packages and PE32+ integration tests compiled and vetted."},
+    {"command": "native Windows TestWindowsCredentialLifecycle", "result": "passed", "output": "Windows 11 non-admin, Go 1.26.5 windows/386: create/resolve/replace/delete/cleanup PASS in 0.03s."}
+  ],
+  "proof": [
+    {"kind": "command_output", "summary": "Sentinel secrets are absent from errors, logs, snapshots, artifacts, and temporary database scan.", "status": "passed"},
+    {"kind": "url", "summary": "Native transcript: https://github.com/infopek/news-aggregator/pull/16#issuecomment-5157135843", "status": "accepted"},
+    {"kind": "review", "summary": "Independent reviewer approved revision 6d241347e7faadf33276eeaf269a12d6ea020504 after native proof was recorded.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "VERIFY-003 later owns packaged Windows runtime, socket/browser/migration, and end-to-end credential sentinel proof.",
+  "submitted_at": "2026-08-02T09:42:01Z",
+  "updated_at": "2026-08-02T10:00:00Z"
+}
