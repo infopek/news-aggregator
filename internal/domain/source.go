@@ -168,19 +168,21 @@ func onlyKeys(fields map[string]string, allowed ...string) bool {
 }
 
 type Source struct {
-	ID                SourceID
-	Name              string
-	URL               string
-	Kind              SourceKind
-	Enabled           bool
-	AdapterConfig     AdapterConfiguration
-	ContentPermission ContentPermission
-	ScraperPolicy     ScraperPolicy
-	CredentialRef     *CredentialID
-	RefreshCursor     string
-	LastSuccessAt     *time.Time
-	LastError         string
-	RetryAfter        *time.Time
+	ID                  SourceID
+	Name                string
+	URL                 string
+	Kind                SourceKind
+	Enabled             bool
+	AdapterConfig       AdapterConfiguration
+	ContentPermission   ContentPermission
+	ScraperPolicy       ScraperPolicy
+	CredentialRef       *CredentialID
+	RefreshCursor       string
+	RefreshETag         string
+	RefreshLastModified string
+	LastSuccessAt       *time.Time
+	LastError           string
+	RetryAfter          *time.Time
 }
 
 func (source Source) Validate() error {
