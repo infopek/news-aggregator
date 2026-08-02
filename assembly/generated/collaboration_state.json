@@ -123,6 +123,23 @@
       }],
       "notes": "Revision 483e891 resolved all critical/high reviewer findings and received independent approval before PR #9 merged.",
       "updated_at": "2026-08-01T18:27:29Z"
+    },
+    {
+      "task_id": "CONTRACT-005",
+      "assigned_to": "backend-core-agent",
+      "assignee_type": "local_ai",
+      "assignee_label": "Backend/Core Implementation Agent",
+      "status": "done",
+      "claimed_at": "2026-08-02T08:35:00Z",
+      "proof": [{
+        "kind": "task_run",
+        "path": "assembly/generated/task_runs/CONTRACT-005-run-001.json",
+        "summary": "Cross-layer deterministic fixtures and offline enforcing contract gate approved and merged in PR #11.",
+        "status": "accepted",
+        "recorded_at": "2026-08-02T09:04:45Z"
+      }],
+      "notes": "Revision 11d11c1 resolved all P0/P1 review findings and received independent approval before PR #11 merged.",
+      "updated_at": "2026-08-02T09:04:45Z"
     }
   ],
   "task_claims": [
@@ -169,6 +186,15 @@
       "status": "released",
       "claimed_at": "2026-08-01T18:08:00Z",
       "released_at": "2026-08-01T18:27:29Z",
+      "notes": "Released after independent approval and merge."
+    },
+    {
+      "claim_id": "contract-005-run-001-claim",
+      "task_id": "CONTRACT-005",
+      "actor_id": "backend-core-agent",
+      "status": "released",
+      "claimed_at": "2026-08-02T08:35:00Z",
+      "released_at": "2026-08-02T09:04:45Z",
       "notes": "Released after independent approval and merge."
     }
   ],
@@ -280,6 +306,22 @@
       }],
       "status": "accepted",
       "submitted_at": "2026-08-01T18:21:00Z"
+    },
+    {
+      "submission_id": "contract-005-run-001-submission",
+      "task_id": "CONTRACT-005",
+      "actor_id": "backend-core-agent",
+      "artifact_paths": ["api/openapi.yaml", "internal/domain", "test/fixtures", "tests/integration", "scripts", "web/src/api/generated", "assembly/generated/task_runs/CONTRACT-005-run-001.json"],
+      "summary": "Deterministic API/domain/database/frontend/ingestion fixtures and one offline enforcing shared-contract gate.",
+      "proof": [{
+        "kind": "task_run",
+        "path": "assembly/generated/task_runs/CONTRACT-005-run-001.json",
+        "summary": "Records exact negative reasons, strict Go decoding, migration, generated-client, ingestion, offline, and full-suite proof.",
+        "status": "accepted",
+        "recorded_at": "2026-08-02T09:04:45Z"
+      }],
+      "status": "accepted",
+      "submitted_at": "2026-08-02T08:55:30Z"
     }
   ],
   "reviews": [
@@ -390,6 +432,22 @@
       "status": "approved",
       "findings": ["All prior critical/high findings are resolved at revision 483e891.", "Pre-listen loopback rejection, exact health output, and strict canonical readiness are covered by enforcing negative tests."],
       "reviewed_at": "2026-08-01T18:22:00Z"
+    },
+    {
+      "review_id": "contract-005-review-001",
+      "submission_id": "contract-005-run-001-submission",
+      "reviewer_actor_id": "reviewer-agent",
+      "status": "changes_requested",
+      "findings": ["Negative fixtures could fail for unintended reasons because the harness discarded validation issues.", "Go response decoding was sparse and permissive rather than family-specific and semantic.", "The scraper fixture was not structurally parsed or validated."],
+      "reviewed_at": "2026-08-02T08:49:00Z"
+    },
+    {
+      "review_id": "contract-005-review-002",
+      "submission_id": "contract-005-run-001-submission",
+      "reviewer_actor_id": "reviewer-agent",
+      "status": "approved",
+      "findings": ["All prior P0/P1 findings are resolved at revision 11d11c1.", "Exact negative reasons and wrong-reason regression are enforced.", "Strict family-specific Go decoding, fixture-derived domain semantics, and structural scraper validation pass.", "PowerShell parity was inspected; native execution remains later Windows integration proof."],
+      "reviewed_at": "2026-08-02T09:00:00Z"
     }
   ],
   "audit_events": [
@@ -616,6 +674,14 @@
       "target_id": "news-aggregator",
       "created_at": "2026-08-01T18:28:25Z",
       "details": "Reconciled durable task, claim, submission, and review state after parallel PR #8 and PR #9 merges."
+    },
+    {
+      "event_id": "contract-005-completed",
+      "actor_id": "reviewer-agent",
+      "event_type": "status_changed",
+      "target_id": "CONTRACT-005",
+      "created_at": "2026-08-02T09:04:45Z",
+      "details": "Recorded initial rejection, independent approval at 11d11c1, and PR #11 merge; dependent parallel lanes are unblocked."
     }
   ]
 }
