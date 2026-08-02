@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/infopek/news-aggregator/internal/application"
 	"github.com/infopek/news-aggregator/internal/domain"
@@ -104,14 +105,36 @@ func TestPlainTextMaliciousInputs(t *testing.T) {
 		`<p title='malicious > delimiter'>quoted-safe</p>`:  "quoted-safe",
 		`before<script>unterminated raw text`:               "before",
 		`encoded &lt;img src=x onerror=alert(1)&gt; text`:   "encoded img src=x onerror=alert(1) text",
-		"bad\x00\x01 good": "bad good",
-		"invalid\xffutf8":  "invalidutf8",
+		`Kx`:                            "Kx",
+		`Kx<SCRIPT>alert(1)</SCRIPT>世界`: "Kx 世界",
+		"bad\x00\x01 good":              "bad good",
+		"invalid\xffutf8":               "invalidutf8",
 	}
 	for raw, want := range tests {
 		if got := PlainText(raw); got != want {
 			t.Errorf("PlainText(%q)=%q want %q", raw, got, want)
 		}
 	}
+}
+
+func FuzzPlainTextUnicodeAndMalformedMarkup(f *testing.F) {
+	for _, seed := range []string{
+		"Kx",
+		"Kx<SCRIPT>alert(1)</SCRIPT>世界",
+		"İ<script data-x='>'>bad()</script>é",
+		"invalid\xffutf8<tag title='unterminated>",
+	} {
+		f.Add(seed)
+	}
+	f.Fuzz(func(t *testing.T, raw string) {
+		got := PlainText(raw)
+		if !utf8.ValidString(got) {
+			t.Fatalf("invalid UTF-8 output %q", got)
+		}
+		if strings.ContainsAny(got, "<>") {
+			t.Fatalf("markup delimiters survived in %q", got)
+		}
+	})
 }
 
 func TestSimilarTitlesHaveDistinctStableIdentity(t *testing.T) {

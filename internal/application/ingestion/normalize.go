@@ -176,7 +176,10 @@ func Fingerprint(canonicalURL string) string {
 // no executable markup or attacker-controlled link targets.
 func PlainText(raw string) string {
 	var out strings.Builder
-	lower := strings.ToLower(raw)
+	// HTML tag names are ASCII case-insensitive. Folding only ASCII keeps these
+	// byte offsets aligned with raw even when Unicode case folding changes byte
+	// length (for example the Kelvin sign).
+	lower := asciiLower(raw)
 	for i := 0; i < len(raw); {
 		if strings.HasPrefix(lower[i:], "<!--") {
 			end := strings.Index(lower[i+4:], "-->")
@@ -230,6 +233,16 @@ func PlainText(raw string) string {
 	decoded := html.UnescapeString(out.String())
 	decoded = strings.NewReplacer("<", " ", ">", " ").Replace(decoded)
 	return strings.Join(strings.Fields(decoded), " ")
+}
+
+func asciiLower(raw string) string {
+	buffer := []byte(raw)
+	for i, value := range buffer {
+		if value >= 'A' && value <= 'Z' {
+			buffer[i] = value + ('a' - 'A')
+		}
+	}
+	return string(buffer)
 }
 
 // tagEnd finds a tag terminator while respecting quoted attribute values. This
