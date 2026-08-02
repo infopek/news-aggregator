@@ -24,7 +24,8 @@ export class LocalApiClient implements ApiClient {
 
   async request<Operation extends ApiOperation>(
     operation: Operation,
-    request: OperationRequest<Operation>
+    request: OperationRequest<Operation>,
+    signal?: AbortSignal
   ): Promise<ApiOperationMap[Operation]['response']> {
     const contract = apiContract[operation]
     const parts = (request ?? {}) as {
@@ -39,7 +40,8 @@ export class LocalApiClient implements ApiClient {
       method: contract.method,
       headers: hasBody ? { 'Content-Type': 'application/json' } : undefined,
       body: hasBody ? JSON.stringify(parts.body) : undefined,
-      cache: contract.method === 'GET' ? 'no-store' : undefined
+      cache: contract.method === 'GET' ? 'no-store' : undefined,
+      signal
     })
 
     if (!response.ok) {

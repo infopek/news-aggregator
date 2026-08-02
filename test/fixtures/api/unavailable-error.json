@@ -1,0 +1,6 @@
+{
+  "code": "unavailable",
+  "message": "Storage is temporarily unavailable.",
+  "correlationId": "fixture-unavailable",
+  "fields": []
+}
