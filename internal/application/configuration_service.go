@@ -169,6 +169,10 @@ func (service ConfigurationService) DeleteSource(ctx context.Context, command De
 	}
 	if source.CredentialRef != nil {
 		if err := service.Credentials.Delete(ctx, *source.CredentialRef); err != nil {
+			// Restore the soft-deleted row so cleanup remains retryable.
+			if restoreErr := service.Transactions.WithinTransaction(context.WithoutCancel(ctx), func(txctx context.Context) error { return service.Sources.Save(txctx, source) }); restoreErr != nil {
+				return ErrUnavailable
+			}
 			return err
 		}
 	}
@@ -201,6 +205,13 @@ func (service ConfigurationService) ConfigureCredential(ctx context.Context, com
 	}
 	if old != nil && *old != staged {
 		if err := service.Credentials.Delete(context.WithoutCancel(ctx), *old); err != nil {
+			// Keep the previously working reference authoritative when old-entry
+			// cleanup fails, and remove the staged replacement.
+			source.CredentialRef = old
+			if restoreErr := service.Transactions.WithinTransaction(context.WithoutCancel(ctx), func(txctx context.Context) error { return service.Sources.Save(txctx, source) }); restoreErr != nil {
+				return ErrUnavailable
+			}
+			_ = service.Credentials.Delete(context.WithoutCancel(ctx), staged)
 			return ErrUnavailable
 		}
 	}
@@ -231,7 +242,14 @@ func (service ConfigurationService) DeleteCredential(ctx context.Context, comman
 	if err := service.Transactions.WithinTransaction(ctx, func(txctx context.Context) error { return service.Sources.Save(txctx, source) }); err != nil {
 		return err
 	}
-	return service.Credentials.Delete(ctx, ref)
+	if err := service.Credentials.Delete(ctx, ref); err != nil {
+		source.CredentialRef = &ref
+		if restoreErr := service.Transactions.WithinTransaction(context.WithoutCancel(ctx), func(txctx context.Context) error { return service.Sources.Save(txctx, source) }); restoreErr != nil {
+			return ErrUnavailable
+		}
+		return err
+	}
+	return nil
 }
 
 func (service ConfigurationService) readyProfile() error {
