@@ -1,4 +1,4 @@
-/* global URL, document, console, fetch, process, setTimeout */
+/* global URL, clearTimeout, document, console, fetch, process, setTimeout */
 import { spawn } from 'node:child_process'
 import { mkdir } from 'node:fs/promises'
 import { chromium } from 'playwright-core'
@@ -61,10 +61,12 @@ async function stopProcessTree(child) {
   } else {
     process.kill(-child.pid, 'SIGTERM')
   }
+  let shutdownTimer
   const stopped = await Promise.race([
     exited.then(() => true),
-    new Promise((resolve) => setTimeout(() => resolve(false), 5000))
+    new Promise((resolve) => { shutdownTimer = setTimeout(() => resolve(false), 5000) })
   ])
+  clearTimeout(shutdownTimer)
   if (!stopped && process.platform !== 'win32') {
     process.kill(-child.pid, 'SIGKILL')
     await exited
