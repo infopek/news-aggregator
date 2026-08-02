@@ -24,7 +24,7 @@ func TestMigrationCompatibilityMatrix(t *testing.T) {
 		before := migrationCount(t, path)
 		store = reopenStore(t, path)
 		defer store.Close()
-		if after := migrationCount(t, path); before != 1 || after != before {
+		if after := migrationCount(t, path); before != 2 || after != before {
 			t.Fatalf("migration counts before=%d after=%d", before, after)
 		}
 	})
@@ -61,6 +61,30 @@ func TestMigrationCompatibilityMatrix(t *testing.T) {
 		_, err = sqlite.Open(context.Background(), sqlite.Config{Path: path, MigrationDir: migrations()})
 		if !errors.Is(err, sqlite.ErrNewerSchema) {
 			t.Fatalf("error=%v", err)
+		}
+	})
+	t.Run("history gap rejected against two migrations", func(t *testing.T) {
+		dir := twoMigrationDir(t)
+		path := filepath.Join(t.TempDir(), "gap.sqlite")
+		db := rawDB(t, path)
+		_, err := db.Exec(`CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY,name TEXT NOT NULL,applied_at_ms INTEGER NOT NULL); INSERT INTO schema_migrations VALUES(2,'0002_second.sql',0)`)
+		must(t, err)
+		db.Close()
+		_, err = sqlite.Open(context.Background(), sqlite.Config{Path: path, MigrationDir: dir})
+		if !errors.Is(err, sqlite.ErrMigrationState) {
+			t.Fatalf("gap error=%v", err)
+		}
+	})
+	t.Run("history name mismatch rejected against two migrations", func(t *testing.T) {
+		dir := twoMigrationDir(t)
+		path := filepath.Join(t.TempDir(), "name.sqlite")
+		db := rawDB(t, path)
+		_, err := db.Exec(`CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY,name TEXT NOT NULL,applied_at_ms INTEGER NOT NULL); INSERT INTO schema_migrations VALUES(1,'0001_wrong.sql',0)`)
+		must(t, err)
+		db.Close()
+		_, err = sqlite.Open(context.Background(), sqlite.Config{Path: path, MigrationDir: dir})
+		if !errors.Is(err, sqlite.ErrMigrationState) {
+			t.Fatalf("name error=%v", err)
 		}
 	})
 }
@@ -147,13 +171,55 @@ func TestConstraintsTransactionsCancellationAndHistory(t *testing.T) {
 	if err := store.Sources().Save(ctx, duplicate); !errors.Is(err, application.ErrConflict) {
 		t.Fatalf("unique error=%v", err)
 	}
-	article := domain.Article{ID: "a1", Fingerprint: "same", SourceID: source.ID, CanonicalURL: "https://example.com/a", Title: "A", FetchedAt: time.Now(), ContentPermission: domain.ContentMetadataOnly}
+	article := domain.Article{ID: "a1", Fingerprint: "same", SourceID: source.ID, SourceExternalID: "external-1", CanonicalURL: "https://example.com/a", Title: "A", FetchedAt: time.Now(), FullContent: "accepted body", ContentPermission: domain.ContentFullAllowed, Topics: []string{"original"}}
 	_, err := store.Articles().Upsert(ctx, article)
 	must(t, err)
-	article.ID = "a2"
-	article.CanonicalURL = "https://example.com/b"
-	if _, err = store.Articles().Upsert(ctx, article); !errors.Is(err, application.ErrConflict) {
-		t.Fatalf("fingerprint error=%v", err)
+	byCanonical := article
+	byCanonical.ID = "canonical-id"
+	byCanonical.Fingerprint = "canonical-fp"
+	byCanonical.SourceExternalID = "external-2"
+	byCanonical.Title = "canonical refresh"
+	byCanonical.ContentPermission = domain.ContentMetadataOnly
+	byCanonical.FullContent = ""
+	byCanonical.FetchedAt = article.FetchedAt.Add(time.Second)
+	result, err := store.Articles().Upsert(ctx, byCanonical)
+	must(t, err)
+	if result.ArticleID != "a1" || !result.Updated {
+		t.Fatalf("canonical merge=%+v", result)
+	}
+	byFingerprint := byCanonical
+	byFingerprint.ID = "fingerprint-id"
+	byFingerprint.CanonicalURL = "https://example.com/new-canonical"
+	byFingerprint.SourceExternalID = "external-3"
+	byFingerprint.Topics = []string{"new"}
+	byFingerprint.FetchedAt = byCanonical.FetchedAt.Add(time.Second)
+	result, err = store.Articles().Upsert(ctx, byFingerprint)
+	must(t, err)
+	if result.ArticleID != "a1" {
+		t.Fatalf("fingerprint merge=%+v", result)
+	}
+	byExternal := byFingerprint
+	byExternal.ID = "external-id"
+	byExternal.Fingerprint = "external-fp"
+	byExternal.CanonicalURL = "https://example.com/external"
+	byExternal.SourceExternalID = "external-3"
+	byExternal.FetchedAt = byFingerprint.FetchedAt.Add(time.Second)
+	result, err = store.Articles().Upsert(ctx, byExternal)
+	must(t, err)
+	if result.ArticleID != "a1" {
+		t.Fatalf("external merge=%+v", result)
+	}
+	var articleCount int
+	db := rawDB(t, path)
+	must(t, db.QueryRow(`SELECT count(*) FROM articles`).Scan(&articleCount))
+	db.Close()
+	if articleCount != 1 {
+		t.Fatalf("dedup left %d articles", articleCount)
+	}
+	merged, err := store.Articles().Get(ctx, "a1")
+	must(t, err)
+	if len(merged.Topics) != 2 || merged.FullContent != "accepted body" || merged.ContentPermission != domain.ContentFullAllowed {
+		t.Fatalf("merged article lost data: %+v", merged)
 	}
 	missing := article
 	missing.ID = "missing"
@@ -179,17 +245,76 @@ func TestConstraintsTransactionsCancellationAndHistory(t *testing.T) {
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("cancel error=%v", err)
 	}
-	if err = store.Sources().Delete(ctx, source.ID); !errors.Is(err, application.ErrConflict) {
-		t.Fatalf("history deletion error=%v", err)
+	trueValue := true
+	_, err = store.Libraries().Apply(ctx, "a1", domain.LibraryPatch{Saved: &trueValue}, time.Now())
+	must(t, err)
+	must(t, store.Sources().Delete(ctx, source.ID))
+	if _, err = store.Sources().Get(ctx, source.ID); !errors.Is(err, application.ErrNotFound) {
+		t.Fatalf("deleted source visible: %v", err)
+	}
+	listed, err := store.Sources().List(ctx)
+	must(t, err)
+	if len(listed) != 0 {
+		t.Fatalf("deleted source listed: %+v", listed)
+	}
+	db = rawDB(t, path)
+	var retainedName string
+	var deletedAt sql.NullInt64
+	must(t, db.QueryRow(`SELECT name,deleted_at_ms FROM sources WHERE id=?`, source.ID).Scan(&retainedName, &deletedAt))
+	db.Close()
+	if retainedName != source.Name || !deletedAt.Valid {
+		t.Fatalf("source tombstone missing: name=%q deleted=%v", retainedName, deletedAt.Valid)
 	}
 	if _, err = store.Articles().Get(ctx, "a1"); err != nil {
 		t.Fatalf("history lost: %v", err)
+	}
+	if library, err := store.Libraries().Get(ctx, "a1"); err != nil || library.SavedAt == nil {
+		t.Fatalf("library history lost: %+v %v", library, err)
+	}
+	must(t, store.Sources().Save(ctx, source))
+	if _, err = store.Sources().Get(ctx, source.ID); err != nil {
+		t.Fatalf("source restore failed: %v", err)
 	}
 	store.Close()
 	store = reopenStore(t, path)
 	defer store.Close()
 	if _, err = store.Articles().Get(ctx, "a1"); err != nil {
 		t.Fatalf("restart history lost: %v", err)
+	}
+}
+
+func TestQueryFeedRejectsInvalidCursorAndPropagatesRepositoryErrors(t *testing.T) {
+	store, path := openStore(t)
+	defer store.Close()
+	ctx := context.Background()
+	source := feedSource("feed", "https://example.com/feed-errors")
+	must(t, store.Sources().Save(ctx, source))
+	article := domain.Article{ID: "feed-a", Fingerprint: "feed-fp", SourceID: source.ID, CanonicalURL: "https://example.com/feed-a", Title: "feed", FetchedAt: time.Now(), ContentPermission: domain.ContentMetadataOnly}
+	_, err := store.Articles().Upsert(ctx, article)
+	must(t, err)
+	if _, err = store.Articles().QueryFeed(ctx, application.FeedQuery{Cursor: "not valid base64"}); !errors.Is(err, application.ErrInvalidInput) {
+		t.Fatalf("cursor error=%v", err)
+	}
+	cancelled, cancel := context.WithCancel(ctx)
+	cancel()
+	if _, err = store.Articles().QueryFeed(cancelled, application.FeedQuery{}); !errors.Is(err, context.Canceled) {
+		t.Fatalf("cancelled feed error=%v", err)
+	}
+	if _, err = store.Articles().QueryFeed(ctx, application.FeedQuery{}); !errors.Is(err, application.ErrNotFound) {
+		t.Fatalf("missing library error=%v", err)
+	}
+	value := false
+	_, err = store.Libraries().Apply(ctx, article.ID, domain.LibraryPatch{Read: &value}, time.Now())
+	must(t, err)
+	if _, err = store.Articles().QueryFeed(ctx, application.FeedQuery{}); !errors.Is(err, application.ErrNotFound) {
+		t.Fatalf("missing ranking error=%v", err)
+	}
+	db := rawDB(t, path)
+	_, err = db.Exec(`DROP TABLE ranking_contributions; DROP TABLE ranking_results`)
+	must(t, err)
+	db.Close()
+	if _, err = store.Articles().QueryFeed(ctx, application.FeedQuery{}); !errors.Is(err, application.ErrUnavailable) {
+		t.Fatalf("storage error=%v", err)
 	}
 }
 
@@ -278,6 +403,13 @@ func migrationCount(t *testing.T, path string) int {
 func migrations() string {
 	_, file, _, _ := runtime.Caller(0)
 	return filepath.Clean(filepath.Join(filepath.Dir(file), "..", "..", "db", "migrations"))
+}
+func twoMigrationDir(t *testing.T) string {
+	t.Helper()
+	dir := t.TempDir()
+	must(t, os.WriteFile(filepath.Join(dir, "0001_first.sql"), []byte(`CREATE TABLE first(id INTEGER);`), 0o600))
+	must(t, os.WriteFile(filepath.Join(dir, "0002_second.sql"), []byte(`CREATE TABLE second(id INTEGER);`), 0o600))
+	return dir
 }
 func feedSource(id domain.SourceID, url string) domain.Source {
 	return domain.Source{ID: id, Name: string(id), URL: url, Kind: domain.SourceKindFeed, Enabled: true, ContentPermission: domain.ContentMetadataOnly, AdapterConfig: domain.AdapterConfiguration{Feed: &domain.FeedConfiguration{Format: domain.FeedFormatRSS}}, ScraperPolicy: domain.ScraperPolicy{Status: domain.ScraperPolicyNotApplicable}}

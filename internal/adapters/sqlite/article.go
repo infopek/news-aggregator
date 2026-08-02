@@ -36,14 +36,18 @@ func (s *Store) upsertArticle(ctx context.Context, a domain.Article) (applicatio
 		return out, application.ErrInvalidInput
 	}
 	return out, s.WithinTransaction(ctx, func(ctx context.Context) error {
-		var existing domain.ArticleID
-		err := s.q(ctx).QueryRowContext(ctx, `SELECT id FROM articles WHERE fingerprint=? OR canonical_url=? LIMIT 1`, a.Fingerprint, a.CanonicalURL).Scan(&existing)
-		if err != nil && err != sql.ErrNoRows {
-			return mapError(err)
+		observationSource, observationExternalID, observedAt := a.SourceID, a.SourceExternalID, a.FetchedAt
+		existing, existed, err := s.resolveArticleIdentity(ctx, a)
+		if err != nil {
+			return err
 		}
-		existed := err == nil
-		if existed && existing != a.ID {
-			return application.ErrConflict
+		if existed {
+			stored, err := s.getArticle(ctx, existing)
+			if err != nil {
+				return err
+			}
+			a = mergeArticle(stored, a)
+			a.ID = existing
 		}
 		full := any(nil)
 		if a.ContentPermission == domain.ContentFullAllowed && a.FullContent != "" {
@@ -55,7 +59,7 @@ func (s *Store) upsertArticle(ctx context.Context, a domain.Article) (applicatio
 		}
 		_, _ = result.RowsAffected()
 		out = application.ArticleWriteResult{ArticleID: a.ID, Inserted: !existed, Updated: existed}
-		if _, err = s.q(ctx).ExecContext(ctx, `INSERT INTO article_sources(article_id,source_id,first_seen_at_ms,last_seen_at_ms) VALUES(?,?,?,?) ON CONFLICT(article_id,source_id) DO UPDATE SET last_seen_at_ms=excluded.last_seen_at_ms`, a.ID, a.SourceID, millis(a.FetchedAt), millis(a.FetchedAt)); err != nil {
+		if _, err = s.q(ctx).ExecContext(ctx, `INSERT INTO article_sources(article_id,source_id,external_id,first_seen_at_ms,last_seen_at_ms) VALUES(?,?,?,?,?) ON CONFLICT(article_id,source_id) DO UPDATE SET external_id=CASE WHEN excluded.external_id!='' THEN excluded.external_id ELSE article_sources.external_id END,last_seen_at_ms=MAX(article_sources.last_seen_at_ms,excluded.last_seen_at_ms)`, a.ID, observationSource, observationExternalID, millis(observedAt), millis(observedAt)); err != nil {
 			return mapError(err)
 		}
 		if _, err = s.q(ctx).ExecContext(ctx, `DELETE FROM article_topics WHERE article_id=?`, a.ID); err != nil {
@@ -70,6 +74,80 @@ func (s *Store) upsertArticle(ctx context.Context, a domain.Article) (applicatio
 	})
 }
 
+func (s *Store) resolveArticleIdentity(ctx context.Context, incoming domain.Article) (domain.ArticleID, bool, error) {
+	ids := map[domain.ArticleID]struct{}{}
+	rows, err := s.q(ctx).QueryContext(ctx, `SELECT id FROM articles WHERE id=? OR fingerprint=? OR canonical_url=?`, incoming.ID, incoming.Fingerprint, incoming.CanonicalURL)
+	if err != nil {
+		return "", false, mapError(err)
+	}
+	for rows.Next() {
+		var id domain.ArticleID
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return "", false, mapError(err)
+		}
+		ids[id] = struct{}{}
+	}
+	if err := rows.Close(); err != nil {
+		return "", false, mapError(err)
+	}
+	if incoming.SourceExternalID != "" {
+		var id domain.ArticleID
+		err = s.q(ctx).QueryRowContext(ctx, `SELECT article_id FROM article_sources WHERE source_id=? AND external_id=?`, incoming.SourceID, incoming.SourceExternalID).Scan(&id)
+		if err != nil && err != sql.ErrNoRows {
+			return "", false, mapError(err)
+		}
+		if err == nil {
+			ids[id] = struct{}{}
+		}
+	}
+	if len(ids) == 0 {
+		return incoming.ID, false, nil
+	}
+	if len(ids) > 1 {
+		return "", false, application.ErrConflict
+	}
+	for id := range ids {
+		return id, true, nil
+	}
+	panic("unreachable")
+}
+
+func mergeArticle(stored, incoming domain.Article) domain.Article {
+	// A newer observation refreshes mutable metadata. Provenance identity and
+	// already permitted full content are retained so a metadata-only observation
+	// cannot destroy richer accepted history.
+	result := stored
+	if !incoming.FetchedAt.Before(stored.FetchedAt) {
+		result.Fingerprint = incoming.Fingerprint
+		result.CanonicalURL = incoming.CanonicalURL
+		result.Title = incoming.Title
+		result.Author = incoming.Author
+		result.PublishedAt = incoming.PublishedAt
+		result.FetchedAt = incoming.FetchedAt
+		result.Excerpt = incoming.Excerpt
+		result.Language = incoming.Language
+		result.TokenCount = incoming.TokenCount
+		if incoming.ContentPermission == domain.ContentFullAllowed {
+			result.ContentPermission = incoming.ContentPermission
+			result.FullContent = incoming.FullContent
+		}
+	}
+	result.SourceID = stored.SourceID
+	result.SourceExternalID = incoming.SourceExternalID
+	seen := map[string]struct{}{}
+	result.Topics = nil
+	for _, topics := range [][]string{stored.Topics, incoming.Topics} {
+		for _, topic := range topics {
+			if _, ok := seen[topic]; !ok {
+				seen[topic] = struct{}{}
+				result.Topics = append(result.Topics, topic)
+			}
+		}
+	}
+	return result
+}
+
 func (s *Store) getArticle(ctx context.Context, id domain.ArticleID) (domain.Article, error) {
 	a, err := scanArticle(s.q(ctx).QueryRowContext(ctx, `SELECT `+articleColumns+` FROM articles a WHERE a.id=?`, id))
 	if err == sql.ErrNoRows {
@@ -81,6 +159,7 @@ func (s *Store) getArticle(ctx context.Context, id domain.ArticleID) (domain.Art
 	if err = s.loadTopics(ctx, &a); err != nil {
 		return a, err
 	}
+	_ = s.q(ctx).QueryRowContext(ctx, `SELECT external_id FROM article_sources WHERE article_id=? AND source_id=?`, a.ID, a.SourceID).Scan(&a.SourceExternalID)
 	return a, nil
 }
 func (s *Store) loadTopics(ctx context.Context, a *domain.Article) error {
@@ -114,7 +193,10 @@ func scanArticle(row scanner) (domain.Article, error) {
 }
 
 func (s *Store) listArticles(ctx context.Context, q application.FeedQuery) ([]domain.Article, error) {
-	where, args := feedWhere(q)
+	where, args, err := feedWhere(q)
+	if err != nil {
+		return nil, err
+	}
 	query := `SELECT ` + articleColumns + ` FROM articles a LEFT JOIN library_states l ON l.article_id=a.id` + where + ` ORDER BY COALESCE(a.published_at_ms,a.fetched_at_ms) DESC,a.id DESC`
 	if q.Limit > 0 {
 		query += ` LIMIT ?`
@@ -143,7 +225,7 @@ func (s *Store) listArticles(ctx context.Context, q application.FeedQuery) ([]do
 	}
 	return list, nil
 }
-func feedWhere(q application.FeedQuery) (string, []any) {
+func feedWhere(q application.FeedQuery) (string, []any, error) {
 	var clauses []string
 	var args []any
 	if len(q.Filter.SourceIDs) > 0 {
@@ -186,20 +268,24 @@ func feedWhere(q application.FeedQuery) (string, []any) {
 	}
 	if q.Cursor != "" {
 		decoded, err := base64.RawURLEncoding.DecodeString(q.Cursor)
-		if err == nil {
-			parts := strings.SplitN(string(decoded), ":", 2)
-			if len(parts) == 2 {
-				if ms, e := strconv.ParseInt(parts[0], 10, 64); e == nil {
-					clauses = append(clauses, "(COALESCE(a.published_at_ms,a.fetched_at_ms)<? OR (COALESCE(a.published_at_ms,a.fetched_at_ms)=? AND a.id<?))")
-					args = append(args, ms, ms, parts[1])
-				}
-			}
+		if err != nil {
+			return "", nil, application.ErrInvalidInput
 		}
+		parts := strings.SplitN(string(decoded), ":", 2)
+		if len(parts) != 2 || parts[1] == "" {
+			return "", nil, application.ErrInvalidInput
+		}
+		ms, err := strconv.ParseInt(parts[0], 10, 64)
+		if err != nil {
+			return "", nil, application.ErrInvalidInput
+		}
+		clauses = append(clauses, "(COALESCE(a.published_at_ms,a.fetched_at_ms)<? OR (COALESCE(a.published_at_ms,a.fetched_at_ms)=? AND a.id<?))")
+		args = append(args, ms, ms, parts[1])
 	}
 	if len(clauses) == 0 {
-		return "", args
+		return "", args, nil
 	}
-	return " WHERE " + strings.Join(clauses, " AND "), args
+	return " WHERE " + strings.Join(clauses, " AND "), args, nil
 }
 
 func (s *Store) queryFeed(ctx context.Context, q application.FeedQuery) (application.FeedPage, error) {
@@ -209,8 +295,14 @@ func (s *Store) queryFeed(ctx context.Context, q application.FeedQuery) (applica
 		return page, err
 	}
 	for _, a := range articles {
-		library, _ := s.Libraries().Get(ctx, a.ID)
-		ranking, _ := s.Rankings().GetResult(ctx, a.ID)
+		library, err := s.Libraries().Get(ctx, a.ID)
+		if err != nil {
+			return page, err
+		}
+		ranking, err := s.Rankings().GetResult(ctx, a.ID)
+		if err != nil {
+			return page, err
+		}
 		page.Articles = append(page.Articles, application.RankedArticle{Article: a, Library: library, Ranking: ranking})
 	}
 	if q.Limit > 0 && len(articles) == q.Limit {

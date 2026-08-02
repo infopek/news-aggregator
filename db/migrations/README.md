@@ -27,3 +27,9 @@ the ranking service must enforce cross-row contribution totals atomically before
 persistence because SQLite `CHECK` constraints cannot inspect sibling rows.
 Future schema changes must add a new numbered migration rather than modifying a
 migration that has shipped.
+
+Configured source deletion is a tombstone operation: `deleted_at_ms` removes a
+source from normal configuration reads while retaining its row for article and
+library provenance. Saving the same source identifier restores it. Credential
+references are cleared and the source is disabled when tombstoned; credential
+values are never stored here.

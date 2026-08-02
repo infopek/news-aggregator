@@ -50,12 +50,12 @@ func (s *Store) saveSource(ctx context.Context, source domain.Source) error {
 		credential = string(*source.CredentialRef)
 	}
 	_, err := s.q(ctx).ExecContext(ctx, `INSERT INTO sources(id,name,url,kind,enabled,content_permission,feed_format,api_provider,api_page_size,scraper_article_selector,scraper_title_selector,scraper_excerpt_selector,scraper_content_selector,scraper_policy_status,scraper_terms_url,scraper_robots_url,scraper_reviewed_at_ms,scraper_review_notes,credential_ref,refresh_cursor,refresh_etag,refresh_last_modified,last_success_at_ms,last_error,retry_after_ms)
-	VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,url=excluded.url,kind=excluded.kind,enabled=excluded.enabled,content_permission=excluded.content_permission,feed_format=excluded.feed_format,api_provider=excluded.api_provider,api_page_size=excluded.api_page_size,scraper_article_selector=excluded.scraper_article_selector,scraper_title_selector=excluded.scraper_title_selector,scraper_excerpt_selector=excluded.scraper_excerpt_selector,scraper_content_selector=excluded.scraper_content_selector,scraper_policy_status=excluded.scraper_policy_status,scraper_terms_url=excluded.scraper_terms_url,scraper_robots_url=excluded.scraper_robots_url,scraper_reviewed_at_ms=excluded.scraper_reviewed_at_ms,scraper_review_notes=excluded.scraper_review_notes,credential_ref=excluded.credential_ref,refresh_cursor=excluded.refresh_cursor,refresh_etag=excluded.refresh_etag,refresh_last_modified=excluded.refresh_last_modified,last_success_at_ms=excluded.last_success_at_ms,last_error=excluded.last_error,retry_after_ms=excluded.retry_after_ms`, source.ID, source.Name, source.URL, source.Kind, source.Enabled, source.ContentPermission, feed, provider, page, article, title, excerpt, content, status, nullIfEmpty(source.ScraperPolicy.TermsURL), nullIfEmpty(source.ScraperPolicy.RobotsURL), nullableMillis(source.ScraperPolicy.ReviewedAt), nullIfEmpty(source.ScraperPolicy.ReviewNotes), credential, source.RefreshCursor, source.RefreshETag, source.RefreshLastModified, nullableMillis(source.LastSuccessAt), source.LastError, nullableMillis(source.RetryAfter))
+	VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,url=excluded.url,kind=excluded.kind,enabled=excluded.enabled,content_permission=excluded.content_permission,feed_format=excluded.feed_format,api_provider=excluded.api_provider,api_page_size=excluded.api_page_size,scraper_article_selector=excluded.scraper_article_selector,scraper_title_selector=excluded.scraper_title_selector,scraper_excerpt_selector=excluded.scraper_excerpt_selector,scraper_content_selector=excluded.scraper_content_selector,scraper_policy_status=excluded.scraper_policy_status,scraper_terms_url=excluded.scraper_terms_url,scraper_robots_url=excluded.scraper_robots_url,scraper_reviewed_at_ms=excluded.scraper_reviewed_at_ms,scraper_review_notes=excluded.scraper_review_notes,credential_ref=excluded.credential_ref,refresh_cursor=excluded.refresh_cursor,refresh_etag=excluded.refresh_etag,refresh_last_modified=excluded.refresh_last_modified,last_success_at_ms=excluded.last_success_at_ms,last_error=excluded.last_error,retry_after_ms=excluded.retry_after_ms,deleted_at_ms=NULL`, source.ID, source.Name, source.URL, source.Kind, source.Enabled, source.ContentPermission, feed, provider, page, article, title, excerpt, content, status, nullIfEmpty(source.ScraperPolicy.TermsURL), nullIfEmpty(source.ScraperPolicy.RobotsURL), nullableMillis(source.ScraperPolicy.ReviewedAt), nullIfEmpty(source.ScraperPolicy.ReviewNotes), credential, source.RefreshCursor, source.RefreshETag, source.RefreshLastModified, nullableMillis(source.LastSuccessAt), source.LastError, nullableMillis(source.RetryAfter))
 	return mapError(err)
 }
 
 func (s *Store) listSources(ctx context.Context) ([]domain.Source, error) {
-	rows, err := s.q(ctx).QueryContext(ctx, sourceSelect+` ORDER BY name,id`)
+	rows, err := s.q(ctx).QueryContext(ctx, sourceSelect+` WHERE deleted_at_ms IS NULL ORDER BY name,id`)
 	if err != nil {
 		return nil, mapError(err)
 	}
@@ -71,7 +71,7 @@ func (s *Store) listSources(ctx context.Context) ([]domain.Source, error) {
 	return result, mapError(rows.Err())
 }
 func (s *Store) getSource(ctx context.Context, id domain.SourceID) (domain.Source, error) {
-	row := s.q(ctx).QueryRowContext(ctx, sourceSelect+` WHERE id=?`, id)
+	row := s.q(ctx).QueryRowContext(ctx, sourceSelect+` WHERE id=? AND deleted_at_ms IS NULL`, id)
 	v, err := scanSource(row)
 	if err == sql.ErrNoRows {
 		return v, application.ErrNotFound
@@ -79,7 +79,7 @@ func (s *Store) getSource(ctx context.Context, id domain.SourceID) (domain.Sourc
 	return v, mapError(err)
 }
 func (s *Store) deleteSource(ctx context.Context, id domain.SourceID) error {
-	result, err := s.q(ctx).ExecContext(ctx, `DELETE FROM sources WHERE id=?`, id)
+	result, err := s.q(ctx).ExecContext(ctx, `UPDATE sources SET deleted_at_ms=?,enabled=0,credential_ref=NULL WHERE id=? AND deleted_at_ms IS NULL`, timeNowMillis(), id)
 	if err != nil {
 		return mapError(err)
 	}

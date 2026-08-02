@@ -30,7 +30,7 @@ func (s *Store) Migrate(ctx context.Context, directory string) (int, error) {
 	if _, err := s.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations(version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at_ms INTEGER NOT NULL)`); err != nil {
 		return 0, mapError(err)
 	}
-	applied := map[int]string{}
+	var applied []migration
 	rows, err := s.db.QueryContext(ctx, `SELECT version,name FROM schema_migrations ORDER BY version`)
 	if err != nil {
 		return 0, mapError(err)
@@ -42,7 +42,7 @@ func (s *Store) Migrate(ctx context.Context, directory string) (int, error) {
 			rows.Close()
 			return 0, mapError(err)
 		}
-		applied[v] = n
+		applied = append(applied, migration{version: v, name: n})
 	}
 	if err := rows.Close(); err != nil {
 		return 0, mapError(err)
@@ -51,28 +51,16 @@ func (s *Store) Migrate(ctx context.Context, directory string) (int, error) {
 	if len(migrations) > 0 {
 		max = migrations[len(migrations)-1].version
 	}
-	for version, name := range applied {
-		if version > max {
+	for index, recorded := range applied {
+		if recorded.version > max {
 			return 0, ErrNewerSchema
 		}
-		found := false
-		for _, m := range migrations {
-			if m.version == version {
-				found = true
-				if m.name != name {
-					return 0, ErrMigrationState
-				}
-				break
-			}
-		}
-		if !found {
+		// Recorded history must be exactly the first N bundled migrations.
+		if index >= len(migrations) || recorded.version != migrations[index].version || recorded.name != migrations[index].name {
 			return 0, ErrMigrationState
 		}
 	}
-	for _, m := range migrations {
-		if _, ok := applied[m.version]; ok {
-			continue
-		}
+	for _, m := range migrations[len(applied):] {
 		if err := s.applyMigration(ctx, m); err != nil {
 			return 0, err
 		}
