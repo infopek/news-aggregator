@@ -66,11 +66,15 @@ type RefreshRepository interface {
 }
 
 type FetchRequest struct {
-	URL      string
-	Method   string
-	Headers  map[string][]string
-	MaxBytes int64
-	Timeout  time.Duration
+	URL                 string
+	Method              string
+	Headers             map[string][]string
+	MaxBytes            int64
+	Timeout             time.Duration
+	SourceID            domain.SourceID
+	AllowedContentTypes []string
+	ETag                string
+	LastModified        string
 }
 
 type FetchResponse struct {
@@ -78,6 +82,8 @@ type FetchResponse struct {
 	Headers    map[string][]string
 	Body       io.ReadCloser
 	FinalURL   string
+	RetryAfter time.Duration
+	Retryable  bool
 }
 
 type HTTPFetcher interface {

@@ -1,0 +1,17 @@
+[
+  {"address":"127.0.0.1","category":"IPv4 loopback"},
+  {"address":"10.0.0.1","category":"IPv4 private"},
+  {"address":"172.16.0.1","category":"IPv4 private"},
+  {"address":"192.168.1.1","category":"IPv4 private"},
+  {"address":"169.254.169.254","category":"IPv4 link-local"},
+  {"address":"100.64.0.1","category":"carrier-grade NAT"},
+  {"address":"192.0.2.1","category":"documentation range"},
+  {"address":"198.18.0.1","category":"benchmark range"},
+  {"address":"224.0.0.1","category":"IPv4 multicast"},
+  {"address":"::1","category":"IPv6 loopback"},
+  {"address":"fc00::1","category":"IPv6 unique-local"},
+  {"address":"fe80::1","category":"IPv6 link-local"},
+  {"address":"ff02::1","category":"IPv6 multicast"},
+  {"address":"2001:db8::1","category":"IPv6 documentation range"},
+  {"address":"::ffff:127.0.0.1","category":"IPv4-mapped loopback"}
+]
