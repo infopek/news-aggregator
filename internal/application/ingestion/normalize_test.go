@@ -23,6 +23,11 @@ func TestCanonicalURL(t *testing.T) {
 		{"relative", "../article?id=7&fbclid=bad", "https://news.example/section/feed.xml", "https://news.example/article?id=7", false},
 		{"root", "http://EXAMPLE.com:80", "", "http://example.com/", false},
 		{"preserve meaningful query", "https://example.com/a?ref=edition", "", "https://example.com/a?ref=edition", false},
+		{"preserve double slash path", "https://example.com/edition//story", "", "https://example.com/edition//story", false},
+		{"preserve trailing slash before query", "https://example.com/story/?id=7", "", "https://example.com/story/?id=7", false},
+		{"remove exact mailchimp trackers", "https://example.com/a?mc_cid=bad&mc_eid=bad&id=7", "", "https://example.com/a?id=7", false},
+		{"preserve publisher mc parameter", "https://example.com/a?mc_section=local", "", "https://example.com/a?mc_section=local", false},
+		{"preserve unknown utm parameter", "https://example.com/a?utm_section=local", "", "https://example.com/a?utm_section=local", false},
 		{"javascript", "javascript:alert(1)", "https://example.com/feed", "", true},
 		{"userinfo", "https://user@example.com/a", "", "", true},
 		{"malformed", ":// broken", "https://example.com/feed", "", true},
@@ -95,7 +100,12 @@ func TestPlainTextMaliciousInputs(t *testing.T) {
 		`before<style>body{display:none}</style>after`:      "before after",
 		`<!-- <script>bad</script> --><p>A&nbsp;B</p>`:      "A B",
 		`<template><img src=x onerror=x></template>visible`: "visible",
+		`before<SCRIPT data-x=">">alert(1)</SCRIPT>after`:   "before after",
+		`<p title='malicious > delimiter'>quoted-safe</p>`:  "quoted-safe",
+		`before<script>unterminated raw text`:               "before",
+		`encoded &lt;img src=x onerror=alert(1)&gt; text`:   "encoded img src=x onerror=alert(1) text",
 		"bad\x00\x01 good": "bad good",
+		"invalid\xffutf8":  "invalidutf8",
 	}
 	for raw, want := range tests {
 		if got := PlainText(raw); got != want {

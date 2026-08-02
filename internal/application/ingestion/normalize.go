@@ -10,7 +10,6 @@ import (
 	"html"
 	"net"
 	"net/url"
-	"path"
 	"sort"
 	"strings"
 	"time"
@@ -137,13 +136,6 @@ func CanonicalURL(raw, base string) (string, error) {
 	parsed.Fragment = ""
 	if parsed.Path == "" {
 		parsed.Path = "/"
-	} else {
-		// ResolveReference already removes dot segments. Preserve meaningful
-		// trailing slashes and path casing rather than guessing publisher rules.
-		parsed.Path = path.Clean(parsed.Path)
-		if strings.HasSuffix(raw, "/") && parsed.Path != "/" {
-			parsed.Path += "/"
-		}
 	}
 	query := parsed.Query()
 	for key := range query {
@@ -161,7 +153,13 @@ func validWebURL(value *url.URL) bool {
 
 func trackingParameter(key string) bool {
 	key = strings.ToLower(key)
-	return strings.HasPrefix(key, "utm_") || strings.HasPrefix(key, "mc_") || key == "fbclid" || key == "gclid" || key == "dclid" || key == "msclkid" || key == "igshid"
+	switch key {
+	case "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id", "utm_source_platform", "utm_creative_format", "utm_marketing_tactic",
+		"mc_cid", "mc_eid", "fbclid", "gclid", "dclid", "msclkid", "igshid":
+		return true
+	default:
+		return false
+	}
 }
 
 // Fingerprint intentionally uses only the canonical publisher URL. External
@@ -190,13 +188,12 @@ func PlainText(raw string) string {
 			continue
 		}
 		if raw[i] == '<' {
-			end := strings.IndexByte(raw[i+1:], '>')
+			end := tagEnd(raw, i+1)
 			if end < 0 {
 				out.WriteString(" &lt;")
 				i++
 				continue
 			}
-			end += i + 1
 			tag := strings.TrimSpace(lower[i+1 : end])
 			name := strings.Fields(strings.TrimLeft(tag, "/!"))
 			if len(name) > 0 && (name[0] == "script" || name[0] == "style" || name[0] == "template") && !strings.HasPrefix(tag, "/") {
@@ -206,11 +203,11 @@ func PlainText(raw string) string {
 					break
 				}
 				close += end + 1
-				closeEnd := strings.IndexByte(raw[close:], '>')
+				closeEnd := tagEnd(raw, close+1)
 				if closeEnd < 0 {
 					break
 				}
-				i = close + closeEnd + 1
+				i = closeEnd + 1
 				out.WriteByte(' ')
 				continue
 			}
@@ -233,6 +230,24 @@ func PlainText(raw string) string {
 	decoded := html.UnescapeString(out.String())
 	decoded = strings.NewReplacer("<", " ", ">", " ").Replace(decoded)
 	return strings.Join(strings.Fields(decoded), " ")
+}
+
+// tagEnd finds a tag terminator while respecting quoted attribute values. This
+// avoids treating attacker-controlled '>' characters inside attributes as the
+// end of a tag. An unterminated quote/tag is treated as malformed markup.
+func tagEnd(raw string, start int) int {
+	var quote byte
+	for i := start; i < len(raw); i++ {
+		switch {
+		case quote != 0 && raw[i] == quote:
+			quote = 0
+		case quote == 0 && (raw[i] == '\'' || raw[i] == '"'):
+			quote = raw[i]
+		case quote == 0 && raw[i] == '>':
+			return i
+		}
+	}
+	return -1
 }
 
 func normalizeLanguage(raw string) string { return strings.ToLower(strings.TrimSpace(raw)) }

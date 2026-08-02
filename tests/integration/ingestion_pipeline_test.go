@@ -3,6 +3,7 @@ package integration_test
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -94,5 +95,50 @@ func TestIngestionMetadataOnlyNeverPersistsBody(t *testing.T) {
 	must(t, db.QueryRow(`SELECT title,excerpt,full_content FROM articles WHERE id='metadata-id'`).Scan(&title, &excerpt, &body))
 	if title != "Allowed title" || excerpt != "Allowed excerpt" || body.Valid {
 		t.Fatalf("metadata policy title=%q excerpt=%q body=%q", title, excerpt, body.String)
+	}
+}
+
+func TestIngestionNewerMetadataOnlyObservationClearsStoredBody(t *testing.T) {
+	store, _ := openStore(t)
+	defer store.Close()
+	ctx := context.Background()
+	source := feedSource("permission-source", "https://permission.example/feed")
+	source.ContentPermission = domain.ContentFullAllowed
+	must(t, store.Sources().Save(ctx, source))
+	now := time.Unix(100, 0).UTC()
+	service := ingestion.Service{Articles: store.Articles(), Clock: ingestionClock{now}, NewID: func(string) domain.ArticleID { return "permission-id" }}
+	item := application.AdapterItem{CanonicalURL: "/article", Title: "Title", FullContent: "<p>previously permitted</p>"}
+	_, err := service.Ingest(ctx, source, []application.AdapterItem{item})
+	must(t, err)
+
+	source.ContentPermission = domain.ContentMetadataOnly
+	service.Clock = ingestionClock{now.Add(time.Minute)}
+	item.FullContent = "<p>must be discarded</p>"
+	_, err = service.Ingest(ctx, source, []application.AdapterItem{item})
+	must(t, err)
+	stored, err := store.Articles().Get(ctx, "permission-id")
+	must(t, err)
+	if stored.ContentPermission != domain.ContentMetadataOnly || stored.FullContent != "" {
+		t.Fatalf("permission downgrade retained body: %+v", stored)
+	}
+}
+
+func TestIngestionGeneratedIDCollisionIsConflict(t *testing.T) {
+	store, _ := openStore(t)
+	defer store.Close()
+	ctx := context.Background()
+	source := feedSource("collision-source", "https://collision.example/feed")
+	must(t, store.Sources().Save(ctx, source))
+	service := ingestion.Service{Articles: store.Articles(), Clock: ingestionClock{time.Unix(100, 0).UTC()}, NewID: func(string) domain.ArticleID { return "always-the-same-id" }}
+	_, err := service.Ingest(ctx, source, []application.AdapterItem{{CanonicalURL: "/one", Title: "Same title"}})
+	must(t, err)
+	_, err = service.Ingest(ctx, source, []application.AdapterItem{{CanonicalURL: "/two", Title: "Same title"}})
+	if !errors.Is(err, application.ErrConflict) {
+		t.Fatalf("generated ID collision error=%v", err)
+	}
+	stored, err := store.Articles().Get(ctx, "always-the-same-id")
+	must(t, err)
+	if stored.CanonicalURL != "https://collision.example/one" {
+		t.Fatalf("collision overwrote existing identity: %+v", stored)
 	}
 }

@@ -109,15 +109,23 @@ func (s *Store) availableExternalID(ctx context.Context, articleID domain.Articl
 
 func (s *Store) resolveArticleIdentity(ctx context.Context, incoming domain.Article) (domain.ArticleID, bool, error) {
 	ids := map[domain.ArticleID]struct{}{}
-	rows, err := s.q(ctx).QueryContext(ctx, `SELECT id FROM articles WHERE id=? OR fingerprint=? OR canonical_url=?`, incoming.ID, incoming.Fingerprint, incoming.CanonicalURL)
+	rows, err := s.q(ctx).QueryContext(ctx, `SELECT id,fingerprint,canonical_url FROM articles WHERE id=? OR fingerprint=? OR canonical_url=?`, incoming.ID, incoming.Fingerprint, incoming.CanonicalURL)
 	if err != nil {
 		return "", false, mapError(err)
 	}
 	for rows.Next() {
 		var id domain.ArticleID
-		if err := rows.Scan(&id); err != nil {
+		var fingerprint, canonicalURL string
+		if err := rows.Scan(&id, &fingerprint, &canonicalURL); err != nil {
 			rows.Close()
 			return "", false, mapError(err)
+		}
+		// All stable identity components must agree. In particular, an injected
+		// generated-ID collision cannot overwrite an unrelated article, and a
+		// fingerprint collision cannot silently rewrite a publisher URL.
+		if fingerprint != incoming.Fingerprint || canonicalURL != incoming.CanonicalURL {
+			rows.Close()
+			return "", false, application.ErrConflict
 		}
 		ids[id] = struct{}{}
 	}
@@ -179,9 +187,9 @@ func (s *Store) externalAliases(ctx context.Context, articleID domain.ArticleID,
 }
 
 func mergeArticle(stored, incoming domain.Article) domain.Article {
-	// A newer observation refreshes mutable metadata. Provenance identity and
-	// already permitted full content are retained so a metadata-only observation
-	// cannot destroy richer accepted history.
+	// A newer observation authoritatively refreshes mutable metadata. Permission
+	// is intentionally included: a metadata-only observation must remove content
+	// that is no longer permitted to be retained.
 	result := stored
 	if !incoming.FetchedAt.Before(stored.FetchedAt) {
 		result.Fingerprint = incoming.Fingerprint
@@ -193,10 +201,8 @@ func mergeArticle(stored, incoming domain.Article) domain.Article {
 		result.Excerpt = incoming.Excerpt
 		result.Language = incoming.Language
 		result.TokenCount = incoming.TokenCount
-		if incoming.ContentPermission == domain.ContentFullAllowed {
-			result.ContentPermission = incoming.ContentPermission
-			result.FullContent = incoming.FullContent
-		}
+		result.ContentPermission = incoming.ContentPermission
+		result.FullContent = incoming.FullContent
 	}
 	result.SourceID = stored.SourceID
 	result.SourceExternalID = incoming.SourceExternalID
