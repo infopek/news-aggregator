@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "FRONTEND-003",
+  "run_id": "FRONTEND-003-run-001",
+  "actor_id": "frontend-agent",
+  "status": "done",
+  "implementation_summary": "Implemented and independently reviewed the typed generated API facade, server-state cache, error mapping, precise mutation invalidation/reconciliation, cancellation, terminal refresh polling, and credential-safe boundaries.",
+  "files_changed": [
+    {"path": "web/src/api/**", "change": "Added AbortSignal support and typed generated-operation facade."},
+    {"path": "web/src/state/**", "change": "Added query keys/cache, explicit states/errors, mutations, polling, documentation, and tests."},
+    {"path": "test/fixtures/api/**", "change": "Added conflict, unavailable, and unknown-error fixtures."}
+  ],
+  "verification": [
+    {"command": "npm --prefix web run test:unit", "result": "passed", "output": "11 files/58 tests including full mutation matrix, polling, cancellation, and sentinel coverage."},
+    {"command": "npm --prefix web run typecheck", "result": "passed", "output": "Generated facade and state layer typecheck passed."},
+    {"command": "node scripts/generate-api-types.mjs --check", "result": "passed", "output": "18 operations, fixtures, negatives, drift and formatting checks passed."},
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Full Go/frontend/browser/PWA suite passed."}
+  ],
+  "proof": [
+    {"kind": "command_output", "summary": "All terminal polling, timeout/disposal/missing-status and obsolete cancellation paths are enforced.", "status": "passed"},
+    {"kind": "command_output", "summary": "All eight mutation rules enforce exact invalidation, unrelated-key preservation, authoritative reconciliation, failure-after-commit safety, and credential redaction.", "status": "passed"},
+    {"kind": "review", "summary": "Independent reviewer approved revision f60c4446ea5dd0e6277c7a066a62d6eb16b6e2e6 after invalidation corrections.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "No credential query/read cache exists; no browser persistence, client ranking, backend validation, or offline mutation queue was added.",
+  "submitted_at": "2026-08-02T10:36:00Z",
+  "updated_at": "2026-08-02T10:38:00Z"
+}
