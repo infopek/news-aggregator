@@ -1,0 +1,13 @@
+{
+  "schema_version": "1",
+  "fixed_clock": "2026-08-02T10:00:00Z",
+  "cases": [
+    {"name":"tracked-relative","input_url":"../story?utm_source=rss&id=7#comments","base_url":"https://news.example/section/feed.xml","canonical_url":"https://news.example/story?id=7","identity":"canonical-url"},
+    {"name":"repeated-equivalent","input_url":"https://news.example/story?id=7&utm_medium=email","canonical_url":"https://news.example/story?id=7","result":"update"},
+    {"name":"reused-guid-distinct-url","external_id":"reused-guid","input_url":"https://news.example/other","result":"insert-distinct"},
+    {"name":"similar-title-distinct-url","title":"Market update","input_url":"https://news.example/different","result":"insert-distinct"},
+    {"name":"future-date","published_at":"2026-08-03T10:00:00Z","normalized_published_at":null},
+    {"name":"metadata-only-body","permission":"metadata_only","body":"<script>bad()</script><p>body</p>","normalized_body":""},
+    {"name":"permitted-body","permission":"full_content_allowed","body":"<p>safe</p><a href=\"javascript:bad()\">link</a>","normalized_body":"safe link"}
+  ]
+}

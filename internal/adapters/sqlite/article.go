@@ -70,7 +70,11 @@ func (s *Store) upsertArticle(ctx context.Context, a domain.Article) (applicatio
 		if err != nil {
 			return application.ErrInvalidInput
 		}
-		if _, err = s.q(ctx).ExecContext(ctx, `INSERT INTO article_sources(article_id,source_id,external_id,first_seen_at_ms,last_seen_at_ms,external_ids_json) VALUES(?,?,?,?,?,?) ON CONFLICT(article_id,source_id) DO UPDATE SET external_id=CASE WHEN article_sources.external_id='' THEN excluded.external_id ELSE article_sources.external_id END,first_seen_at_ms=MIN(article_sources.first_seen_at_ms,excluded.first_seen_at_ms),last_seen_at_ms=MAX(article_sources.last_seen_at_ms,excluded.last_seen_at_ms),external_ids_json=excluded.external_ids_json`, a.ID, observationSource, observationExternalID, millis(observedAt), millis(observedAt), string(aliasesJSON)); err != nil {
+		canonicalExternalID, err := s.availableExternalID(ctx, a.ID, observationSource, observationExternalID)
+		if err != nil {
+			return err
+		}
+		if _, err = s.q(ctx).ExecContext(ctx, `INSERT INTO article_sources(article_id,source_id,external_id,first_seen_at_ms,last_seen_at_ms,external_ids_json) VALUES(?,?,?,?,?,?) ON CONFLICT(article_id,source_id) DO UPDATE SET external_id=CASE WHEN article_sources.external_id='' THEN excluded.external_id ELSE article_sources.external_id END,first_seen_at_ms=MIN(article_sources.first_seen_at_ms,excluded.first_seen_at_ms),last_seen_at_ms=MAX(article_sources.last_seen_at_ms,excluded.last_seen_at_ms),external_ids_json=excluded.external_ids_json`, a.ID, observationSource, canonicalExternalID, millis(observedAt), millis(observedAt), string(aliasesJSON)); err != nil {
 			return mapError(err)
 		}
 		if _, err = s.q(ctx).ExecContext(ctx, `DELETE FROM article_topics WHERE article_id=?`, a.ID); err != nil {
@@ -85,17 +89,43 @@ func (s *Store) upsertArticle(ctx context.Context, a domain.Article) (applicatio
 	})
 }
 
+// availableExternalID honors the legacy unique canonical-alias column without
+// allowing a publisher's reused GUID to collapse or reject a distinct URL. The
+// reused value remains in external_ids_json as provenance.
+func (s *Store) availableExternalID(ctx context.Context, articleID domain.ArticleID, sourceID domain.SourceID, incoming string) (string, error) {
+	if incoming == "" {
+		return "", nil
+	}
+	var owner domain.ArticleID
+	err := s.q(ctx).QueryRowContext(ctx, `SELECT article_id FROM article_sources WHERE source_id=? AND external_id=?`, sourceID, incoming).Scan(&owner)
+	if err == sql.ErrNoRows || owner == articleID {
+		return incoming, nil
+	}
+	if err != nil {
+		return "", mapError(err)
+	}
+	return "", nil
+}
+
 func (s *Store) resolveArticleIdentity(ctx context.Context, incoming domain.Article) (domain.ArticleID, bool, error) {
 	ids := map[domain.ArticleID]struct{}{}
-	rows, err := s.q(ctx).QueryContext(ctx, `SELECT id FROM articles WHERE id=? OR fingerprint=? OR canonical_url=?`, incoming.ID, incoming.Fingerprint, incoming.CanonicalURL)
+	rows, err := s.q(ctx).QueryContext(ctx, `SELECT id,fingerprint,canonical_url FROM articles WHERE id=? OR fingerprint=? OR canonical_url=?`, incoming.ID, incoming.Fingerprint, incoming.CanonicalURL)
 	if err != nil {
 		return "", false, mapError(err)
 	}
 	for rows.Next() {
 		var id domain.ArticleID
-		if err := rows.Scan(&id); err != nil {
+		var fingerprint, canonicalURL string
+		if err := rows.Scan(&id, &fingerprint, &canonicalURL); err != nil {
 			rows.Close()
 			return "", false, mapError(err)
+		}
+		// All stable identity components must agree. In particular, an injected
+		// generated-ID collision cannot overwrite an unrelated article, and a
+		// fingerprint collision cannot silently rewrite a publisher URL.
+		if fingerprint != incoming.Fingerprint || canonicalURL != incoming.CanonicalURL {
+			rows.Close()
+			return "", false, application.ErrConflict
 		}
 		ids[id] = struct{}{}
 	}
@@ -104,7 +134,10 @@ func (s *Store) resolveArticleIdentity(ctx context.Context, incoming domain.Arti
 	}
 	if incoming.SourceExternalID != "" {
 		var id domain.ArticleID
-		err = s.q(ctx).QueryRowContext(ctx, `SELECT article_id FROM article_sources WHERE source_id=? AND (external_id=? OR EXISTS(SELECT 1 FROM json_each(external_ids_json) WHERE value=?))`, incoming.SourceID, incoming.SourceExternalID, incoming.SourceExternalID).Scan(&id)
+		// External IDs are provenance aliases, not sufficient identity. Some
+		// publishers reuse GUIDs; only accept an alias when the stable canonical
+		// URL also agrees.
+		err = s.q(ctx).QueryRowContext(ctx, `SELECT article_sources.article_id FROM article_sources JOIN articles ON articles.id=article_sources.article_id WHERE article_sources.source_id=? AND articles.canonical_url=? AND (article_sources.external_id=? OR EXISTS(SELECT 1 FROM json_each(article_sources.external_ids_json) WHERE value=?))`, incoming.SourceID, incoming.CanonicalURL, incoming.SourceExternalID, incoming.SourceExternalID).Scan(&id)
 		if err != nil && err != sql.ErrNoRows {
 			return "", false, mapError(err)
 		}
@@ -154,9 +187,9 @@ func (s *Store) externalAliases(ctx context.Context, articleID domain.ArticleID,
 }
 
 func mergeArticle(stored, incoming domain.Article) domain.Article {
-	// A newer observation refreshes mutable metadata. Provenance identity and
-	// already permitted full content are retained so a metadata-only observation
-	// cannot destroy richer accepted history.
+	// A newer observation authoritatively refreshes mutable metadata. Permission
+	// is intentionally included: a metadata-only observation must remove content
+	// that is no longer permitted to be retained.
 	result := stored
 	if !incoming.FetchedAt.Before(stored.FetchedAt) {
 		result.Fingerprint = incoming.Fingerprint
@@ -168,10 +201,8 @@ func mergeArticle(stored, incoming domain.Article) domain.Article {
 		result.Excerpt = incoming.Excerpt
 		result.Language = incoming.Language
 		result.TokenCount = incoming.TokenCount
-		if incoming.ContentPermission == domain.ContentFullAllowed {
-			result.ContentPermission = incoming.ContentPermission
-			result.FullContent = incoming.FullContent
-		}
+		result.ContentPermission = incoming.ContentPermission
+		result.FullContent = incoming.FullContent
 	}
 	result.SourceID = stored.SourceID
 	result.SourceExternalID = incoming.SourceExternalID
