@@ -3,6 +3,8 @@ import { spawn } from 'node:child_process'
 import { mkdir } from 'node:fs/promises'
 import { chromium } from 'playwright-core'
 
+import { processTreeTermination, resolveBrowserExecutable } from './browser-runtime.mjs'
+
 const evidenceDirectory = new URL('./evidence/', import.meta.url)
 await mkdir(evidenceDirectory, { recursive: true })
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm'
@@ -12,7 +14,7 @@ const preview = spawn(npmCommand, ['exec', 'vite', '--', 'preview', '--host', '1
 })
 try {
   await waitForServer('http://127.0.0.1:4173/')
-  const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome', headless: true })
+  const browser = await chromium.launch({ executablePath: resolveBrowserExecutable(), headless: true })
   try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
     await page.goto('http://127.0.0.1:4173/library')
@@ -55,11 +57,12 @@ async function waitForServer(url) {
 async function stopProcessTree(child) {
   if (child.exitCode !== null) return
   const exited = new Promise((resolve) => child.once('exit', resolve))
-  if (process.platform === 'win32') {
-    const killer = spawn('taskkill', ['/pid', String(child.pid), '/t', '/f'], { stdio: 'ignore' })
+  const termination = processTreeTermination(process.platform, child.pid)
+  if ('command' in termination) {
+    const killer = spawn(termination.command, termination.args, { stdio: 'ignore' })
     await new Promise((resolve) => killer.once('exit', resolve))
   } else {
-    process.kill(-child.pid, 'SIGTERM')
+    process.kill(termination.pid, termination.signal)
   }
   let shutdownTimer
   const stopped = await Promise.race([
