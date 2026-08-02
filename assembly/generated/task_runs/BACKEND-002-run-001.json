@@ -1,0 +1,30 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "BACKEND-002",
+  "run_id": "BACKEND-002-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "done",
+  "implementation_summary": "Implemented and independently reviewed the CGO-free SQLite migration runner, transactional repositories, deduplication/provenance, retained-history source deletion, feed primitives, and sanitized failure mapping.",
+  "files_changed": [
+    {"path": "internal/adapters/sqlite/**", "change": "Added store lifecycle, exact migrations, transactions, and authoritative MVP repositories."},
+    {"path": "internal/application/** and internal/domain/**", "change": "Added feed-filter persistence and durable source observation identity contracts."},
+    {"path": "db/migrations/**", "change": "Added forward-only source tombstone and external-ID alias migrations."},
+    {"path": "tests/integration/**", "change": "Added migration, repository, concurrency, dedup, provenance, retention, restart, error, and secret-boundary integration tests."},
+    {"path": "go.mod and go.sum", "change": "Pinned the BSD-3-Clause pure-Go modernc SQLite driver for CGO-free Windows support."}
+  ],
+  "verification": [
+    {"command": "go test -race ./internal/adapters/sqlite ./tests/integration", "result": "passed", "output": "Focused persistence suite passed under the race detector."},
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Full suite passed with migrations=3, strict history, indexed plans, and secrets absent."},
+    {"command": "CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build ./...", "result": "passed", "output": "All packages built for Windows amd64 without CGO."},
+    {"command": "go mod verify && git diff --check", "result": "passed", "output": "Modules verified and diff is clean."}
+  ],
+  "proof": [
+    {"kind": "command_output", "summary": "Tests enforce identity merging through canonical URL, fingerprint, and every external alias without content/topic/provenance loss.", "status": "passed"},
+    {"kind": "command_output", "summary": "Source tombstones retain article/library history; feed optional-state and failure semantics, locks, cancellation, rollback, restart, and migration prefix are enforced.", "status": "passed"},
+    {"kind": "review", "summary": "Independent reviewer approved revision 13ee7ad8de2ecb9c488bbc0be171246e681ca653 after two correction rounds.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "go.mod/go.sum are a necessary reviewed exception to the task area list; modernc.org/sqlite v1.38.2 is pinned, CGO-free, BSD-3-Clause, and passed module/Windows review.",
+  "submitted_at": "2026-08-02T09:30:00Z",
+  "updated_at": "2026-08-02T09:33:00Z"
+}

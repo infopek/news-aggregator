@@ -9,9 +9,12 @@ import (
 var ErrInvalidArticle = errors.New("invalid article")
 
 type Article struct {
-	ID                ArticleID
-	Fingerprint       string
-	SourceID          SourceID
+	ID          ArticleID
+	Fingerprint string
+	SourceID    SourceID
+	// SourceExternalID identifies this observation within SourceID. It is
+	// non-secret adapter metadata and participates in deduplication.
+	SourceExternalID  string
 	CanonicalURL      string
 	Title             string
 	Author            string

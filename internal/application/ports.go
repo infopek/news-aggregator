@@ -46,6 +46,11 @@ type LibraryRepository interface {
 	Apply(context.Context, domain.ArticleID, domain.LibraryPatch, time.Time) (domain.LibraryState, error)
 }
 
+type FeedFilterRepository interface {
+	Get(context.Context, domain.ProfileID) (domain.FeedFilterState, error)
+	Save(context.Context, domain.FeedFilterState) error
+}
+
 type RankingRepository interface {
 	GetConfiguration(context.Context) (domain.RankingConfiguration, error)
 	SaveConfiguration(context.Context, domain.RankingConfiguration) error
