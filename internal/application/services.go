@@ -15,6 +15,7 @@ type ProfileService interface {
 
 type SourceService interface {
 	ListSources(context.Context) ([]domain.Source, error)
+	GetSource(context.Context, domain.SourceID) (domain.Source, error)
 	SaveSource(context.Context, SaveSourceCommand) (domain.Source, error)
 	ImportStarterSources(context.Context, ImportStarterSourcesCommand) ([]domain.Source, error)
 	DeleteSource(context.Context, DeleteSourceCommand) error

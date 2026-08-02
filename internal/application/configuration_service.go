@@ -105,6 +105,13 @@ func (service ConfigurationService) ListSources(ctx context.Context) ([]domain.S
 	return service.Sources.List(ctx)
 }
 
+func (service ConfigurationService) GetSource(ctx context.Context, id domain.SourceID) (domain.Source, error) {
+	if service.Sources == nil || id == "" {
+		return domain.Source{}, ErrInvalidInput
+	}
+	return service.Sources.Get(ctx, id)
+}
+
 func (service ConfigurationService) SaveSource(ctx context.Context, command SaveSourceCommand) (domain.Source, error) {
 	s := command.Source
 	if service.Sources == nil || s.ID == "" {
