@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "FRONTEND-001",
+  "run_id": "FRONTEND-001-run-001",
+  "actor_id": "frontend-agent",
+  "status": "done",
+  "implementation_summary": "Configured and independently reviewed the Vue PWA boundary, generated same-origin API client, safe service-worker behavior, deterministic build/drift checks, and Chromium/Edge install assets.",
+  "files_changed": [
+    {"path": "web/src/api/**", "change": "Added typed generated-contract client wrapper and all-operation tests."},
+    {"path": "web/pwa.config.ts and web/src/pwa.ts", "change": "Added stable install metadata, static-only caching, and prompt-based updates."},
+    {"path": "web/public/**", "change": "Added explicit 192x192 and 512x512 maskable PNG icons."},
+    {"path": "scripts/**", "change": "Added frontend and emitted-PWA contract verification for Bash and PowerShell."}
+  ],
+  "verification": [
+    {"command": "./scripts/frontend-contract.sh", "result": "passed", "output": "Clean install, 18-operation drift, lint/typecheck/tests, build, emitted PWA, and Go embed checks passed."},
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Full repository verification passed."},
+    {"command": "GOOS=windows GOARCH=amd64 go build", "result": "passed", "output": "Produced PE32+ x86-64 executable."}
+  ],
+  "proof": [
+    {"kind": "command_output", "summary": "Negative probes reject incompatible API drift, corrupted icon dimensions, and API/secret cache markers.", "status": "passed"},
+    {"kind": "review", "summary": "Independent reviewer approved revision 34e7b63bb6131b7908f14492cbf27cf277a875e2 after install-icon correction.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "PowerShell command parity was inspected; native PowerShell execution remains later Windows proof. Transitive glob deprecation is non-blocking with npm audit reporting zero vulnerabilities.",
+  "submitted_at": "2026-08-02T09:19:00Z",
+  "updated_at": "2026-08-02T09:22:00Z"
+}
