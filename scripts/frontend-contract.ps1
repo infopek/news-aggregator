@@ -12,5 +12,7 @@ npm --prefix web run test
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 npm --prefix web run build
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+node scripts/verify-pwa-output.mjs
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 go build ./cmd/news-aggregator
 exit $LASTEXITCODE

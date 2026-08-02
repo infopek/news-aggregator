@@ -52,7 +52,8 @@ Generated frontend output is ignored by Git. The checked-in `internal/webassets/
 Run `./scripts/frontend-contract.sh` or `.\scripts\frontend-contract.ps1` to
 install the pinned frontend dependencies, assert generated API bindings are
 current, run lint/typecheck/tests, build the PWA into the Go embed directory,
-and compile the executable.
+verify emitted manifest, raster icons, and API cache exclusions, and compile the
+executable.
 
 ## Shared cross-layer contract gate
 
