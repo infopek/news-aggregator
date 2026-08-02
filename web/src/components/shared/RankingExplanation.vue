@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { ScoreContribution } from '../../api/generated/models'
+import { useId } from 'vue'
 defineProps<{ contributions: ScoreContribution[] }>()
+const titleId = `ranking-title-${useId()}`
 const reasons: Record<string, string> = {
   recent_publication: 'Published recently', interest_match: 'Matches an interest', preferred_source: 'From a preferred source',
   behavior_match: 'Similar to reading activity', location_match: 'Relevant to the optional location signal',
@@ -9,11 +11,11 @@ const reasons: Record<string, string> = {
 }
 </script>
 <template>
-  <section
+  <div
     class="ranking"
-    aria-labelledby="ranking-title"
+    :aria-labelledby="titleId"
   >
-    <h4 id="ranking-title">
+    <h4 :id="titleId">
       Why this was ranked here
     </h4>
     <p v-if="!contributions.length">
@@ -31,5 +33,5 @@ const reasons: Record<string, string> = {
     <p class="context">
       These are contributions reported by the ranking service, not guarantees about why you will find an article relevant.
     </p>
-  </section>
+  </div>
 </template>

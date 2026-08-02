@@ -51,6 +51,14 @@ describe('shared accessible primitives', () => {
     await expectAccessible(wrapper.element)
   })
 
+  it.each(['javascript:alert(1)', 'data:text/html,pwned', '//publisher.example/story', 'not a URL'])('fails closed for unsafe publisher URL %s', async (canonicalUrl) => {
+    const wrapper = mount(ArticleSummaryCard, { attachTo: document.body, props: { article: articleSummary({ canonicalUrl }) } })
+    expect(wrapper.find('a').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Publisher link unavailable')
+    expect(wrapper.html()).not.toContain('href=')
+    await expectAccessible(wrapper.element)
+  })
+
   it('reports API contributions exactly and safely labels unknown/no reasons', async () => {
     const unknown = contribution({ signal: 'recency', weightedScore: -0.125, reasonCode: '<unknown>' })
     const wrapper = mount(RankingExplanation, { attachTo: document.body, props: { contributions: [unknown] } })
@@ -81,5 +89,22 @@ describe('shared accessible primitives', () => {
     await wrapper.get('[role=alertdialog]').trigger('keydown', { key: 'Escape' }); await nextTick()
     expect((document.activeElement as HTMLElement).textContent).toBe('Remove source')
     await expectAccessible(wrapper.element)
+  })
+
+  it('traps forward and reverse tab focus and gives repeated instances unique labels', async () => {
+    const host = mount({ components: { ConfirmAction, RankingExplanation, RefreshStatus }, template: `<div><ConfirmAction label="First"/><ConfirmAction label="Second"/><RankingExplanation :contributions="[]"/><RankingExplanation :contributions="[]"/><RefreshStatus/><RefreshStatus/></div>` }, { attachTo: document.body })
+    const triggers = host.findAll('.confirm > button')
+    await triggers[0].trigger('click')
+    const dialog = host.get('[role=alertdialog]'); const buttons = dialog.findAll('button')
+    buttons.at(-1)?.element.focus(); await dialog.trigger('keydown', { key: 'Tab' })
+    expect(document.activeElement).toBe(buttons[0].element)
+    buttons[0].element.focus(); await dialog.trigger('keydown', { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(buttons.at(-1)?.element)
+    const labelled = host.findAll('[aria-labelledby]')
+    const ids = labelled.map(node => node.attributes('aria-labelledby')).filter((id): id is string => Boolean(id))
+    expect(new Set(ids).size).toBe(ids.length)
+    for (const id of ids) expect(document.getElementById(id)).not.toBeNull()
+    await buttons.at(-1)?.trigger('click'); expect(document.activeElement).toBe(triggers[0].element)
+    await expectAccessible(host.element)
   })
 })

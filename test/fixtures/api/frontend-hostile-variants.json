@@ -1,5 +1,6 @@
 {
   "longUnicodeRtl": "<img src=x onerror=alert(1)> مرحبا 世界 — a very long untrusted title that must wrap instead of becoming markup",
   "unknownReasonCode": "future_signal_v99",
+  "hostilePublisherUrls": ["javascript:alert(1)", "data:text/html,pwned", "//publisher.example/story", "not a URL"],
   "states": ["loading", "empty", "success", "error", "partial_success"]
 }
