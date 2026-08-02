@@ -1,43 +1,125 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import credentialFixture from '../../../test/fixtures/api/credential-status.json'
+import libraryFixture from '../../../test/fixtures/api/library-state.json'
+import profileFixture from '../../../test/fixtures/api/profile.json'
+import rankingFixture from '../../../test/fixtures/api/ranking-configuration.json'
 import sourceFixture from '../../../test/fixtures/api/source.json'
 import { ApiRequestError } from '../api/client'
 import type { ServerApi } from '../api/server-api'
 import { ServerMutations } from './mutations'
 import { ServerStateClient } from './query-client'
-import { queryKeys } from './query-keys'
+import { queryKeys, serializeKey, type QueryKey } from './query-keys'
+
+const articleId = libraryFixture.articleId
+const otherSourceId = 'source-unrelated'
+const feedA = queryKeys.feed({ saved: true })
+const feedB = queryKeys.feed({ read: false, sourceId: [sourceFixture.id] })
 
 function apiWith(overrides: Partial<ServerApi>): ServerApi {
   return overrides as ServerApi
 }
 
-describe('ServerMutations', () => {
-  it('invalidates only source/feed state and reconciles the authoritative source', async () => {
-    const cache = new ServerStateClient()
-    cache.set(queryKeys.profile(), { id: 'profile' })
-    cache.set(queryKeys.sources(), { items: [] })
-    cache.set(queryKeys.feed({ saved: true }), { items: ['old'] })
-    cache.set(queryKeys.article('unrelated'), { title: 'keep' })
-    const authoritative = { ...sourceFixture, name: 'Server normalized' }
-    const mutations = new ServerMutations(apiWith({ createSource: vi.fn().mockResolvedValue(authoritative) }), cache)
+function seededCache(): ServerStateClient {
+  const cache = new ServerStateClient()
+  cache.set(queryKeys.profile(), { seed: 'profile' })
+  cache.set(queryKeys.ranking(), { seed: 'ranking' })
+  cache.set(queryKeys.sources(), { seed: 'sources' })
+  cache.set(queryKeys.source(sourceFixture.id), { seed: 'source' })
+  cache.set(queryKeys.source(otherSourceId), { seed: 'other-source' })
+  cache.set(feedA, { seed: 'feed-a' })
+  cache.set(feedB, { seed: 'feed-b' })
+  cache.set(queryKeys.article(articleId), { seed: 'article' })
+  cache.set(queryKeys.articleLibrary(articleId), { seed: 'library' })
+  cache.set(queryKeys.article('article-unrelated'), { seed: 'other-article' })
+  return cache
+}
 
-    const result = await mutations.createSource({} as never)
+const allKeys: QueryKey[] = [
+  queryKeys.profile(), queryKeys.ranking(), queryKeys.sources(),
+  queryKeys.source(sourceFixture.id), queryKeys.source(otherSourceId),
+  feedA, feedB, queryKeys.article(articleId), queryKeys.articleLibrary(articleId),
+  queryKeys.article('article-unrelated')
+]
 
-    expect(result).toMatchObject({ status: 'success', data: authoritative })
-    expect(cache.state(queryKeys.sources()).status).toBe('idle')
-    expect(cache.state(queryKeys.feed({ saved: true })).status).toBe('idle')
-    expect(cache.state(queryKeys.profile()).status).toBe('success')
-    expect(cache.state(queryKeys.article('unrelated')).status).toBe('success')
-    expect(cache.state(queryKeys.source(sourceFixture.id))).toMatchObject({ status: 'success', data: authoritative })
+interface MutationCase {
+  name: string
+  api: Partial<ServerApi>
+  invoke: (mutations: ServerMutations) => Promise<unknown>
+  stale: QueryKey[]
+  retained?: { key: QueryKey; value: unknown }
+  failureStale?: QueryKey[]
+}
+
+function cases(reject = false): MutationCase[] {
+  const response = <T>(value: T) => reject ? vi.fn().mockRejectedValue(new TypeError('response lost after commit')) : vi.fn().mockResolvedValue(value)
+  return [
+    {
+      name: 'profile', api: { updateProfile: response(profileFixture) },
+      invoke: (mutations) => mutations.updateProfile({} as never), stale: [feedA, feedB],
+      retained: { key: queryKeys.profile(), value: profileFixture }, failureStale: [queryKeys.profile(), feedA, feedB]
+    },
+    {
+      name: 'ranking', api: { updateRanking: response(rankingFixture) },
+      invoke: (mutations) => mutations.updateRanking({} as never), stale: [feedA, feedB],
+      retained: { key: queryKeys.ranking(), value: rankingFixture }, failureStale: [queryKeys.ranking(), feedA, feedB]
+    },
+    {
+      name: 'source create', api: { createSource: response(sourceFixture) },
+      invoke: (mutations) => mutations.createSource({} as never), stale: [queryKeys.sources(), feedA, feedB],
+      retained: { key: queryKeys.source(sourceFixture.id), value: sourceFixture }
+    },
+    {
+      name: 'source update', api: { updateSource: response(sourceFixture) },
+      invoke: (mutations) => mutations.updateSource(sourceFixture.id, {} as never), stale: [queryKeys.sources(), feedA, feedB],
+      retained: { key: queryKeys.source(sourceFixture.id), value: sourceFixture }, failureStale: [queryKeys.source(sourceFixture.id), queryKeys.sources(), feedA, feedB]
+    },
+    {
+      name: 'source delete', api: { deleteSource: response(undefined) },
+      invoke: (mutations) => mutations.deleteSource(sourceFixture.id), stale: [queryKeys.source(sourceFixture.id), queryKeys.sources(), feedA, feedB]
+    },
+    {
+      name: 'credential write', api: { writeCredential: response(credentialFixture) },
+      invoke: (mutations) => mutations.writeCredential(sourceFixture.id, { secret: 'transport-only' }), stale: [queryKeys.source(sourceFixture.id), queryKeys.sources()]
+    },
+    {
+      name: 'credential delete', api: { deleteCredential: response(credentialFixture) },
+      invoke: (mutations) => mutations.deleteCredential(sourceFixture.id), stale: [queryKeys.source(sourceFixture.id), queryKeys.sources()]
+    },
+    {
+      name: 'article library', api: { updateLibrary: response(libraryFixture) },
+      invoke: (mutations) => mutations.updateLibrary(articleId, { saved: true }), stale: [queryKeys.article(articleId), feedA, feedB],
+      retained: { key: queryKeys.articleLibrary(articleId), value: libraryFixture },
+      failureStale: [queryKeys.article(articleId), queryKeys.articleLibrary(articleId), feedA, feedB]
+    }
+  ]
+}
+
+describe('ServerMutations invalidation and reconciliation matrix', () => {
+  it.each(cases())('$name invalidates exactly its dependencies and retains authoritative data', async ({ api, invoke, stale, retained }) => {
+    const cache = seededCache()
+    const result = await invoke(new ServerMutations(apiWith(api), cache))
+
+    expect(result).toMatchObject({ status: 'success' })
+    for (const key of stale) expect(cache.state(key).status, `${serializeKey(key)} stale`).toBe('idle')
+    if (retained) expect(cache.state(retained.key)).toEqual({ status: 'success', data: retained.value })
+
+    const changed = new Set([...stale, ...(retained ? [retained.key] : [])].map(serializeKey))
+    for (const key of allKeys) {
+      if (!changed.has(serializeKey(key))) expect(cache.state(key).status, `${serializeKey(key)} preserved`).toBe('success')
+    }
   })
 
-  it('invalidates after a lost response because the server may have committed', async () => {
-    const cache = new ServerStateClient()
-    cache.set(queryKeys.sources(), { items: [sourceFixture] })
-    const mutations = new ServerMutations(apiWith({ updateSource: vi.fn().mockRejectedValue(new TypeError('response lost')) }), cache)
-
-    expect(await mutations.updateSource(sourceFixture.id, {} as never)).toMatchObject({ status: 'error', error: { family: 'unavailable' } })
-    expect(cache.state(queryKeys.sources()).status).toBe('idle')
+  it.each(cases(true))('$name invalidates the same dependencies when its response is lost after commit', async ({ api, invoke, stale, failureStale }) => {
+    const cache = seededCache()
+    const result = await invoke(new ServerMutations(apiWith(api), cache))
+    expect(result).toMatchObject({ status: 'error' })
+    const expected = failureStale ?? stale
+    for (const key of expected) expect(cache.state(key).status, `${serializeKey(key)} stale`).toBe('idle')
+    const changed = new Set(expected.map(serializeKey))
+    for (const key of allKeys) {
+      if (!changed.has(serializeKey(key))) expect(cache.state(key).status, `${serializeKey(key)} preserved`).toBe('success')
+    }
   })
 
   it('sequences rapid mutations and aborts the superseded request', async () => {
@@ -59,19 +141,16 @@ describe('ServerMutations', () => {
     expect(firstSignal.aborted).toBe(true)
   })
 
-  it('never places credential input in cache, error, logging, or serialization', async () => {
+  it('never places credential input or echoed error detail in cache, errors, logs, or snapshots', async () => {
     const sentinel = 'SENTINEL-CREDENTIAL-NEVER-LEAK'
-    const cache = new ServerStateClient()
+    const cache = seededCache()
     const logger = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const writeCredential = vi.fn().mockRejectedValue(new ApiRequestError(400, {
-      code: 'validation_failed',
-      message: `Rejected value ${sentinel}`,
-      correlationId: 'credential-test',
+      code: 'validation_failed', message: `Rejected value ${sentinel}`, correlationId: 'credential-test',
       fields: [{ path: 'secret', code: 'invalid', message: sentinel }]
     }))
-    const mutations = new ServerMutations(apiWith({ writeCredential }), cache)
 
-    const result = await mutations.writeCredential(sourceFixture.id, { secret: sentinel })
+    const result = await new ServerMutations(apiWith({ writeCredential }), cache).writeCredential(sourceFixture.id, { secret: sentinel })
     const observable = JSON.stringify({ result, cache: cache.serialize(), logs: logger.mock.calls })
 
     expect(observable).not.toContain(sentinel)

@@ -1,4 +1,4 @@
-import type { CredentialWrite, FeedQuery, LibraryStateWrite, ProfileWrite, RankingConfigurationWrite, SourceWrite } from '../api/generated/models'
+import type { CredentialWrite, LibraryStateWrite, ProfileWrite, RankingConfigurationWrite, SourceWrite } from '../api/generated/models'
 import type { ServerApi } from '../api/server-api'
 import { toUserSafeError, type UserSafeError } from './errors'
 import { queryKeys } from './query-keys'
@@ -24,7 +24,7 @@ export class ServerMutations {
   }
 
   updateSource(sourceId: string, body: SourceWrite) {
-    return this.run(`source:${sourceId}`, (signal) => this.api.updateSource(sourceId, body, signal), (source) => this.cache.set(queryKeys.source(source.id), source), [queryKeys.sources(), queryKeys.feeds()])
+    return this.run(`source:${sourceId}`, (signal) => this.api.updateSource(sourceId, body, signal), (source) => this.cache.set(queryKeys.source(source.id), source), [queryKeys.source(sourceId), queryKeys.sources(), queryKeys.feeds()])
   }
 
   deleteSource(sourceId: string) {
@@ -39,8 +39,13 @@ export class ServerMutations {
     return this.run(`credential:${sourceId}`, (signal) => this.api.deleteCredential(sourceId, signal), () => undefined, [queryKeys.source(sourceId), queryKeys.sources()])
   }
 
-  updateLibrary(articleId: string, body: LibraryStateWrite, activeFeed: FeedQuery = {}) {
-    return this.run(`library:${articleId}`, (signal) => this.api.updateLibrary(articleId, body, signal), () => undefined, [queryKeys.article(articleId), queryKeys.feed(activeFeed)])
+  updateLibrary(articleId: string, body: LibraryStateWrite) {
+    return this.run(
+      `library:${articleId}`,
+      (signal) => this.api.updateLibrary(articleId, body, signal),
+      (library) => this.cache.set(queryKeys.articleLibrary(articleId), library),
+      [queryKeys.article(articleId), queryKeys.articleLibrary(articleId), queryKeys.feeds()]
+    )
   }
 
   private async run<T>(sequenceKey: string, operation: (signal: AbortSignal) => Promise<T>, reconcile: (value: T) => void, invalidate: ReturnType<typeof queryKeys.profile>[], redactError = false): Promise<MutationResult<T>> {

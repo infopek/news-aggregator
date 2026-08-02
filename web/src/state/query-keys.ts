@@ -19,6 +19,7 @@ export const queryKeys = {
   feeds: (): QueryKey => ['feed'],
   feed: (query: FeedQuery): QueryKey => ['feed', normalizedFeed(query)],
   article: (articleId: string): QueryKey => ['article', articleId],
+  articleLibrary: (articleId: string): QueryKey => ['article-library', articleId],
   refresh: (refreshId: string): QueryKey => ['refresh', refreshId]
 } as const
 
