@@ -206,6 +206,28 @@
       "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/FRONTEND-003-run-001.json", "summary": "Typed API/server-state layer approved and merged in PR #19.", "status": "accepted", "recorded_at": "2026-08-02T10:55:23Z"}],
       "notes": "Revision f60c444 resolved invalidation/reconciliation findings and received independent approval before merge.",
       "updated_at": "2026-08-02T10:55:23Z"
+    },
+    {
+      "task_id": "INGEST-002",
+      "assigned_to": "backend-core-agent",
+      "assignee_type": "local_ai",
+      "assignee_label": "Backend/Core Implementation Agent",
+      "status": "done",
+      "claimed_at": "2026-08-02T10:58:00Z",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/INGEST-002-run-001.json", "summary": "Normalization, identity, permission, and sanitizer implementation approved and merged in PR #23.", "status": "accepted", "recorded_at": "2026-08-02T13:16:36Z"}],
+      "notes": "Revision a93c414 resolved permission, collision, canonicalization, and Unicode-safety findings and received independent approval before merge.",
+      "updated_at": "2026-08-02T13:16:36Z"
+    },
+    {
+      "task_id": "FRONTEND-004",
+      "assigned_to": "frontend-agent",
+      "assignee_type": "local_ai",
+      "assignee_label": "Frontend Implementation Agent",
+      "status": "done",
+      "claimed_at": "2026-08-02T10:58:00Z",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/FRONTEND-004-run-001.json", "summary": "Accessible shared UI primitives and enforced responsive proof approved and merged in PR #22.", "status": "accepted", "recorded_at": "2026-08-02T13:16:48Z"}],
+      "notes": "Revision 1dc53d9 resolved accessibility, content-safety, verification, and evidence-integrity findings and received independent approval before merge.",
+      "updated_at": "2026-08-02T13:16:48Z"
     }
   ],
   "task_claims": [
@@ -316,6 +338,24 @@
       "claimed_at": "2026-08-02T10:27:00Z",
       "released_at": "2026-08-02T10:55:23Z",
       "notes": "Released after independent approval and merge."
+    },
+    {
+      "claim_id": "ingest-002-run-001-claim",
+      "task_id": "INGEST-002",
+      "actor_id": "backend-core-agent",
+      "status": "released",
+      "claimed_at": "2026-08-02T10:58:00Z",
+      "released_at": "2026-08-02T13:16:36Z",
+      "notes": "Released after correction rounds, independent approval, and merge."
+    },
+    {
+      "claim_id": "frontend-004-run-001-claim",
+      "task_id": "FRONTEND-004",
+      "actor_id": "frontend-agent",
+      "status": "released",
+      "claimed_at": "2026-08-02T10:58:00Z",
+      "released_at": "2026-08-02T13:16:48Z",
+      "notes": "Released after correction rounds, independent approval, and merge."
     }
   ],
   "artifact_submissions": [
@@ -502,6 +542,26 @@
       "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/FRONTEND-003-run-001.json", "summary": "58 unit tests, polling, mutation matrix, secret, drift and full-suite evidence.", "status": "accepted", "recorded_at": "2026-08-02T10:55:23Z"}],
       "status": "accepted",
       "submitted_at": "2026-08-02T10:36:00Z"
+    },
+    {
+      "submission_id": "ingest-002-run-001-submission",
+      "task_id": "INGEST-002",
+      "actor_id": "backend-core-agent",
+      "artifact_paths": ["internal/application/ingestion", "internal/adapters/sqlite/article.go", "tests/integration/ingestion_pipeline_test.go", "test/fixtures/ingestion", "assembly/generated/task_runs/INGEST-002-run-001.json"],
+      "summary": "Deterministic normalization, conservative canonicalization, layered identity, permission-aware storage, provenance, and Unicode-safe sanitization.",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/INGEST-002-run-001.json", "summary": "Race, determinism, fuzz, Windows, permission, identity, URL, and sanitizer evidence.", "status": "accepted", "recorded_at": "2026-08-02T13:16:36Z"}],
+      "status": "accepted",
+      "submitted_at": "2026-08-02T13:10:52Z"
+    },
+    {
+      "submission_id": "frontend-004-run-001-submission",
+      "task_id": "FRONTEND-004",
+      "actor_id": "frontend-agent",
+      "artifact_paths": ["web/src/components/shared", "web/src/styles/primitives.css", "web/src/testing/fixtures.ts", "web/tests", "assembly/generated/task_runs/FRONTEND-004-run-001.json"],
+      "summary": "Accessible reusable feed, ranking, refresh, demographic, credential, responsive, and hostile-content UI primitives.",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/FRONTEND-004-run-001.json", "summary": "Accessibility, focus, hostile URL/content, audit, screenshot, overflow, and full-suite evidence.", "status": "accepted", "recorded_at": "2026-08-02T13:16:48Z"}],
+      "status": "accepted",
+      "submitted_at": "2026-08-02T13:10:52Z"
     }
   ],
   "reviews": [
@@ -740,6 +800,54 @@
       "status": "approved",
       "findings": ["All invalidation findings are resolved at revision f60c444.", "Feed-prefix invalidation, authoritative library cache and all eight mutation/failure matrices pass."],
       "reviewed_at": "2026-08-02T10:38:00Z"
+    },
+    {
+      "review_id": "ingest-002-review-001",
+      "submission_id": "ingest-002-run-001-submission",
+      "reviewer_actor_id": "reviewer-agent",
+      "status": "changes_requested",
+      "findings": ["Permission downgrades retained prohibited bodies.", "ID-only collisions could merge unrelated articles.", "URL cleanup changed publisher semantics and sanitizer Unicode handling required hardening."],
+      "reviewed_at": "2026-08-02T11:15:00Z"
+    },
+    {
+      "review_id": "ingest-002-review-002",
+      "submission_id": "ingest-002-run-001-submission",
+      "reviewer_actor_id": "reviewer-agent",
+      "status": "changes_requested",
+      "findings": ["Prior permission, identity, and URL findings were resolved.", "Unicode case folding changed byte lengths and could panic the sanitizer."],
+      "reviewed_at": "2026-08-02T12:10:00Z"
+    },
+    {
+      "review_id": "ingest-002-review-003",
+      "submission_id": "ingest-002-run-001-submission",
+      "reviewer_actor_id": "reviewer-agent",
+      "status": "approved",
+      "findings": ["All prior findings are resolved at revision a93c414.", "Permission, identity, canonicalization, Unicode regressions, fuzzing, race, determinism, full verification, and Windows cross-build passed."],
+      "reviewed_at": "2026-08-02T13:10:00Z"
+    },
+    {
+      "review_id": "frontend-004-review-001",
+      "submission_id": "frontend-004-run-001-submission",
+      "reviewer_actor_id": "reviewer-agent",
+      "status": "changes_requested",
+      "findings": ["Reusable dialogs lacked focus containment and unique IDs.", "Outbound links did not fail closed.", "Browser proof was not enforced and a hostile fixture was dead evidence."],
+      "reviewed_at": "2026-08-02T11:05:00Z"
+    },
+    {
+      "review_id": "frontend-004-review-002",
+      "submission_id": "frontend-004-run-001-submission",
+      "reviewer_actor_id": "reviewer-agent",
+      "status": "changes_requested",
+      "findings": ["Accessibility, URL safety, and enforced proof findings were resolved.", "The unconsumed hostile fixture remained dead evidence."],
+      "reviewed_at": "2026-08-02T12:05:00Z"
+    },
+    {
+      "review_id": "frontend-004-review-003",
+      "submission_id": "frontend-004-run-001-submission",
+      "reviewer_actor_id": "reviewer-agent",
+      "status": "approved",
+      "findings": ["All prior findings are resolved at revision 1dc53d9.", "Accessibility, hostile-content safety, deterministic browser proof, audit, drift, and full verification passed."],
+      "reviewed_at": "2026-08-02T13:10:00Z"
     }
   ],
   "audit_events": [
@@ -1046,6 +1154,30 @@
       "target_id": "news-aggregator",
       "created_at": "2026-08-02T10:55:58Z",
       "details": "Reconciled durable state after configuration-service and frontend-state merges."
+    },
+    {
+      "event_id": "ingest-002-completed",
+      "actor_id": "reviewer-agent",
+      "event_type": "status_changed",
+      "target_id": "INGEST-002",
+      "created_at": "2026-08-02T13:16:36Z",
+      "details": "Recorded two rejection rounds, final approval at a93c414, and PR #23 merge."
+    },
+    {
+      "event_id": "frontend-004-completed",
+      "actor_id": "reviewer-agent",
+      "event_type": "status_changed",
+      "target_id": "FRONTEND-004",
+      "created_at": "2026-08-02T13:16:48Z",
+      "details": "Recorded two rejection rounds, final approval at 1dc53d9, and PR #22 merge."
+    },
+    {
+      "event_id": "parallel-wave-005-reconciled",
+      "actor_id": "backend-core-agent",
+      "event_type": "coordination_updated",
+      "target_id": "news-aggregator",
+      "created_at": "2026-08-02T13:18:00Z",
+      "details": "Reconciled durable state after ingestion normalization and shared frontend primitive merges."
     }
   ]
 }
