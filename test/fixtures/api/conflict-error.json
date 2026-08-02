@@ -1,0 +1,6 @@
+{
+  "code": "conflict",
+  "message": "The source was modified by another request.",
+  "correlationId": "fixture-conflict",
+  "fields": []
+}

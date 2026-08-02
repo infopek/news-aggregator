@@ -1,0 +1,6 @@
+{
+  "code": "future_server_code",
+  "message": "Internal diagnostic detail must not be displayed.",
+  "correlationId": "fixture-future",
+  "fields": []
+}
