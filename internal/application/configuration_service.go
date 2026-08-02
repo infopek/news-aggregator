@@ -2,14 +2,22 @@ package application
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/infopek/news-aggregator/internal/domain"
 )
+
+var configurationSourceLocks sync.Map
+
+func lockConfigurationSource(id domain.SourceID) func() {
+	value, _ := configurationSourceLocks.LoadOrStore(id, &sync.Mutex{})
+	mutex := value.(*sync.Mutex)
+	mutex.Lock()
+	return mutex.Unlock
+}
 
 type ConfigurationService struct {
 	Profiles            ProfileRepository
@@ -99,8 +107,30 @@ func (service ConfigurationService) ListSources(ctx context.Context) ([]domain.S
 
 func (service ConfigurationService) SaveSource(ctx context.Context, command SaveSourceCommand) (domain.Source, error) {
 	s := command.Source
-	if service.Sources == nil {
+	if service.Sources == nil || s.ID == "" {
 		return domain.Source{}, ErrInvalidInput
+	}
+	unlock := lockConfigurationSource(s.ID)
+	defer unlock()
+	existing, getErr := service.Sources.Get(ctx, s.ID)
+	switch {
+	case getErr == nil:
+		// These fields are application-owned operational state. A transport
+		// payload can neither detach nor fabricate a credential reference, nor
+		// overwrite ingestion progress with a stale whole-source representation.
+		s.CredentialRef = existing.CredentialRef
+		s.RefreshCursor = existing.RefreshCursor
+		s.RefreshETag = existing.RefreshETag
+		s.RefreshLastModified = existing.RefreshLastModified
+		s.LastSuccessAt = existing.LastSuccessAt
+		s.LastError = existing.LastError
+		s.RetryAfter = existing.RetryAfter
+	case errors.Is(getErr, ErrNotFound):
+		if s.CredentialRef != nil {
+			return domain.Source{}, ErrInvalidInput
+		}
+	default:
+		return domain.Source{}, getErr
 	}
 	normalized, err := normalizeSourceURL(s.URL)
 	if err != nil {
@@ -119,6 +149,11 @@ func (service ConfigurationService) SaveSource(ctx context.Context, command Save
 func (service ConfigurationService) ImportStarterSources(ctx context.Context, command ImportStarterSourcesCommand) ([]domain.Source, error) {
 	if service.Sources == nil || service.Transactions == nil {
 		return nil, ErrInvalidInput
+	}
+	for _, starter := range command.Sources {
+		if starter.ID == "" || starter.CredentialRef != nil {
+			return nil, ErrInvalidInput
+		}
 	}
 	if err := service.Transactions.WithinTransaction(ctx, func(txctx context.Context) error {
 		for _, starter := range command.Sources {
@@ -157,6 +192,8 @@ func (service ConfigurationService) DeleteSource(ctx context.Context, command De
 	if service.Sources == nil || service.Transactions == nil || command.SourceID == "" {
 		return ErrInvalidInput
 	}
+	unlock := lockConfigurationSource(command.SourceID)
+	defer unlock()
 	source, err := service.Sources.Get(ctx, command.SourceID)
 	if err != nil {
 		return err
@@ -164,72 +201,73 @@ func (service ConfigurationService) DeleteSource(ctx context.Context, command De
 	if source.CredentialRef != nil && service.Credentials == nil {
 		return ErrInvalidInput
 	}
-	if err := service.Transactions.WithinTransaction(ctx, func(txctx context.Context) error { return service.Sources.Delete(txctx, command.SourceID) }); err != nil {
-		return err
+	if source.CredentialRef == nil {
+		return service.Transactions.WithinTransaction(ctx, func(txctx context.Context) error { return service.Sources.Delete(txctx, command.SourceID) })
 	}
-	if source.CredentialRef != nil {
-		if err := service.Credentials.Delete(ctx, *source.CredentialRef); err != nil {
-			// Restore the soft-deleted row so cleanup remains retryable.
-			if restoreErr := service.Transactions.WithinTransaction(context.WithoutCancel(ctx), func(txctx context.Context) error { return service.Sources.Save(txctx, source) }); restoreErr != nil {
+	ref := *source.CredentialRef
+	err = service.Credentials.WithSecret(ctx, ref, func(prior []byte) error {
+		if err := service.Credentials.Delete(ctx, ref); err != nil {
+			return err
+		}
+		if err := service.Transactions.WithinTransaction(ctx, func(txctx context.Context) error { return service.Sources.Delete(txctx, command.SourceID) }); err != nil {
+			if restoreErr := service.Credentials.Store(context.WithoutCancel(ctx), ref, prior); restoreErr != nil {
 				return ErrUnavailable
 			}
 			return err
 		}
+		return nil
+	})
+	if errors.Is(err, ErrCredentialMissing) {
+		// The reference is already stale; removing the source cannot orphan a secret.
+		return service.Transactions.WithinTransaction(ctx, func(txctx context.Context) error { return service.Sources.Delete(txctx, command.SourceID) })
 	}
-	return nil
+	return err
 }
 
 func (service ConfigurationService) ConfigureCredential(ctx context.Context, command ConfigureCredentialCommand) error {
 	if service.Sources == nil || service.Transactions == nil || service.Credentials == nil || service.CredentialReference == nil || command.SourceID == "" || len(command.Secret) == 0 {
 		return ErrInvalidInput
 	}
+	unlock := lockConfigurationSource(command.SourceID)
+	defer unlock()
 	source, err := service.Sources.Get(ctx, command.SourceID)
 	if err != nil {
 		return err
 	}
-	base := service.CredentialReference(command.SourceID)
-	staged, err := credentialStagingReference(base)
-	if err != nil {
-		return err
+	reference := service.CredentialReference(command.SourceID)
+	if reference == "" {
+		return ErrInvalidInput
 	}
-	if err := service.Credentials.Store(ctx, staged, command.Secret); err != nil {
-		return err
+	if source.CredentialRef != nil {
+		if *source.CredentialRef != reference {
+			return ErrUnavailable
+		}
+		// Credential-store replacement is atomic at the stable key; no database
+		// write is needed and the persisted reference remains resolvable.
+		return service.Credentials.Store(ctx, reference, command.Secret)
 	}
-	old := source.CredentialRef
-	source.CredentialRef = &staged
+	// Establish durable ownership before writing the secret. A vault failure
+	// leaves no unowned secret and rolls the reference back to unconfigured.
+	source.CredentialRef = &reference
 	if err := service.Transactions.WithinTransaction(ctx, func(txctx context.Context) error { return service.Sources.Save(txctx, source) }); err != nil {
-		if cleanupErr := service.Credentials.Delete(context.WithoutCancel(ctx), staged); cleanupErr != nil {
+		return err
+	}
+	if err := service.Credentials.Store(ctx, reference, command.Secret); err != nil {
+		source.CredentialRef = nil
+		if rollbackErr := service.Transactions.WithinTransaction(context.WithoutCancel(ctx), func(txctx context.Context) error { return service.Sources.Save(txctx, source) }); rollbackErr != nil {
 			return ErrUnavailable
 		}
 		return err
-	}
-	if old != nil && *old != staged {
-		if err := service.Credentials.Delete(context.WithoutCancel(ctx), *old); err != nil {
-			// Keep the previously working reference authoritative when old-entry
-			// cleanup fails, and remove the staged replacement.
-			source.CredentialRef = old
-			if restoreErr := service.Transactions.WithinTransaction(context.WithoutCancel(ctx), func(txctx context.Context) error { return service.Sources.Save(txctx, source) }); restoreErr != nil {
-				return ErrUnavailable
-			}
-			_ = service.Credentials.Delete(context.WithoutCancel(ctx), staged)
-			return ErrUnavailable
-		}
 	}
 	return nil
-}
-
-func credentialStagingReference(base domain.CredentialID) (domain.CredentialID, error) {
-	var nonce [16]byte
-	if _, err := rand.Read(nonce[:]); err != nil {
-		return "", ErrUnavailable
-	}
-	return domain.CredentialID(string(base) + "-" + hex.EncodeToString(nonce[:])), nil
 }
 
 func (service ConfigurationService) DeleteCredential(ctx context.Context, command DeleteCredentialCommand) error {
 	if service.Sources == nil || service.Transactions == nil || service.Credentials == nil || command.SourceID == "" {
 		return ErrInvalidInput
 	}
+	unlock := lockConfigurationSource(command.SourceID)
+	defer unlock()
 	source, err := service.Sources.Get(ctx, command.SourceID)
 	if err != nil {
 		return err
@@ -238,18 +276,25 @@ func (service ConfigurationService) DeleteCredential(ctx context.Context, comman
 		return nil
 	}
 	ref := *source.CredentialRef
-	source.CredentialRef = nil
-	if err := service.Transactions.WithinTransaction(ctx, func(txctx context.Context) error { return service.Sources.Save(txctx, source) }); err != nil {
-		return err
-	}
-	if err := service.Credentials.Delete(ctx, ref); err != nil {
-		source.CredentialRef = &ref
-		if restoreErr := service.Transactions.WithinTransaction(context.WithoutCancel(ctx), func(txctx context.Context) error { return service.Sources.Save(txctx, source) }); restoreErr != nil {
-			return ErrUnavailable
+	err = service.Credentials.WithSecret(ctx, ref, func(prior []byte) error {
+		if err := service.Credentials.Delete(ctx, ref); err != nil {
+			return err
 		}
-		return err
+		source.CredentialRef = nil
+		if err := service.Transactions.WithinTransaction(ctx, func(txctx context.Context) error { return service.Sources.Save(txctx, source) }); err != nil {
+			source.CredentialRef = &ref
+			if restoreErr := service.Credentials.Store(context.WithoutCancel(ctx), ref, prior); restoreErr != nil {
+				return ErrUnavailable
+			}
+			return err
+		}
+		return nil
+	})
+	if errors.Is(err, ErrCredentialMissing) {
+		source.CredentialRef = nil
+		return service.Transactions.WithinTransaction(ctx, func(txctx context.Context) error { return service.Sources.Save(txctx, source) })
 	}
-	return nil
+	return err
 }
 
 func (service ConfigurationService) readyProfile() error {

@@ -8,4 +8,5 @@ var (
 	ErrInvalidInput        = errors.New("invalid input")
 	ErrUnsupportedPlatform = errors.New("unsupported platform")
 	ErrUnavailable         = errors.New("unavailable")
+	ErrCredentialMissing   = errors.New("credential missing")
 )

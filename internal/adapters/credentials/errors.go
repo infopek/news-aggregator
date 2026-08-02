@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrMissing      = errors.New("credential missing")
+	ErrMissing      = application.ErrCredentialMissing
 	ErrAccessDenied = errors.New("credential access denied")
 	ErrInterrupted  = errors.New("credential operation interrupted")
 )

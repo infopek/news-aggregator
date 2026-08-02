@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -48,11 +49,15 @@ func (*configRankings) GetResult(context.Context, domain.ArticleID) (domain.Rank
 }
 
 type configSources struct {
-	values  map[domain.SourceID]domain.Source
-	saveErr error
+	mu        sync.Mutex
+	values    map[domain.SourceID]domain.Source
+	saveErr   error
+	deleteErr error
 }
 
 func (r *configSources) List(context.Context) ([]domain.Source, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	out := make([]domain.Source, 0, len(r.values))
 	for _, s := range r.values {
 		out = append(out, s)
@@ -60,6 +65,8 @@ func (r *configSources) List(context.Context) ([]domain.Source, error) {
 	return out, nil
 }
 func (r *configSources) Get(_ context.Context, id domain.SourceID) (domain.Source, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	s, ok := r.values[id]
 	if !ok {
 		return s, ErrNotFound
@@ -67,6 +74,8 @@ func (r *configSources) Get(_ context.Context, id domain.SourceID) (domain.Sourc
 	return s, nil
 }
 func (r *configSources) Save(_ context.Context, s domain.Source) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	if r.saveErr != nil {
 		return r.saveErr
 	}
@@ -79,6 +88,11 @@ func (r *configSources) Save(_ context.Context, s domain.Source) error {
 	return nil
 }
 func (r *configSources) Delete(_ context.Context, id domain.SourceID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.deleteErr != nil {
+		return r.deleteErr
+	}
 	if _, ok := r.values[id]; !ok {
 		return ErrNotFound
 	}
@@ -87,25 +101,62 @@ func (r *configSources) Delete(_ context.Context, id domain.SourceID) error {
 }
 
 type configVault struct {
-	configured      map[domain.CredentialID]bool
+	mu              sync.Mutex
+	secrets         map[domain.CredentialID][]byte
 	writes, deletes []domain.CredentialID
+	storeErr        error
+	deleteErr       error
+	storeEntered    chan struct{}
+	storeRelease    chan struct{}
 }
 
 func (v *configVault) Configured(_ context.Context, id domain.CredentialID) (bool, error) {
-	return v.configured[id], nil
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	_, ok := v.secrets[id]
+	return ok, nil
 }
 func (v *configVault) Store(_ context.Context, id domain.CredentialID, secret []byte) error {
+	if v.storeEntered != nil {
+		v.storeEntered <- struct{}{}
+		<-v.storeRelease
+	}
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	if v.storeErr != nil {
+		return v.storeErr
+	}
 	v.writes = append(v.writes, id)
-	v.configured[id] = true
+	v.secrets[id] = append([]byte(nil), secret...)
 	return nil
 }
 func (v *configVault) Delete(_ context.Context, id domain.CredentialID) error {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	if v.deleteErr != nil {
+		return v.deleteErr
+	}
+	if _, ok := v.secrets[id]; !ok {
+		return ErrCredentialMissing
+	}
 	v.deletes = append(v.deletes, id)
-	delete(v.configured, id)
+	delete(v.secrets, id)
 	return nil
 }
-func (*configVault) WithSecret(context.Context, domain.CredentialID, func([]byte) error) error {
-	return ErrUnavailable
+func (v *configVault) WithSecret(_ context.Context, id domain.CredentialID, use func([]byte) error) error {
+	v.mu.Lock()
+	secret, ok := v.secrets[id]
+	copyOfSecret := append([]byte(nil), secret...)
+	v.mu.Unlock()
+	if !ok {
+		return ErrCredentialMissing
+	}
+	defer func() {
+		for i := range copyOfSecret {
+			copyOfSecret[i] = 0
+		}
+	}()
+	return use(copyOfSecret)
 }
 
 func TestProfileValidationMatrixPreservesOptionalStates(t *testing.T) {
@@ -171,9 +222,11 @@ func TestStarterImportPreservesEditsAndDuplicateURL(t *testing.T) {
 	if _, err := service.ImportStarterSources(context.Background(), ImportStarterSourcesCommand{Sources: []domain.Source{starter}}); err != nil {
 		t.Fatal(err)
 	}
+	repo.mu.Lock()
 	edited := repo.values["starter"]
 	edited.Name = "My edited name"
 	repo.values["starter"] = edited
+	repo.mu.Unlock()
 	if _, err := service.ImportStarterSources(context.Background(), ImportStarterSourcesCommand{Sources: []domain.Source{starter}}); err != nil {
 		t.Fatal(err)
 	}
@@ -227,23 +280,181 @@ func TestSourceValidationMatrix(t *testing.T) {
 	}
 }
 
-func TestCredentialDatabaseFailureCompensatesWithoutSentinelLeak(t *testing.T) {
+func TestSourceCommandsCannotInjectOrDetachCredentialReference(t *testing.T) {
+	stable := domain.CredentialID("stable-reference")
+	configured := testFeed("source", "https://example.com/feed")
+	configured.CredentialRef = &stable
+	repo := &configSources{values: map[domain.SourceID]domain.Source{"source": configured}}
+	service := ConfigurationService{Sources: repo, Transactions: configTx{}}
+	fabricated := domain.CredentialID("fabricated")
+	create := testFeed("new", "https://example.com/new")
+	create.CredentialRef = &fabricated
+	if _, err := service.SaveSource(context.Background(), SaveSourceCommand{Source: create}); !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("create injection error=%v", err)
+	}
+	update := configured
+	update.Name = "Edited"
+	update.CredentialRef = nil
+	got, err := service.SaveSource(context.Background(), SaveSourceCommand{Source: update})
+	if err != nil || got.CredentialRef == nil || *got.CredentialRef != stable {
+		t.Fatalf("nil detached credential: %+v %v", got, err)
+	}
+	update.CredentialRef = &fabricated
+	got, err = service.SaveSource(context.Background(), SaveSourceCommand{Source: update})
+	if err != nil || got.CredentialRef == nil || *got.CredentialRef != stable {
+		t.Fatalf("fabricated ref attached: %+v %v", got, err)
+	}
+	starter := testFeed("starter-injection", "https://example.com/starter")
+	starter.CredentialRef = &fabricated
+	if _, err := service.ImportStarterSources(context.Background(), ImportStarterSourcesCommand{Sources: []domain.Source{starter}}); !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("starter injection error=%v", err)
+	}
+}
+
+func TestStableCredentialLifecycleAndDatabaseFailureDoNotLeak(t *testing.T) {
 	const sentinel = "SENTINEL-SECRET-MUST-NOT-LEAK"
 	source := testFeed("source", "https://example.com/feed")
-	oldReference := domain.CredentialID("old-opaque-reference")
-	source.CredentialRef = &oldReference
 	repo := &configSources{values: map[domain.SourceID]domain.Source{"source": source}, saveErr: errors.New("database unavailable")}
-	vault := &configVault{configured: map[domain.CredentialID]bool{oldReference: true}}
+	vault := &configVault{secrets: map[domain.CredentialID][]byte{}}
 	service := ConfigurationService{Sources: repo, Transactions: configTx{}, Credentials: vault, Clock: configClock{now: time.Unix(1, 0)}, CredentialReference: func(domain.SourceID) domain.CredentialID { return "opaque" }}
 	err := service.ConfigureCredential(context.Background(), ConfigureCredentialCommand{SourceID: "source", Secret: []byte(sentinel)})
 	if err == nil || strings.Contains(err.Error(), sentinel) {
 		t.Fatalf("unsafe error: %v", err)
 	}
-	if len(vault.writes) != 1 || len(vault.deletes) != 1 || vault.writes[0] != vault.deletes[0] {
-		t.Fatalf("compensation mismatch writes=%v deletes=%v", vault.writes, vault.deletes)
+	if len(vault.writes) != 0 || len(vault.secrets) != 0 {
+		t.Fatalf("DB failure wrote an unowned secret: %v", vault.writes)
 	}
-	if repo.values["source"].CredentialRef == nil || *repo.values["source"].CredentialRef != oldReference || !vault.configured[oldReference] {
-		t.Fatal("failed replacement did not preserve the old credential reference")
+}
+
+func TestStableCredentialReferenceResolvesAcrossServiceRestart(t *testing.T) {
+	repo := &configSources{values: map[domain.SourceID]domain.Source{"source": testFeed("source", "https://example.com/feed")}}
+	vault := &configVault{secrets: map[domain.CredentialID][]byte{}}
+	reference := func(domain.SourceID) domain.CredentialID { return "stable" }
+	service := ConfigurationService{Sources: repo, Transactions: configTx{}, Credentials: vault, CredentialReference: reference}
+	if err := service.ConfigureCredential(context.Background(), ConfigureCredentialCommand{SourceID: "source", Secret: []byte("first")}); err != nil {
+		t.Fatal(err)
+	}
+	// Reconstructing the service models a process restart: the repository ref
+	// and BACKEND-003 derivation still identify exactly the same vault entry.
+	service = ConfigurationService{Sources: repo, Transactions: configTx{}, Credentials: vault, CredentialReference: reference}
+	source, err := repo.Get(context.Background(), "source")
+	if err != nil || source.CredentialRef == nil || *source.CredentialRef != reference("source") {
+		t.Fatalf("persisted reference=%+v %v", source, err)
+	}
+	var resolved string
+	if err := vault.WithSecret(context.Background(), *source.CredentialRef, func(secret []byte) error { resolved = string(secret); return nil }); err != nil || resolved != "first" {
+		t.Fatalf("resolved=%q error=%v", resolved, err)
+	}
+	// A missing stable entry is repaired in place without an old-key cleanup.
+	vault.mu.Lock()
+	delete(vault.secrets, "stable")
+	vault.mu.Unlock()
+	if err := service.ConfigureCredential(context.Background(), ConfigureCredentialCommand{SourceID: "source", Secret: []byte("repaired")}); err != nil {
+		t.Fatal(err)
+	}
+	if string(vault.secrets["stable"]) != "repaired" || len(vault.secrets) != 1 {
+		t.Fatal("stable-key repair failed")
+	}
+}
+
+func TestCredentialDeleteDatabaseFailureRestoresResolvablePair(t *testing.T) {
+	ref := domain.CredentialID("stable")
+	source := testFeed("source", "https://example.com/feed")
+	source.CredentialRef = &ref
+	repo := &configSources{values: map[domain.SourceID]domain.Source{"source": source}, saveErr: errors.New("database unavailable")}
+	vault := &configVault{secrets: map[domain.CredentialID][]byte{ref: []byte("prior")}}
+	service := ConfigurationService{Sources: repo, Transactions: configTx{}, Credentials: vault, CredentialReference: func(domain.SourceID) domain.CredentialID { return ref }}
+	err := service.DeleteCredential(context.Background(), DeleteCredentialCommand{SourceID: "source"})
+	if err == nil || strings.Contains(err.Error(), "prior") {
+		t.Fatalf("unsafe error=%v", err)
+	}
+	got, _ := repo.Get(context.Background(), "source")
+	if got.CredentialRef == nil || *got.CredentialRef != ref || string(vault.secrets[ref]) != "prior" {
+		t.Fatalf("pair not restored: %+v %q", got, vault.secrets[ref])
+	}
+}
+
+func TestSourceDeleteDatabaseFailureRestoresVaultEntry(t *testing.T) {
+	ref := domain.CredentialID("stable")
+	source := testFeed("source", "https://example.com/feed")
+	source.CredentialRef = &ref
+	repo := &configSources{values: map[domain.SourceID]domain.Source{"source": source}, deleteErr: errors.New("database unavailable")}
+	vault := &configVault{secrets: map[domain.CredentialID][]byte{ref: []byte("prior")}}
+	service := ConfigurationService{Sources: repo, Transactions: configTx{}, Credentials: vault}
+	if err := service.DeleteSource(context.Background(), DeleteSourceCommand{SourceID: "source"}); err == nil {
+		t.Fatal("delete unexpectedly succeeded")
+	}
+	got, _ := repo.Get(context.Background(), "source")
+	if got.CredentialRef == nil || string(vault.secrets[ref]) != "prior" {
+		t.Fatalf("pair not restored: %+v", got)
+	}
+}
+
+func TestCredentialOperationsSerializePerSource(t *testing.T) {
+	reference := func(domain.SourceID) domain.CredentialID { return "stable" }
+	newService := func(vault *configVault) (ConfigurationService, *configSources) {
+		repo := &configSources{values: map[domain.SourceID]domain.Source{"source": testFeed("source", "https://example.com/feed")}}
+		return ConfigurationService{Sources: repo, Transactions: configTx{}, Credentials: vault, CredentialReference: reference}, repo
+	}
+	t.Run("latest configure wins", func(t *testing.T) {
+		vault := &configVault{secrets: map[domain.CredentialID][]byte{"unrelated": []byte("keep")}, storeEntered: make(chan struct{}, 1), storeRelease: make(chan struct{})}
+		service, repo := newService(vault)
+		firstDone := make(chan error, 1)
+		go func() {
+			firstDone <- service.ConfigureCredential(context.Background(), ConfigureCredentialCommand{SourceID: "source", Secret: []byte("first")})
+		}()
+		<-vault.storeEntered
+		secondDone := make(chan error, 1)
+		go func() {
+			secondDone <- service.ConfigureCredential(context.Background(), ConfigureCredentialCommand{SourceID: "source", Secret: []byte("second")})
+		}()
+		close(vault.storeRelease)
+		if err := <-firstDone; err != nil {
+			t.Fatal(err)
+		}
+		if err := <-secondDone; err != nil {
+			t.Fatal(err)
+		}
+		got, _ := repo.Get(context.Background(), "source")
+		if got.CredentialRef == nil || *got.CredentialRef != "stable" || string(vault.secrets["stable"]) != "second" || string(vault.secrets["unrelated"]) != "keep" || len(vault.secrets) != 2 {
+			t.Fatalf("inconsistent latest state: %+v %q", got, vault.secrets["stable"])
+		}
+	})
+	for _, operation := range []string{"delete credential", "delete source"} {
+		t.Run(operation, func(t *testing.T) {
+			vault := &configVault{secrets: map[domain.CredentialID][]byte{"unrelated": []byte("keep")}, storeEntered: make(chan struct{}, 1), storeRelease: make(chan struct{})}
+			service, repo := newService(vault)
+			configured := make(chan error, 1)
+			go func() {
+				configured <- service.ConfigureCredential(context.Background(), ConfigureCredentialCommand{SourceID: "source", Secret: []byte("value")})
+			}()
+			<-vault.storeEntered
+			done := make(chan error, 1)
+			go func() {
+				if operation == "delete credential" {
+					done <- service.DeleteCredential(context.Background(), DeleteCredentialCommand{SourceID: "source"})
+				} else {
+					done <- service.DeleteSource(context.Background(), DeleteSourceCommand{SourceID: "source"})
+				}
+			}()
+			close(vault.storeRelease)
+			if err := <-configured; err != nil {
+				t.Fatal(err)
+			}
+			if err := <-done; err != nil {
+				t.Fatal(err)
+			}
+			if len(vault.secrets) != 1 || string(vault.secrets["unrelated"]) != "keep" {
+				t.Fatalf("orphaned or unrelated credential changed: %v", vault.secrets)
+			}
+			got, err := repo.Get(context.Background(), "source")
+			if operation == "delete credential" && (err != nil || got.CredentialRef != nil) {
+				t.Fatalf("credential detach failed: %+v %v", got, err)
+			}
+			if operation == "delete source" && !errors.Is(err, ErrNotFound) {
+				t.Fatalf("source delete failed: %v", err)
+			}
+		})
 	}
 }
 
