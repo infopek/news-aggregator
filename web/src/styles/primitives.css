@@ -1,0 +1,18 @@
+.field, .privacy-field, .credential, .ranking, .article-card, .async-state { display: grid; gap: .55rem; }
+.field label, .privacy-field legend, .credential label, .filter { font-weight: 700; }
+.field input, .privacy-field input, .credential input, .filter select { max-width: 32rem; padding: .65rem; border: 1px solid #8290a7; border-radius: .35rem; font: inherit; }
+.field__description, .credential p, .privacy-field p { margin: 0; color: #526078; }
+.field__error { margin: 0; color: #a30d19; font-weight: 650; }
+.field--invalid input { border-color: #a30d19; }
+.secondary { border: 1px solid #174ea6; background: #fff; color: #174ea6; }
+.article-card { overflow-wrap: anywhere; padding: 1rem; border: 1px solid #cad4e2; border-radius: .6rem; }
+.article-card header { display: flex; gap: .75rem; align-items: center; }
+.article-card__source { margin: 0; color: #526078; }
+.badge { width: fit-content; padding: .2rem .5rem; border-radius: 10rem; background: #e8eef7; font-size: .8rem; font-weight: 700; }
+.ranking output { margin-inline-start: .5rem; font-variant-numeric: tabular-nums; }
+.filter { display: grid; gap: .35rem; }
+.confirm [role='alertdialog'] { max-width: 28rem; padding: 1rem; border: 2px solid #315fa9; border-radius: .5rem; background: #fff; box-shadow: 0 .5rem 2rem #14213d33; }
+.sr-only, .live-region:empty { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.proof { max-width: 72rem; margin: auto; padding: 2rem; }
+.proof-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; align-items: start; }
+@media (max-width: 42rem) { .proof { padding: 1rem; } .proof-grid { grid-template-columns: 1fr; } }
