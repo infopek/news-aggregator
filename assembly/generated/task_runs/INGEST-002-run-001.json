@@ -1,0 +1,31 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "INGEST-002",
+  "run_id": "INGEST-002-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "done",
+  "implementation_summary": "Implemented and independently reviewed deterministic article normalization, conservative URL handling, layered identity resolution, permission-aware content persistence, provenance, and plain-text sanitization.",
+  "files_changed": [
+    {"path": "internal/application/ingestion/**", "change": "Added normalization, canonicalization, identity resolution, permission downgrade, sanitization, conflict handling, and tests."},
+    {"path": "internal/adapters/sqlite/**", "change": "Aligned persisted article identity behavior with normalization rules."},
+    {"path": "tests/integration/**", "change": "Added storage, collision, permission, provenance, determinism, and sanitization regressions."},
+    {"path": "test/fixtures/**", "change": "Added normalization and identity behavior matrices."}
+  ],
+  "verification": [
+    {"command": "go test -race ./... && go vet ./...", "result": "passed", "output": "All packages passed race and vet checks."},
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Full repository verification passed."},
+    {"command": "focused ingestion tests -count=20", "result": "passed", "output": "Normalization, identity, permission, and integration behavior remained deterministic."},
+    {"command": "GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build ./...", "result": "passed", "output": "Windows amd64 cross-build passed."},
+    {"command": "PlainText fuzzing", "result": "passed", "output": "216258 executions completed without panic, invalid UTF-8 output, or markup delimiters."}
+  ],
+  "proof": [
+    {"kind": "command_output", "summary": "Newer metadata-only observations clear previously stored bodies and downgrade permissions.", "status": "passed"},
+    {"kind": "command_output", "summary": "Canonical, fingerprint, reused-GUID, and generated-ID collision cases resolve or conflict without corrupting identity.", "status": "passed"},
+    {"kind": "command_output", "summary": "Publisher path semantics are preserved and Unicode/malformed content is sanitized without panics.", "status": "passed"},
+    {"kind": "manual_note", "summary": "Independent reviewer approved revision a93c414652b20d8e389a48ebea2087b72441984e after permission, identity, canonicalization, and Unicode-safety corrections.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "Normalization remains deterministic and conservative; metadata-only sources never retain full article bodies.",
+  "submitted_at": "2026-08-02T13:10:52Z",
+  "updated_at": "2026-08-02T13:10:52Z"
+}
