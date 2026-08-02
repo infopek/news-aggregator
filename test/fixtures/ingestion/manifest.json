@@ -1,0 +1,10 @@
+{
+  "network": "forbidden",
+  "credentials": "absent",
+  "fixtures": [
+    {"file":"rss.xml","adapter":"feed","format":"rss","permission":"metadata_only","itemId":"rss-001"},
+    {"file":"atom.xml","adapter":"feed","format":"atom","permission":"metadata_only","itemId":"atom-001"},
+    {"file":"official-api.json","adapter":"api","provider":"fictional-official-api","permission":"metadata_only","itemId":"api-001"},
+    {"file":"approved-scraper.html","adapter":"scraper","policy":"approved","permission":"metadata_only","itemId":"scraper-001"}
+  ]
+}

@@ -1,4 +1,4 @@
-// Generated from api/openapi.yaml (ee0ab217f61d00a7). Do not edit.
+// Generated from api/openapi.yaml (1fe1b3d388739840). Do not edit.
 import { describe, expect, it } from 'vitest'
 import type { ApiOperationMap } from './operations'
 import type { ArticleIDRequest, CredentialWrite, LibraryStateWrite, SourceIDRequest, SourceWrite } from './models'

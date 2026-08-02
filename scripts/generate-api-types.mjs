@@ -15,7 +15,9 @@ const specText = await readFile(specPath, 'utf8')
 const spec = JSON.parse(specText)
 validateOpenAPI(spec)
 
-const digest = createHash('sha256').update(specText).digest('hex').slice(0, 16)
+// Hash the parsed contract rather than source bytes. Formatting-only YAML/JSON
+// changes must not create generated binding drift.
+const digest = createHash('sha256').update(stableJSON(spec)).digest('hex').slice(0, 16)
 const schemas = spec.components.schemas
 const models = generateModels(schemas, digest)
 const operations = generateOperations(spec.paths, digest)
@@ -49,6 +51,15 @@ console.log(`RESULT OK openapi_valid=true operations=${operationEntries(spec.pat
 console.log(`RESULT OK api_fixtures_valid=true fixtures=${Object.keys(manifest).length}`)
 console.log(`RESULT OK api_negative_fixtures_rejected=true fixtures=${Object.keys(invalidManifest).length}`)
 console.log(`RESULT OK api_types_${check ? 'current' : 'generated'}=true digest=${digest}`)
+console.log('RESULT OK openapi_format_invariant=true')
+
+function stableJSON(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJSON).join(',')}]`
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJSON(value[key])}`).join(',')}}`
+  }
+  return JSON.stringify(value)
+}
 
 async function emit(name, content) {
   const path = resolve(outputDir, name)

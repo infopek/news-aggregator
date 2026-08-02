@@ -659,7 +659,7 @@
       "ArticleSummary": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "sourceId", "canonicalUrl", "title", "author", "publishedAt", "fetchedAt", "excerpt", "contentPermission", "language", "topics", "library", "ranking"],
+        "required": ["id", "sourceId", "canonicalUrl", "title", "publishedAt", "fetchedAt", "contentPermission", "topics", "library", "ranking"],
         "properties": {
           "id": { "type": "string" },
           "sourceId": { "type": "string" },

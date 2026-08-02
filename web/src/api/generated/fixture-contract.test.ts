@@ -1,8 +1,13 @@
-// Generated from api/openapi.yaml (ee0ab217f61d00a7). Do not edit.
+// Generated from api/openapi.yaml (1fe1b3d388739840). Do not edit.
 import { describe, expect, it } from 'vitest'
 import type * as Models from './models'
 
-const fixture0: Models.Profile = {
+const fixture0: Models.Health = {
+  "status": "ready",
+  "version": "0.1.0"
+}
+
+const fixture1: Models.Profile = {
   "id": "local-profile",
   "interests": [
     {
@@ -38,7 +43,64 @@ const fixture0: Models.Profile = {
   "updatedAt": "2026-08-01T12:00:00Z"
 }
 
-const fixture1: Models.Source = {
+const fixture2: Models.Profile = {
+  "id": "local-profile",
+  "interests": [],
+  "preferredSourceIds": [],
+  "location": {
+    "present": false,
+    "enabled": false
+  },
+  "age": {
+    "present": false,
+    "enabled": false
+  },
+  "gender": {
+    "present": false,
+    "enabled": false
+  },
+  "updatedAt": "2026-08-01T12:00:00Z"
+}
+
+const fixture3: Models.RankingConfiguration = {
+  "recency": {
+    "enabled": true,
+    "weight": 0.25
+  },
+  "interest": {
+    "enabled": true,
+    "weight": 0.25
+  },
+  "sourcePreference": {
+    "enabled": true,
+    "weight": 0.1
+  },
+  "behavior": {
+    "enabled": true,
+    "weight": 0.1
+  },
+  "location": {
+    "enabled": false,
+    "weight": 0.05
+  },
+  "age": {
+    "enabled": false,
+    "weight": 0.05
+  },
+  "gender": {
+    "enabled": false,
+    "weight": 0.05
+  },
+  "textSimilarity": {
+    "enabled": true,
+    "weight": 0.15
+  },
+  "perDemographicCap": 0.1,
+  "totalDemographicCap": 0.2,
+  "normalizationVersion": "v1"
+}
+
+const fixture4: Models.Source = {
   "id": "source-1",
   "name": "Example Feed",
   "url": "https://example.com/feed.xml",
@@ -61,7 +123,34 @@ const fixture1: Models.Source = {
   "retryAfter": null
 }
 
-const fixture2: Models.RefreshRun = {
+const fixture5: Models.SourceList = {
+  "items": [
+    {
+      "id": "source-1",
+      "name": "Example Feed",
+      "url": "https://example.com/feed.xml",
+      "kind": "feed",
+      "enabled": true,
+      "contentPermission": "metadata_only",
+      "adapterConfig": {
+        "format": "auto"
+      },
+      "scraperPolicy": {
+        "status": "not_applicable",
+        "termsUrl": null,
+        "robotsUrl": null,
+        "reviewedAt": null,
+        "reviewNotes": null
+      },
+      "credentialConfigured": false,
+      "lastSuccessAt": "2026-08-01T11:59:00Z",
+      "lastError": null,
+      "retryAfter": null
+    }
+  ]
+}
+
+const fixture6: Models.RefreshRun = {
   "id": "refresh-1",
   "status": "partial_success",
   "startedAt": "2026-08-01T12:00:00Z",
@@ -90,12 +179,12 @@ const fixture2: Models.RefreshRun = {
   ]
 }
 
-const fixture3: Models.FeedPage = {
+const fixture7: Models.FeedPage = {
   "items": [],
   "nextCursor": null
 }
 
-const fixture4: Models.FeedPage = {
+const fixture8: Models.FeedPage = {
   "items": [
     {
       "id": "article-1",
@@ -139,7 +228,7 @@ const fixture4: Models.FeedPage = {
   "nextCursor": "eyJvZmZzZXQiOjF9"
 }
 
-const fixture5: Models.ArticleDetail = {
+const fixture9: Models.ArticleDetail = {
   "article": {
     "id": "article-1",
     "sourceId": "source-1",
@@ -170,7 +259,49 @@ const fixture5: Models.ArticleDetail = {
   "fullContent": null
 }
 
-const fixture6: Models.APIError = {
+const fixture10: Models.ArticleDetail = {
+  "article": {
+    "id": "article-2",
+    "sourceId": "source-3",
+    "canonicalUrl": "https://public-domain.example/articles/allowed",
+    "title": "Permitted fixture article",
+    "publishedAt": null,
+    "fetchedAt": "2026-08-01T10:05:00Z",
+    "contentPermission": "full_content_allowed",
+    "topics": [],
+    "library": {
+      "articleId": "article-2",
+      "readAt": null,
+      "savedAt": null,
+      "hiddenAt": null
+    },
+    "ranking": {
+      "score": 0.2,
+      "contributions": [
+        {
+          "signal": "recency",
+          "rawScore": 0.4,
+          "weight": 0.5,
+          "weightedScore": 0.2,
+          "reasonCode": "FUTURE_REASON_CODE",
+          "reasonValues": {}
+        }
+      ],
+      "algorithmVersion": "hybrid-v1",
+      "calculatedAt": "2026-08-01T10:05:01Z"
+    }
+  },
+  "fullContent": "Fictional content released for this contract fixture."
+}
+
+const fixture11: Models.LibraryState = {
+  "articleId": "article-1",
+  "readAt": "2026-08-01T13:00:00Z",
+  "savedAt": null,
+  "hiddenAt": null
+}
+
+const fixture12: Models.APIError = {
   "code": "validation_failed",
   "message": "The request contains invalid fields.",
   "correlationId": "request-123",
@@ -183,19 +314,25 @@ const fixture6: Models.APIError = {
   ]
 }
 
-const fixture7: Models.CredentialStatus = {
+const fixture13: Models.CredentialStatus = {
   "configured": true
 }
 
 describe('generated API fixture bindings', () => {
   it('compiles every runtime-validated fixture against its generated model', () => {
-    expect(fixture0).toBeTruthy() // profile.json -> Profile
-    expect(fixture1).toBeTruthy() // source.json -> Source
-    expect(fixture2).toBeTruthy() // refresh-partial.json -> RefreshRun
-    expect(fixture3).toBeTruthy() // feed-empty.json -> FeedPage
-    expect(fixture4).toBeTruthy() // feed-page.json -> FeedPage
-    expect(fixture5).toBeTruthy() // article-metadata.json -> ArticleDetail
-    expect(fixture6).toBeTruthy() // validation-error.json -> APIError
-    expect(fixture7).toBeTruthy() // credential-status.json -> CredentialStatus
+    expect(fixture0).toBeTruthy() // health.json -> Health
+    expect(fixture1).toBeTruthy() // profile.json -> Profile
+    expect(fixture2).toBeTruthy() // profile-optional-absent.json -> Profile
+    expect(fixture3).toBeTruthy() // ranking-configuration.json -> RankingConfiguration
+    expect(fixture4).toBeTruthy() // source.json -> Source
+    expect(fixture5).toBeTruthy() // source-list.json -> SourceList
+    expect(fixture6).toBeTruthy() // refresh-partial.json -> RefreshRun
+    expect(fixture7).toBeTruthy() // feed-empty.json -> FeedPage
+    expect(fixture8).toBeTruthy() // feed-page.json -> FeedPage
+    expect(fixture9).toBeTruthy() // article-metadata.json -> ArticleDetail
+    expect(fixture10).toBeTruthy() // article-full-content.json -> ArticleDetail
+    expect(fixture11).toBeTruthy() // library-state.json -> LibraryState
+    expect(fixture12).toBeTruthy() // validation-error.json -> APIError
+    expect(fixture13).toBeTruthy() // credential-status.json -> CredentialStatus
   })
 })
