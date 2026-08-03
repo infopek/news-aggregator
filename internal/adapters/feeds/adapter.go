@@ -22,6 +22,10 @@ const (
 	maxItems     = 5000
 	maxDepth     = 64
 	maxItemText  = 1 << 20
+	atomNS       = "http://www.w3.org/2005/Atom"
+	dcNS         = "http://purl.org/dc/elements/1.1/"
+	contentNS    = "http://purl.org/rss/1.0/modules/content/"
+	xmlNS        = "http://www.w3.org/XML/1998/namespace"
 )
 
 var ErrMalformedFeed = errors.New("feed adapter: malformed feed")
@@ -77,7 +81,7 @@ func (a Adapter) Fetch(ctx context.Context, source domain.Source, cursor applica
 func header(values map[string][]string, name string) string { return http.Header(values).Get(name) }
 
 func parse(r io.Reader, base *url.URL) ([]application.AdapterItem, []string, string, error) {
-	counting := &countReader{r: r, remaining: maxFeedBytes}
+	counting := &countReader{r: r}
 	d := xml.NewDecoder(bufio.NewReader(counting))
 	d.Strict = true
 	d.CharsetReader = charsetReader
@@ -93,11 +97,17 @@ func parse(r io.Reader, base *url.URL) ([]application.AdapterItem, []string, str
 		}
 	}
 	format := ""
-	defaultLanguage := attr(node{attrs: attributes(root)}, "lang")
+	defaultLanguage := attr(node{attrs: attributes(root)}, xmlNS, "lang")
 	switch strings.ToLower(root.Name.Local) {
 	case "rss":
+		if root.Name.Space != "" {
+			return nil, nil, "", fmt.Errorf("%w: invalid RSS namespace", ErrMalformedFeed)
+		}
 		format = "rss"
 	case "feed":
+		if root.Name.Space != atomNS {
+			return nil, nil, "", fmt.Errorf("%w: invalid Atom namespace", ErrMalformedFeed)
+		}
 		format = "atom"
 	default:
 		return nil, nil, "", fmt.Errorf("%w: unsupported root %q", ErrMalformedFeed, root.Name.Local)
@@ -128,7 +138,7 @@ func parse(r io.Reader, base *url.URL) ([]application.AdapterItem, []string, str
 			continue
 		}
 		name := strings.ToLower(start.Name.Local)
-		if format == "rss" && name == "language" {
+		if format == "rss" && start.Name.Space == "" && name == "language" {
 			n, readErr := readNode(d, start, 0, new(int))
 			if readErr != nil {
 				return nil, nil, "", malformed(readErr)
@@ -136,7 +146,8 @@ func parse(r io.Reader, base *url.URL) ([]application.AdapterItem, []string, str
 			defaultLanguage = strings.TrimSpace(n.text)
 			continue
 		}
-		if (format == "rss" && name != "item") || (format == "atom" && name != "entry") {
+		isItem := (format == "rss" && start.Name.Space == "" && name == "item") || (format == "atom" && start.Name.Space == atomNS && name == "entry")
+		if !isItem {
 			depth++
 			continue
 		}
@@ -191,7 +202,7 @@ func readNode(d *xml.Decoder, start xml.StartElement, depth int, size *int) (nod
 	}
 	n := node{name: strings.ToLower(start.Name.Local), space: start.Name.Space, attrs: map[string]string{}}
 	for _, a := range start.Attr {
-		n.attrs[strings.ToLower(a.Name.Local)] = a.Value
+		n.attrs[a.Name.Space+"\x00"+strings.ToLower(a.Name.Local)] = a.Value
 	}
 	for {
 		t, err := d.Token()
@@ -220,25 +231,25 @@ func readNode(d *xml.Decoder, start xml.StartElement, depth int, size *int) (nod
 func mapItem(n node, format string, base *url.URL) (application.AdapterItem, error) {
 	var out application.AdapterItem
 	if format == "rss" {
-		out.ExternalID = value(n, "guid")
-		out.Title = value(n, "title")
-		out.CanonicalURL = value(n, "link")
-		out.Author = first(value(n, "author"), value(n, "creator"))
-		out.Excerpt = value(n, "description")
-		out.FullContent = value(n, "encoded")
-		out.Language = attr(n, "language")
-		out.Topics = values(n, "category")
-		out.PublishedAt = parseDate(first(value(n, "pubdate"), value(n, "published"), value(n, "updated"), value(n, "date")))
+		out.ExternalID = value(n, "", "guid")
+		out.Title = value(n, "", "title")
+		out.CanonicalURL = value(n, "", "link")
+		out.Author = first(value(n, "", "author"), value(n, dcNS, "creator"))
+		out.Excerpt = value(n, "", "description")
+		out.FullContent = value(n, contentNS, "encoded")
+		out.Language = attr(n, "", "language")
+		out.Topics = values(n, "", "category")
+		out.PublishedAt = parseDate(first(value(n, "", "pubdate"), value(n, "", "published"), value(n, "", "updated"), value(n, dcNS, "date")))
 	} else {
-		out.ExternalID = value(n, "id")
-		out.Title = value(n, "title")
+		out.ExternalID = value(n, atomNS, "id")
+		out.Title = value(n, atomNS, "title")
 		out.CanonicalURL = atomLink(n)
 		out.Author = nestedValue(n, "author", "name")
-		out.Excerpt = value(n, "summary")
-		out.FullContent = value(n, "content")
-		out.Language = first(attr(n, "lang"), attr(n, "language"))
+		out.Excerpt = value(n, atomNS, "summary")
+		out.FullContent = value(n, atomNS, "content")
+		out.Language = attr(n, xmlNS, "lang")
 		out.Topics = atomCategories(n)
-		out.PublishedAt = parseDate(first(value(n, "published"), value(n, "updated")))
+		out.PublishedAt = parseDate(first(value(n, atomNS, "published"), value(n, atomNS, "updated")))
 	}
 	resolved, err := base.Parse(strings.TrimSpace(out.CanonicalURL))
 	if err != nil || resolved.Scheme == "" || resolved.Host == "" {
@@ -254,9 +265,9 @@ func mapItem(n node, format string, base *url.URL) (application.AdapterItem, err
 	return out, nil
 }
 
-func value(n node, name string) string {
+func value(n node, space, name string) string {
 	for _, c := range n.children {
-		if c.name == name {
+		if c.name == name && c.space == space {
 			return strings.TrimSpace(allText(c))
 		}
 	}
@@ -276,24 +287,24 @@ func allText(n node) string {
 func attributes(start xml.StartElement) map[string]string {
 	result := make(map[string]string, len(start.Attr))
 	for _, a := range start.Attr {
-		result[strings.ToLower(a.Name.Local)] = a.Value
+		result[a.Name.Space+"\x00"+strings.ToLower(a.Name.Local)] = a.Value
 	}
 	return result
 }
-func values(n node, name string) []string {
+func values(n node, space, name string) []string {
 	var out []string
 	for _, c := range n.children {
-		if c.name == name && strings.TrimSpace(allText(c)) != "" {
+		if c.name == name && c.space == space && strings.TrimSpace(allText(c)) != "" {
 			out = append(out, strings.TrimSpace(allText(c)))
 		}
 	}
 	return out
 }
-func attr(n node, name string) string { return strings.TrimSpace(n.attrs[name]) }
+func attr(n node, space, name string) string { return strings.TrimSpace(n.attrs[space+"\x00"+name]) }
 func nestedValue(n node, parent, child string) string {
 	for _, c := range n.children {
-		if c.name == parent {
-			return value(c, child)
+		if c.name == parent && c.space == atomNS {
+			return value(c, atomNS, child)
 		}
 	}
 	return ""
@@ -309,14 +320,14 @@ func first(v ...string) string {
 func atomLink(n node) string {
 	var fallback string
 	for _, c := range n.children {
-		if c.name != "link" {
+		if c.name != "link" || c.space != atomNS {
 			continue
 		}
-		href := attr(c, "href")
+		href := attr(c, "", "href")
 		if href == "" {
 			continue
 		}
-		rel := strings.ToLower(attr(c, "rel"))
+		rel := strings.ToLower(attr(c, "", "rel"))
 		if rel == "alternate" || rel == "" {
 			return href
 		}
@@ -329,8 +340,8 @@ func atomLink(n node) string {
 func atomCategories(n node) []string {
 	var out []string
 	for _, c := range n.children {
-		if c.name == "category" {
-			if v := first(attr(c, "term"), c.text); v != "" {
+		if c.name == "category" && c.space == atomNS {
+			if v := first(attr(c, "", "term"), c.text); v != "" {
 				out = append(out, v)
 			}
 		}
@@ -351,20 +362,21 @@ func parseDate(raw string) *time.Time {
 func malformed(err error) error { return fmt.Errorf("%w: %v", ErrMalformedFeed, err) }
 
 type countReader struct {
-	r         io.Reader
-	remaining int64
+	r    io.Reader
+	read int64
 }
 
 func (r *countReader) Read(p []byte) (int, error) {
-	if r.remaining <= 0 {
+	remainingProbe := maxFeedBytes + 1 - r.read
+	if remainingProbe <= 0 {
 		return 0, errors.New("feed byte limit exceeded")
 	}
-	if int64(len(p)) > r.remaining+1 {
-		p = p[:r.remaining+1]
+	if int64(len(p)) > remainingProbe {
+		p = p[:remainingProbe]
 	}
 	n, err := r.r.Read(p)
-	r.remaining -= int64(n)
-	if r.remaining < 0 {
+	r.read += int64(n)
+	if r.read > maxFeedBytes {
 		return n, errors.New("feed byte limit exceeded")
 	}
 	return n, err

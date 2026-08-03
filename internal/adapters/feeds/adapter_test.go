@@ -121,6 +121,51 @@ func TestMalformedUnsupportedWrongFormatAndBounds(t *testing.T) {
 	})
 }
 
+func TestNamespaceBoundariesRejectCollisions(t *testing.T) {
+	t.Run("Atom root namespace", func(t *testing.T) {
+		f := &fakeFetcher{response: response(`<feed xmlns="https://attacker.example/atom"><entry><title>Hostile</title><link href="/hostile"/></entry></feed>`)}
+		_, err := (Adapter{Fetcher: f}).Fetch(context.Background(), source(domain.FeedFormatAuto), application.FetchCursor{})
+		if !errors.Is(err, ErrMalformedFeed) {
+			t.Fatalf("err=%v", err)
+		}
+	})
+	t.Run("RSS field and item collisions", func(t *testing.T) {
+		body := `<rss version="2.0" xmlns:evil="https://attacker.example/ns"><channel><evil:item><title>Injected item</title><link>/injected</link></evil:item><item><evil:title>Injected title</evil:title><title>Real title</title><evil:link>/injected</evil:link><link>/real</link><evil:encoded>Injected body</evil:encoded></item></channel></rss>`
+		f := &fakeFetcher{response: response(body)}
+		got, err := (Adapter{Fetcher: f}).Fetch(context.Background(), source(domain.FeedFormatRSS), application.FetchCursor{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(got.Items) != 1 || got.Items[0].Title != "Real title" || got.Items[0].CanonicalURL != "https://final.example/real" || got.Items[0].FullContent != "" {
+			t.Fatalf("items=%+v", got.Items)
+		}
+	})
+	t.Run("Atom field collision", func(t *testing.T) {
+		body := `<feed xmlns="http://www.w3.org/2005/Atom" xmlns:evil="https://attacker.example/ns"><entry><evil:title>Injected</evil:title><title>Real</title><evil:link href="/injected"/><link href="/real"/><evil:content>Injected body</evil:content></entry></feed>`
+		f := &fakeFetcher{response: response(body)}
+		got, err := (Adapter{Fetcher: f}).Fetch(context.Background(), source(domain.FeedFormatAtom), application.FetchCursor{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(got.Items) != 1 || got.Items[0].Title != "Real" || got.Items[0].CanonicalURL != "https://final.example/real" || got.Items[0].FullContent != "" {
+			t.Fatalf("items=%+v", got.Items)
+		}
+	})
+}
+
+func TestCountReaderExactLimitAndOneByteOver(t *testing.T) {
+	exact := &countReader{r: strings.NewReader(strings.Repeat("x", int(maxFeedBytes)))}
+	got, err := io.ReadAll(exact)
+	if err != nil || len(got) != int(maxFeedBytes) {
+		t.Fatalf("exact bytes=%d err=%v", len(got), err)
+	}
+	over := &countReader{r: strings.NewReader(strings.Repeat("x", int(maxFeedBytes)+1))}
+	got, err = io.ReadAll(over)
+	if err == nil || len(got) != int(maxFeedBytes)+1 {
+		t.Fatalf("over bytes=%d err=%v", len(got), err)
+	}
+}
+
 func TestRejectsInvalidSourceAndPropagatesFetcher(t *testing.T) {
 	f := &fakeFetcher{err: context.DeadlineExceeded}
 	_, err := (Adapter{Fetcher: f}).Fetch(context.Background(), source(domain.FeedFormatAuto), application.FetchCursor{})
