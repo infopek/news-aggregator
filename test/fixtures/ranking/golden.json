@@ -1,0 +1,25 @@
+{
+  "algorithmVersion": "bm25f-local-v1",
+  "tokenizationVersion": "unicode-letters-numbers-lower-v1",
+  "fieldWeights": { "title": 3.0, "excerpt": 2.0, "content": 1.0 },
+  "tokenizationCases": [
+    { "input": "ÁRVÍZTŰRŐ 42 cats-cat", "expected": ["árvíztűrő", "42", "cats", "cat"] },
+    { "input": "HTML <b>remnant</b>", "expected": ["html", "b", "remnant", "b"] }
+  ],
+  "interests": [
+    { "name": "science", "weight": 1.0 },
+    { "name": "climate", "weight": 0.5 }
+  ],
+  "articles": [
+    { "id": "a", "title": "Climate science", "excerpt": "science", "permission": "metadata_only", "body": "" },
+    { "id": "b", "title": "Daily report", "excerpt": "climate", "permission": "metadata_only", "body": "" },
+    { "id": "c", "title": "Sports", "excerpt": "", "permission": "metadata_only", "body": "climate science" }
+  ],
+  "expectedOrder": ["a", "b", "c"],
+  "expectedMatchedTerms": { "a": ["climate", "science"], "b": ["climate"], "c": [] },
+  "expectedCorpus": {
+    "documentCount": 3,
+    "averageLength": 6.333333333333333,
+    "documentFrequency": { "climate": 2, "science": 1, "daily": 1, "report": 1, "sports": 1 }
+  }
+}
