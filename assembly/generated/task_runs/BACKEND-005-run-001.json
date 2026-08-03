@@ -1,0 +1,33 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "BACKEND-005",
+  "run_id": "BACKEND-005-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "done",
+  "implementation_summary": "Implemented and independently reviewed contract-compliant profile, ranking configuration, starter-source, source CRUD, and write/delete-only credential HTTP APIs with standalone embedded migrations.",
+  "files_changed": [
+    {"path": "internal/httpapi/configuration.go", "change": "Added composed routes, bounded recursive strict decoding, DTO mapping, timeouts, correlation IDs, and sanitized stable errors."},
+    {"path": "internal/httpapi/configuration_test.go", "change": "Added exhaustive nested-schema, cross-kind, error-family, cancellation, routing, and secret-safety coverage."},
+    {"path": "tests/integration/configuration_http_test.go", "change": "Added composed-handler HTTP integration using temporary SQLite and a fake credential vault."},
+    {"path": "cmd/news-aggregator/**", "change": "Composed application services and atomically materialized embedded canonical migrations for arbitrary-CWD standalone startup."},
+    {"path": "internal/application/**", "change": "Added source lookup through the application boundary."},
+    {"path": "test/fixtures/api/endpoint-screen-coverage.md", "change": "Updated implemented endpoint boundary coverage."}
+  ],
+  "verification": [
+    {"command": "go test -race ./cmd/news-aggregator ./internal/httpapi ./tests/integration", "result": "passed", "output": "Startup, migration concurrency, handlers, and composed integration passed under the race detector."},
+    {"command": "go test ./... && go vet ./...", "result": "passed", "output": "Full Go tests and vet passed."},
+    {"command": "./scripts/contract.sh && ./scripts/verify.sh", "result": "passed", "output": "API/schema contracts and full repository verification passed."},
+    {"command": "Windows amd64 CGO-free compile-only checks", "result": "passed", "output": "Application, HTTP API, and integration packages compiled for Windows."},
+    {"command": "git diff --check, allowed-scope inventory, and sentinel-secret checks", "result": "passed", "output": "Diff, scope, response, and log secrecy checks passed."}
+  ],
+  "proof": [
+    {"kind": "test_output", "summary": "Arbitrary-directory startup/restart, canonical drift rejection, atomic extraction, and 16-worker migration integrity passed.", "status": "passed"},
+    {"kind": "test_output", "summary": "Nested required fields distinguish omission from explicit false, zero, and null; cross-kind adapter properties fail closed.", "status": "passed"},
+    {"kind": "test_output", "summary": "Composed HTTP, temporary SQLite, fake vault, error-family, credential, routing, and secret-sentinel coverage passed.", "status": "passed"},
+    {"kind": "manual_note", "summary": "Independent reviewer approved exact revision 1dea857e3e46d6be3cb15b936651e119b2450a66 after three review rounds.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "Credential operations remain write/delete-only; startup is independent of the process working directory.",
+  "submitted_at": "2026-08-03T14:40:08Z",
+  "updated_at": "2026-08-03T14:40:08Z"
+}
