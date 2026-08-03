@@ -38,11 +38,13 @@ export function useRouter() {
 
 export function firstRunDestination(path: string, profile: Profile): string | undefined {
   const empty = profile.interests.length === 0 && profile.preferredSourceIds.length === 0 && !profile.location.present
-  return path === '/' && empty ? '/setup' : undefined
+  if (path === '/' && empty) return '/setup'
+  if (path === '/setup' && !empty) return '/settings'
+  return undefined
 }
 
 async function routeNewUserToSetup(): Promise<void> {
-  if (window.location.pathname !== '/') return
+  if (window.location.pathname !== '/' && window.location.pathname !== '/setup') return
   try {
     const destination = firstRunDestination(window.location.pathname, await createServerApi(new LocalApiClient()).profile())
     if (destination) navigate(destination)

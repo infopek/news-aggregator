@@ -1,19 +1,25 @@
 <script setup lang="ts">
 /* global HTMLElement */
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { api as client } from '../../api/client'
 import { createServerApi, type ServerApi } from '../../api/server-api'
 import type { Profile, RankingConfiguration, Source } from '../../api/generated/models'
 import AccessibleField from '../../components/shared/AccessibleField.vue'
 import DemographicSignalField from '../../components/shared/DemographicSignalField.vue'
 import LiveRegion from '../../components/shared/LiveRegion.vue'
-import { toUserSafeError, type UserSafeError } from '../../state/errors'
+import { navigate } from '../../router/router'
+import type { UserSafeError } from '../../state/errors'
+import { ServerMutations } from '../../state/mutations'
+import { queryKeys } from '../../state/query-keys'
+import { ServerStateClient, type QueryState } from '../../state/query-client'
 import RankingSignalSettings from '../ranking-settings/RankingSignalSettings.vue'
 import { isFirstRun, profileToForm, profileWrite, rankingToForm, rankingWrite, starterLabel, type ProfileForm, type RankingForm } from './profile-form'
 
-const props = withDefaults(defineProps<{ mode?: 'setup' | 'settings'; serverApi?: ServerApi }>(), { mode: 'settings', serverApi: undefined })
+const props = withDefaults(defineProps<{ mode?: 'setup' | 'settings'; serverApi?: ServerApi; serverState?: ServerStateClient; serverMutations?: ServerMutations }>(), { mode: 'settings', serverApi: undefined, serverState: undefined, serverMutations: undefined })
 const emit = defineEmits<{ saved: [firstRun: boolean] }>()
 const server = props.serverApi ?? createServerApi(client)
+const cache = props.serverState ?? new ServerStateClient()
+const mutations = props.serverMutations ?? new ServerMutations(server, cache)
 const state = ref<'loading' | 'ready' | 'error'>('loading')
 const profile = ref<Profile>()
 const ranking = ref<RankingConfiguration>()
@@ -24,22 +30,41 @@ const loadMessage = ref('')
 const saveMessage = ref('')
 const saveError = ref<UserSafeError>()
 const saving = ref(false)
+const partialSave = ref(false)
 const errorSummary = ref<HTMLElement>()
+let loadGeneration = 0
+let disposed = false
 const firstRun = computed(() => profile.value ? isFirstRun(profile.value) : false)
 const fieldErrors = computed(() => Object.fromEntries((saveError.value?.fields ?? []).map((field) => [field.path.replace(/^profile\./, ''), field.message])))
 
 onMounted(load)
+defineExpose({ load })
+onBeforeUnmount(() => {
+  disposed = true
+  loadGeneration += 1
+  cache.cancel(queryKeys.profile())
+  cache.cancel(queryKeys.ranking())
+  cache.cancel(queryKeys.starterSources())
+})
 async function load() {
-  state.value = 'loading'; loadMessage.value = ''; saveError.value = undefined
-  try {
-    const [loadedProfile, loadedRanking, loadedStarters] = await Promise.all([server.profile(), server.ranking(), server.starterSources()])
-    profile.value = loadedProfile; ranking.value = loadedRanking; starters.value = loadedStarters.items
-    form.value = profileToForm(loadedProfile); rankingForm.value = rankingToForm(loadedRanking); state.value = 'ready'
-  } catch (error) { state.value = 'error'; loadMessage.value = toUserSafeError(error).message }
+  const generation = ++loadGeneration
+  state.value = 'loading'; loadMessage.value = ''; saveError.value = undefined; partialSave.value = false
+  const [profileState, rankingState, starterState] = await Promise.all([
+    cache.query(queryKeys.profile(), (signal) => server.profile(signal)),
+    cache.query(queryKeys.ranking(), (signal) => server.ranking(signal)),
+    cache.query(queryKeys.starterSources(), (signal) => server.starterSources(signal))
+  ])
+  if (disposed || generation !== loadGeneration) return
+  const failed = [profileState, rankingState, starterState].find((item) => item.status === 'error') as QueryState<unknown> | undefined
+  if (failed?.status === 'error') { state.value = 'error'; loadMessage.value = failed.error.message; return }
+  if (!profileState.data || !rankingState.data || !starterState.data) { state.value = 'error'; loadMessage.value = 'Saved settings could not be loaded.'; return }
+  profile.value = profileState.data; ranking.value = rankingState.data; starters.value = starterState.data.items
+  if (props.mode === 'setup' && !isFirstRun(profileState.data)) { navigate('/settings'); return }
+  form.value = profileToForm(profileState.data); rankingForm.value = rankingToForm(rankingState.data); state.value = 'ready'
 }
 async function save() {
   if (!form.value || !rankingForm.value) return
-  saving.value = true; saveMessage.value = ''; saveError.value = undefined
+  saving.value = true; saveMessage.value = ''; saveError.value = undefined; partialSave.value = false
   const localFields = validate(form.value, rankingForm.value)
   if (localFields.length) {
     saveError.value = { family: 'validation', message: 'Check the highlighted values.', fields: localFields }
@@ -48,22 +73,22 @@ async function save() {
     return
   }
   const wasFirstRun = firstRun.value
-  let profileSaved = false
-  try {
-    const savedProfile = await server.updateProfile(profileWrite(form.value))
-    profileSaved = true
-    const savedRanking = await server.updateRanking(rankingWrite(rankingForm.value))
-    profile.value = savedProfile; ranking.value = savedRanking
-    form.value = profileToForm(savedProfile); rankingForm.value = rankingToForm(savedRanking)
-    saveMessage.value = wasFirstRun ? 'Setup saved on this computer.' : 'Profile and ranking settings saved.'
-    emit('saved', wasFirstRun)
-  } catch (error) {
-    const safeError = toUserSafeError(error)
-    saveError.value = profileSaved
-      ? { ...safeError, message: `${safeError.message} Your profile saved, but ranking settings did not. Reload before retrying.` }
-      : safeError
+  const profileResult = await mutations.updateProfile(profileWrite(form.value))
+  if (profileResult.status === 'error') { saveError.value = profileResult.error; saving.value = false; await focusError(); return }
+  profile.value = profileResult.data
+  form.value = profileToForm(profileResult.data)
+  const rankingResult = await mutations.updateRanking(rankingWrite(rankingForm.value))
+  if (rankingResult.status === 'error') {
+    partialSave.value = true
+    saveError.value = { ...rankingResult.error, message: `${rankingResult.error.message} Your profile was saved, but ranking settings were not. Reload the authoritative settings before retrying.` }
+    saving.value = false
     await focusError()
-  } finally { saving.value = false }
+    return
+  }
+  ranking.value = rankingResult.data; rankingForm.value = rankingToForm(rankingResult.data)
+  saveMessage.value = wasFirstRun ? 'Setup saved on this computer.' : 'Profile and ranking settings saved.'
+  saving.value = false
+  emit('saved', wasFirstRun)
 }
 
 async function focusError() {
@@ -272,7 +297,7 @@ function toggleSource(id: string, checked: boolean) {
         role="alert"
         tabindex="-1"
       >
-        <strong>Settings were not saved.</strong><p>{{ saveError.message }}</p><ul v-if="saveError.fields.length">
+        <strong>{{ partialSave ? 'Profile saved; ranking settings not saved.' : 'Settings were not saved.' }}</strong><p>{{ saveError.message }}</p><ul v-if="saveError.fields.length">
           <li
             v-for="item in saveError.fields"
             :key="`${item.path}-${item.code}`"
@@ -280,6 +305,13 @@ function toggleSource(id: string, checked: boolean) {
             {{ item.message }}
           </li>
         </ul>
+        <button
+          v-if="partialSave"
+          type="button"
+          @click="load"
+        >
+          Reload saved settings
+        </button>
       </div>
       <button
         type="submit"

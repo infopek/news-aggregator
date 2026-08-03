@@ -33,6 +33,8 @@ describe('route contract', () => {
     const complete = { ...empty, interests: [{ name: 'news', weight: 1 }] } as Profile
     expect(firstRunDestination('/', empty)).toBe('/setup')
     expect(firstRunDestination('/', complete)).toBeUndefined()
+    expect(firstRunDestination('/setup', complete)).toBe('/settings')
+    expect(firstRunDestination('/setup', empty)).toBeUndefined()
     expect(firstRunDestination('/settings', empty)).toBeUndefined()
   })
 })

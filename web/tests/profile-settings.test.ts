@@ -7,6 +7,7 @@ import type { Profile, RankingConfiguration, Source } from '../src/api/generated
 import type { ServerApi } from '../src/api/server-api'
 import ProfileSettings from '../src/features/profile/ProfileSettings.vue'
 import FirstRunSetup from '../src/features/setup/FirstRunSetup.vue'
+import { ServerStateClient } from '../src/state/query-client'
 
 const emptyProfile: Profile = { id: 'local-profile', interests: [], preferredSourceIds: [], location: { present: false, enabled: false }, age: { present: false, enabled: false }, gender: { present: false, enabled: false }, updatedAt: '2026-08-01T00:00:00Z' }
 const savedProfile: Profile = { ...emptyProfile, interests: [{ name: 'technology', weight: .8 }], preferredSourceIds: ['starter-1'], location: { present: true, enabled: true, value: { country: 'HU', region: 'Pest', city: { present: true, enabled: true, value: 'Budapest' } } }, age: { present: true, enabled: false, value: 35 }, gender: { present: true, enabled: true, value: 'nonbinary' } }
@@ -55,22 +56,26 @@ describe('profile and first-run workflow', () => {
       interests: [{ name: 'technology', weight: .8 }, { name: 'science', weight: .8 }],
       location: expect.objectContaining({ present: true, value: expect.objectContaining({ country: 'HU', region: 'Pest' }) }),
       age: { present: true, enabled: false, value: 35 }
-    }))
+    }), expect.any(AbortSignal))
     expect(wrapper.text()).toContain('Setup saved on this computer')
     wrapper.unmount()
   })
 
   it('bypasses completed first-run, supports clearing all values, and reloads authoritative state', async () => {
-    const api = fakeApi(savedProfile); const wrapper = await ready(FirstRunSetup, api)
-    expect(wrapper.text()).toContain('Setup is already complete')
+    window.history.replaceState(null, '', '/setup')
+    const api = fakeApi(savedProfile); const setup = await ready(FirstRunSetup, api)
+    expect(window.location.pathname).toBe('/settings')
+    setup.unmount()
+    const wrapper = await ready(ProfileSettings, api)
     expect(wrapper.get('#city').element).toHaveProperty('value', 'Budapest')
     await wrapper.get('#interests').setValue(''); await wrapper.get('#country').setValue(''); await wrapper.get('#region').setValue(''); await wrapper.get('#city').setValue('')
     const ageToggle = wrapper.findAll('input[type=checkbox]').find((item) => item.element.parentElement?.textContent?.includes('Use this signal'))!
     await ageToggle.setValue(true); await wrapper.get('#age').setValue(''); await wrapper.get('#gender').setValue('')
     for (const item of wrapper.findAll('input[type=checkbox]')) await item.setValue(false)
     await wrapper.get('form').trigger('submit'); await flushPromises()
-    expect(api.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ interests: [], preferredSourceIds: [], location: { present: false, enabled: false }, age: { present: false, enabled: false }, gender: { present: false, enabled: false } }))
+    expect(api.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ interests: [], preferredSourceIds: [], location: { present: false, enabled: false }, age: { present: false, enabled: false }, gender: { present: false, enabled: false } }), expect.any(AbortSignal))
     wrapper.unmount()
+    window.history.replaceState(null, '', '/setup')
     const reloaded = await ready(FirstRunSetup, api); expect(reloaded.get('button[type=submit]').text()).toBe('Save setup'); reloaded.unmount()
   })
 
@@ -78,7 +83,7 @@ describe('profile and first-run workflow', () => {
     const varied = { ...savedProfile, interests: [{ name: 'technology', weight: .9 }, { name: 'science', weight: .4 }] }
     const api = fakeApi(varied); const wrapper = await ready(ProfileSettings, api)
     await wrapper.get('#city').setValue('Buda'); await wrapper.get('form').trigger('submit'); await flushPromises()
-    expect(api.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ interests: varied.interests }))
+    expect(api.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ interests: varied.interests }), expect.any(AbortSignal))
     wrapper.unmount()
   })
 
@@ -114,6 +119,50 @@ describe('profile and first-run workflow', () => {
     await wrapper.get('form').trigger('submit'); await flushPromises()
     expect(wrapper.get('#interests').element).toHaveProperty('value', 'unsaved')
     expect(wrapper.text()).toContain(code === 'unavailable' ? 'temporarily unavailable' : message)
+    wrapper.unmount()
+  })
+
+  it('cancels outstanding state-layer loads on unmount', async () => {
+    const cache = new ServerStateClient()
+    let profileSignal: AbortSignal | undefined
+    const api = fakeApi()
+    vi.mocked(api.profile).mockImplementation(async (signal) => {
+      profileSignal = signal
+      await new Promise<void>((resolve) => signal?.addEventListener('abort', () => resolve(), { once: true }))
+      return emptyProfile
+    })
+    const wrapper = mount(ProfileSettings, { props: { serverApi: api, serverState: cache } })
+    await flushPromises()
+    wrapper.unmount()
+    expect(profileSignal?.aborted).toBe(true)
+  })
+
+  it('ignores an older load that resolves after an authoritative retry', async () => {
+    let releaseFirst!: (profile: Profile) => void
+    const first = new Promise<Profile>((resolve) => { releaseFirst = resolve })
+    const api = fakeApi(savedProfile)
+    vi.mocked(api.profile).mockImplementationOnce(async () => first).mockImplementation(async () => savedProfile)
+    const wrapper = mount(ProfileSettings, { props: { serverApi: api }, attachTo: document.body })
+    await flushPromises()
+    await (wrapper.vm as unknown as { load: () => Promise<void> }).load()
+    await flushPromises()
+    releaseFirst(emptyProfile)
+    await flushPromises()
+    expect(wrapper.get('#interests').element).toHaveProperty('value', 'technology')
+    wrapper.unmount()
+  })
+
+  it('reconciles a successful profile when ranking save fails and offers authoritative reload', async () => {
+    const api = fakeApi()
+    vi.mocked(api.updateRanking).mockRejectedValueOnce(new ApiRequestError(503, { code: 'unavailable', message: 'Ranking unavailable.', correlationId: 'safe-id', fields: [] }))
+    const wrapper = await ready(ProfileSettings, api)
+    await wrapper.get('#interests').setValue('saved profile')
+    await wrapper.get('form').trigger('submit'); await flushPromises()
+    expect(wrapper.text()).toContain('Profile saved; ranking settings not saved.')
+    expect(wrapper.get('#interests').element).toHaveProperty('value', 'saved profile')
+    await wrapper.get('.error-summary button').trigger('click'); await flushPromises()
+    expect(wrapper.find('.error-summary').exists()).toBe(false)
+    expect(wrapper.get('#interests').element).toHaveProperty('value', 'saved profile')
     wrapper.unmount()
   })
 })
