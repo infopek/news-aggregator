@@ -1,7 +1,9 @@
 package ranking
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
 	"math"
 	"os"
 	"path/filepath"
@@ -230,8 +232,13 @@ func TestSignalsAreDeterministicAndFixtureDocumentsRanges(t *testing.T) {
 		t.Fatal(err)
 	}
 	var fixture signalRangeFixture
-	if err = json.Unmarshal(data, &fixture); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	if err = decoder.Decode(&fixture); err != nil {
 		t.Fatal(err)
+	}
+	if err = decoder.Decode(&struct{}{}); err != io.EOF {
+		t.Fatalf("range fixture must contain exactly one JSON value: %v", err)
 	}
 	want := signalRangeFixture{
 		Version: PrimarySignalsVersion,
