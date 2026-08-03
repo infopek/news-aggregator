@@ -8,9 +8,9 @@ readiness rather than a user-facing screen. No postponed feature is exposed.
 | `getHealth` | `GET /api/v1/health` | Host and global status | HTTP host readiness |
 | `getProfile`, `putProfile` | `GET/PUT /api/v1/profile` | First-run; Profile and ranking settings | `application.ProfileService` |
 | `getRankingConfig`, `putRankingConfig` | `GET/PUT /api/v1/ranking-config` | First-run; Profile and ranking settings | `application.ProfileService` |
-| `listStarterSources` | `GET /api/v1/starter-sources` | First-run; Sources and refresh | `httpapi.SourceQueries` pending CONTRACT-006 implementation |
+| `listStarterSources` | `GET /api/v1/starter-sources` | First-run; Sources and refresh | Injected, editable non-secret starter catalog |
 | `listSources`, `createSource` | `GET/POST /api/v1/sources` | First-run; Sources and refresh | `application.SourceService` |
-| `getSource`, `updateSource`, `deleteSource` | `GET/PATCH/DELETE /api/v1/sources/{sourceId}` | Sources and refresh | read via `httpapi.SourceQueries`; writes via `application.SourceService` |
+| `getSource`, `updateSource`, `deleteSource` | `GET/PATCH/DELETE /api/v1/sources/{sourceId}` | Sources and refresh | `application.SourceService` |
 | `putSourceCredential`, `deleteSourceCredential` | `PUT/DELETE /api/v1/sources/{sourceId}/credential` | Sources and refresh | `application.SourceService` |
 | `startRefresh`, `getRefresh` | `POST /api/v1/refresh`; `GET /api/v1/refresh/{refreshId}` | Ranked feed; Sources and refresh | `application.RefreshService` |
 | `getFeed` | `GET /api/v1/feed` | Ranked feed; Personal library | `application.FeedService` |
