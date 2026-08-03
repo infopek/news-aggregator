@@ -1,4 +1,4 @@
-/* global URL, clearTimeout, document, console, fetch, process, setTimeout */
+/* global URL, clearTimeout, document, console, fetch, localStorage, navigator, process, sessionStorage, setTimeout */
 import { spawn } from 'node:child_process'
 import { mkdir } from 'node:fs/promises'
 import { createServer } from 'node:net'
@@ -20,6 +20,54 @@ try {
   const browser = await chromium.launch({ executablePath: resolveBrowserExecutable(), headless: true })
   try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+    const privacyRequests = []
+    let profile = emptyProfile()
+    let ranking = rankingConfiguration()
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'geolocation', { configurable: true, get() { throw new Error('Browser geolocation must not be accessed') } })
+      for (const storage of [localStorage, sessionStorage]) {
+        storage.setItem = () => { throw new Error('Profile state must not be stored in browser storage') }
+      }
+    })
+    await page.route('**/api/v1/**', async (route) => {
+      const request = route.request(); const url = new URL(request.url())
+      privacyRequests.push(url.origin + url.pathname)
+      if (url.origin !== baseUrl) throw new Error(`Profile request escaped same origin: ${request.url()}`)
+      const json = (value) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(value) })
+      if (url.pathname === '/api/v1/profile' && request.method() === 'GET') return json(profile)
+      if (url.pathname === '/api/v1/profile' && request.method() === 'PUT') { profile = { ...request.postDataJSON(), id: 'local-profile', updatedAt: '2026-08-03T12:00:00Z' }; return json(profile) }
+      if (url.pathname === '/api/v1/ranking-config' && request.method() === 'GET') return json(ranking)
+      if (url.pathname === '/api/v1/ranking-config' && request.method() === 'PUT') { ranking = { ...request.postDataJSON(), perDemographicCap: .1, totalDemographicCap: .2, normalizationVersion: 'v1' }; return json(ranking) }
+      if (url.pathname === '/api/v1/starter-sources') return json({ items: [starterSource()] })
+      return route.fulfill({ status: 404 })
+    })
+
+    await page.goto(`${baseUrl}/`)
+    await page.getByRole('heading', { name: 'First-run setup' }).waitFor()
+    await page.getByLabel('Interests', { exact: true }).fill('technology, science')
+    await page.getByLabel('Starter feed (FEED, links to publisher)').check()
+    await page.getByLabel('Use location for ranking').check()
+    await page.getByLabel('Country code').fill('HU'); await page.getByLabel('Region').fill('Pest')
+    await page.getByRole('group', { name: 'Age' }).getByRole('checkbox').check()
+    await page.getByLabel('Age value').fill('35')
+    await page.getByRole('group', { name: 'Age' }).getByRole('checkbox').uncheck()
+    await page.getByRole('button', { name: 'Save setup' }).click()
+    await page.getByText('Setup saved on this computer.').waitFor()
+    await page.screenshot({ path: new URL('desktop-setup-saved.png', evidenceDirectory).pathname, fullPage: true })
+    await page.reload()
+    await page.getByText('Setup is already complete.').waitFor()
+    if (await page.getByLabel('Interests', { exact: true }).inputValue() !== 'technology, science') throw new Error('Profile did not reload from authoritative API state')
+
+    await page.goto(`${baseUrl}/settings`)
+    await page.getByLabel('Interests', { exact: true }).fill('')
+    await page.getByLabel('Starter feed (FEED, links to publisher)').uncheck()
+    await page.getByLabel('Country code').fill(''); await page.getByLabel('Region').fill('')
+    await page.getByRole('group', { name: 'Age' }).getByRole('checkbox').check(); await page.getByLabel('Age value').fill('')
+    await page.getByRole('button', { name: 'Save changes' }).click()
+    await page.getByText('Profile and ranking settings saved.').waitFor()
+    if (profile.interests.length || profile.preferredSourceIds.length || profile.location.present || profile.age.present) throw new Error('Returning-user clear did not reach authoritative API state')
+    if (privacyRequests.some((url) => !url.startsWith(`${baseUrl}/api/v1/`))) throw new Error('Profile traffic escaped the local same-origin API')
+
     await page.goto(`${baseUrl}/library`)
     await page.screenshot({ path: new URL('desktop-library.png', evidenceDirectory).pathname, fullPage: true })
     await page.getByRole('link', { name: 'Sources' }).focus()
@@ -38,12 +86,24 @@ try {
     for (const label of ['Setup', 'Ranked feed', 'Library', 'Sources', 'Settings']) {
       if (!labels.includes(label)) throw new Error(`Accepted route is not reachable from navigation: ${label}`)
     }
-    console.log('Browser proof passed: deep link, back/forward, keyboard navigation, desktop/narrow screenshots, and no narrow overflow.')
+    console.log('Browser proof passed: authoritative first-run/save/reload/clear, same-origin privacy, deep links, keyboard navigation, screenshots, and no narrow overflow.')
   } finally {
     await browser.close()
   }
 } finally {
   await stopProcessTree(preview)
+}
+
+function emptyProfile() {
+  return { id: 'local-profile', interests: [], preferredSourceIds: [], location: { present: false, enabled: false }, age: { present: false, enabled: false }, gender: { present: false, enabled: false }, updatedAt: '2026-08-03T00:00:00Z' }
+}
+
+function rankingConfiguration() {
+  return { recency: { enabled: true, weight: .25 }, interest: { enabled: true, weight: .25 }, sourcePreference: { enabled: true, weight: .1 }, behavior: { enabled: true, weight: .1 }, location: { enabled: false, weight: .05 }, age: { enabled: false, weight: .05 }, gender: { enabled: false, weight: .05 }, textSimilarity: { enabled: true, weight: .15 }, perDemographicCap: .1, totalDemographicCap: .2, normalizationVersion: 'v1' }
+}
+
+function starterSource() {
+  return { id: 'starter-1', name: 'Starter feed', url: 'https://example.com/feed', kind: 'feed', enabled: true, contentPermission: 'metadata_only', adapterConfig: { format: 'rss' }, scraperPolicy: { status: 'not_applicable', termsUrl: null, robotsUrl: null, reviewedAt: null, reviewNotes: null }, credentialConfigured: false, lastSuccessAt: null, lastError: null, retryAfter: null }
 }
 
 const primitiveProof = spawn(process.execPath, ['tests/primitive-browser-proof.mjs'], { stdio: 'inherit' })

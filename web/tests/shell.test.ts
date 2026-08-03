@@ -10,8 +10,12 @@ describe('application shell', () => {
   beforeEach(() => {
     window.history.replaceState(null, '', '/')
     setShellStatus({ kind: 'ready' })
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
+      id: 'local-profile', interests: [{ name: 'news', weight: 1 }], preferredSourceIds: [],
+      location: { present: true, enabled: true, value: { country: 'HU', region: 'Pest', city: { present: false, enabled: false } } }, age: { present: false, enabled: false }, gender: { present: false, enabled: false }, updatedAt: '2026-08-03T00:00:00Z'
+    }), { status: 200, headers: { 'content-type': 'application/json' } })))
   })
-  afterEach(() => vi.restoreAllMocks())
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
   it('provides named navigation, landmarks, and no automated accessibility violations', async () => {
     const wrapper = mount(ApplicationShell, { attachTo: document.body })
