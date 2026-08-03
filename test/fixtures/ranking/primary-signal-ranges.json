@@ -1,0 +1,17 @@
+{
+  "version": "primary-signals-v1",
+  "ranges": {
+    "recency": { "minimum": 0, "maximum": 1, "reason": "recency_fresh" },
+    "interest": { "minimum": 0, "maximum": 1, "reason": "explicit_interest_match" },
+    "text_similarity": { "minimum": 0, "maximum": 1, "reason": "local_text_match" },
+    "source_preference": { "minimum": 0, "maximum": 1, "reason": "explicit_source_preference" },
+    "behavior": { "minimum": 0, "maximum": 1, "reason": "article_read|article_saved|article_hidden" },
+    "location": { "minimum": 0, "maximum": 1, "reason": "explicit_location_match" }
+  },
+  "zero_reasons": ["signal_disabled", "signal_unavailable"],
+  "notes": [
+    "Hidden articles are excluded rather than negatively scored.",
+    "Location input is explicit coarse metadata; no physical-location inference is permitted.",
+    "These values are unweighted inputs and are not a final score."
+  ]
+}
