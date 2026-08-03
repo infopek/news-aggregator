@@ -1,0 +1,32 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "INGEST-003",
+  "run_id": "INGEST-003-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "done",
+  "implementation_summary": "Implemented and independently reviewed bounded RSS 2.0 and Atom ingestion through the shared fetcher and normalization pipeline with transactional cursor persistence and strict namespace handling.",
+  "files_changed": [
+    {"path": "internal/adapters/feeds/adapter.go", "change": "Added bounded RSS/Atom parsing, strict supported namespaces, date/encoding/relative-link mappings, diagnostics, conditional validators, and exact byte-limit handling."},
+    {"path": "internal/adapters/feeds/adapter_test.go", "change": "Added parser, mapping, namespace-collision, encoding, malformed, exact-limit, over-limit, and conditional-fetch tests."},
+    {"path": "internal/application/ingestion/runner.go", "change": "Added production orchestration that transactionally owns normalized article writes and source cursor advancement."},
+    {"path": "test/fixtures/feeds/**", "change": "Added consumed RSS, Atom, namespace, and malformed-document fixtures with coverage documentation."},
+    {"path": "tests/integration/feed_adapter_test.go", "change": "Added controlled-server and temporary-SQLite cursor, rollback, 304, permission, and ingestion lifecycle proof."}
+  ],
+  "verification": [
+    {"command": "focused feed and runner tests -count=20", "result": "passed", "output": "Parsing, namespaces, limits, conditional requests, rollback, cursor, and permission tests passed repeatedly."},
+    {"command": "go test -race ./... && go vet ./...", "result": "passed", "output": "All Go packages passed race and vet checks."},
+    {"command": "make verify", "result": "passed", "output": "Full Go, repository, frontend, browser, and PWA verification passed."},
+    {"command": "Windows amd64 CGO-free compile-only checks", "result": "passed", "output": "Feed, ingestion, and integration packages compiled for Windows."},
+    {"command": "git diff --check, allowed-scope inventory, and secret scan", "result": "passed", "output": "Diff, scope, and secrecy checks passed."}
+  ],
+  "proof": [
+    {"kind": "test_output", "summary": "Normalization, article, and source-save failures roll back article/cursor state; 304 performs zero article calls and transactionally persists validators.", "status": "passed"},
+    {"kind": "test_output", "summary": "RSS, Atom, Dublin Core, and content namespaces are explicit; hostile local-name collisions are rejected or ignored.", "status": "passed"},
+    {"kind": "test_output", "summary": "Exactly maxFeedBytes is accepted and max+1 is rejected while all fetches remain bounded by the shared fetcher.", "status": "passed"},
+    {"kind": "manual_note", "summary": "Independent reviewer approved exact revision aac1e87f5714ca256c35e978ab49a74debc5ea2e after transactional, namespace, and boundary corrections.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "No direct HTTP client, HTML fallback, or permission bypass was introduced.",
+  "submitted_at": "2026-08-03T15:11:21Z",
+  "updated_at": "2026-08-03T15:11:21Z"
+}
