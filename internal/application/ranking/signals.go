@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	PrimarySignalsVersion   = "primary-signals-v1"
 	ReasonRecencyFresh      = "recency_fresh"
 	ReasonInterestMatch     = "explicit_interest_match"
 	ReasonPreferredSource   = "explicit_source_preference"
@@ -181,13 +182,13 @@ func SourcePreferenceSignal(enabled bool, sourceID domain.SourceID, preferred []
 // Clearing HiddenAt restores eligibility and allows remaining actions to apply.
 func BehaviorSignal(enabled bool, state domain.LibraryState) SignalResult {
 	result := zeroSignal(domain.SignalBehavior, enabled)
-	if !enabled {
-		return result
-	}
 	if state.HiddenAt != nil {
 		result.Excluded = true
 		result.ReasonCode = ReasonArticleHidden
 		result.ReasonValues = map[string]string{"action": "hidden"}
+		return result
+	}
+	if !enabled {
 		return result
 	}
 	if state.SavedAt != nil {

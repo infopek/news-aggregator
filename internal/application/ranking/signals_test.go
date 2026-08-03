@@ -15,6 +15,19 @@ import (
 
 type fixedSignalClock struct{ now time.Time }
 
+type signalRangeFixture struct {
+	Version     string                  `json:"version"`
+	Ranges      map[string]fixtureRange `json:"ranges"`
+	ZeroReasons []string                `json:"zero_reasons"`
+	Notes       []string                `json:"notes"`
+}
+
+type fixtureRange struct {
+	Minimum     float64  `json:"minimum"`
+	Maximum     float64  `json:"maximum"`
+	ReasonCodes []string `json:"reason_codes"`
+}
+
 func (clock fixedSignalClock) Now() time.Time { return clock.now }
 
 func TestRecencySignalBoundaries(t *testing.T) {
@@ -158,7 +171,8 @@ func TestBehaviorTransitions(t *testing.T) {
 		{"hidden excludes", true, domain.LibraryState{SavedAt: &at, HiddenAt: &at}, 0, true},
 		{"restored retains saved", true, domain.LibraryState{SavedAt: &at, HiddenAt: nil}, SavedBehaviorScore, false},
 		{"restored untouched", true, domain.LibraryState{HiddenAt: nil}, 0, false},
-		{"disabled hidden does not exclude", false, domain.LibraryState{HiddenAt: &at}, 0, false},
+		{"disabled hidden still excludes", false, domain.LibraryState{HiddenAt: &at}, 0, true},
+		{"disabled restored is eligible", false, domain.LibraryState{HiddenAt: nil}, 0, false},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -215,18 +229,59 @@ func TestSignalsAreDeterministicAndFixtureDocumentsRanges(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var fixture map[string]any
+	var fixture signalRangeFixture
 	if err = json.Unmarshal(data, &fixture); err != nil {
 		t.Fatal(err)
+	}
+	want := signalRangeFixture{
+		Version: PrimarySignalsVersion,
+		Ranges: map[string]fixtureRange{
+			"recency":           {Minimum: 0, Maximum: 1, ReasonCodes: []string{ReasonRecencyFresh}},
+			"interest":          {Minimum: 0, Maximum: 1, ReasonCodes: []string{ReasonInterestMatch}},
+			"text_similarity":   {Minimum: 0, Maximum: 1, ReasonCodes: []string{ReasonLocalTextMatch}},
+			"source_preference": {Minimum: 0, Maximum: 1, ReasonCodes: []string{ReasonPreferredSource}},
+			"behavior":          {Minimum: 0, Maximum: 1, ReasonCodes: []string{ReasonArticleRead, ReasonArticleSaved, ReasonArticleHidden}},
+			"location":          {Minimum: 0, Maximum: 1, ReasonCodes: []string{ReasonLocationMatch}},
+		},
+		ZeroReasons: []string{ReasonSignalDisabled, ReasonSignalUnavailable},
+		Notes: []string{
+			"Hidden articles are excluded rather than negatively scored.",
+			"Location input is explicit coarse metadata; no physical-location inference is permitted.",
+			"These values are unweighted inputs and are not a final score.",
+		},
+	}
+	if !reflect.DeepEqual(fixture, want) {
+		t.Fatalf("range fixture is stale or incomplete:\ngot  %#v\nwant %#v", fixture, want)
 	}
 }
 
 func FuzzSignalsFiniteBounded(f *testing.F) {
 	f.Add("interest", "topic", "HU", "Budapest", 0.5)
 	f.Fuzz(func(t *testing.T, interest, topic, country, region string, weight float64) {
-		results := []SignalResult{InterestSignal(true, []domain.WeightedInterest{{Name: interest, Weight: weight}}, []string{topic}), LocationSignal(true, domain.OptionalSignal[domain.Location]{Present: true, Enabled: true, Value: domain.Location{Country: country, Region: region}}, CoarseLocationMetadata{Country: country, Region: region})}
+		interestInput := []domain.WeightedInterest{{Name: interest, Weight: weight}}
+		profile := domain.OptionalSignal[domain.Location]{Present: true, Enabled: true, Value: domain.Location{Country: country, Region: region}}
+		metadata := CoarseLocationMetadata{Country: country, Region: region}
+		results := []SignalResult{InterestSignal(true, interestInput, []string{topic}), LocationSignal(true, profile, metadata)}
 		for _, result := range results {
 			assertSignal(t, result, 0, 1)
+		}
+		repeated := []SignalResult{InterestSignal(true, interestInput, []string{topic}), LocationSignal(true, profile, metadata)}
+		if !reflect.DeepEqual(results, repeated) {
+			t.Fatalf("non-deterministic results: %#v %#v", results, repeated)
+		}
+		for _, disabled := range []SignalResult{InterestSignal(false, interestInput, []string{topic}), LocationSignal(false, profile, metadata)} {
+			if disabled.Score != 0 || disabled.Excluded || len(disabled.ReasonValues) != 0 || disabled.ReasonCode != ReasonSignalDisabled {
+				t.Fatalf("disabled signal leaked evidence: %+v", disabled)
+			}
+		}
+		malformed := InterestSignal(true, []domain.WeightedInterest{{Name: interest, Weight: math.NaN()}}, []string{topic})
+		if malformed.Score != 0 || len(malformed.ReasonValues) != 0 {
+			t.Fatalf("malformed signal leaked evidence: %+v", malformed)
+		}
+		now := time.Unix(1, 0)
+		hidden := BehaviorSignal(false, domain.LibraryState{HiddenAt: &now, SavedAt: &now})
+		if !hidden.Excluded || hidden.Score != 0 || hidden.ReasonCode != ReasonArticleHidden {
+			t.Fatalf("hidden exclusion invariant failed: %+v", hidden)
 		}
 	})
 }
