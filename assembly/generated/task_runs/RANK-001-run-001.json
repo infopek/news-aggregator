@@ -1,0 +1,30 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "RANK-001",
+  "run_id": "RANK-001-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "done",
+  "implementation_summary": "Implemented and independently reviewed deterministic rebuildable local BM25-style text similarity with permission-aware fields, bounded scores, version metadata, and machine-readable explanations.",
+  "files_changed": [
+    {"path": "internal/application/ranking/ranker.go", "change": "Added deterministic Unicode tokenization, immutable corpus statistics/indexing, BM25-style scoring, permission gating, bounded contributions, and sorted explanations."},
+    {"path": "internal/application/ranking/ranker_test.go", "change": "Added golden, determinism, Unicode, permission, empty/common/long text, boundedness, fuzz, concurrency, and no-network coverage."},
+    {"path": "test/fixtures/ranking/golden.json", "change": "Added enforced tokenization, corpus-statistics, ordering, and explanation fixtures."},
+    {"path": "tests/integration/ranking_restart_test.go", "change": "Added SQLite close/reopen rebuild determinism and fixture integration proof."}
+  ],
+  "verification": [
+    {"command": "go test -race ./internal/application/ranking ./tests/integration", "result": "passed", "output": "Ranking and restart integration passed under the race detector."},
+    {"command": "focused ranking tests -count=20", "result": "passed", "output": "Repeated tokenizer, corpus, score ordering, explanation, permission, and reload results were deterministic."},
+    {"command": "go test ./internal/application/ranking -run '^$' -fuzz=FuzzRankFiniteBounded -fuzztime=5s", "result": "passed", "output": "Reviewer fuzzing completed about 39000 executions with finite bounded scores."},
+    {"command": "./scripts/verify.sh && go vet ./...", "result": "passed", "output": "Full repository verification and vet passed."},
+    {"command": "Windows amd64 CGO-free compile-only checks and git diff --check", "result": "passed", "output": "Windows compilation and diff checks passed."}
+  ],
+  "proof": [
+    {"kind": "test_output", "summary": "Tokenizer and BM25F math, interest/config weights, permission gating, stable ordering, copied immutable stats, and SQLite rebuild determinism passed.", "status": "passed"},
+    {"kind": "test_output", "summary": "No network, external AI, model runtime, or process capability exists in the ranking implementation.", "status": "passed"},
+    {"kind": "manual_note", "summary": "Independent reviewer approved exact revision 4a1fd65df646787495f4986dea1d436a3341b9c2 with no blocking findings.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "Golden fixtures assert tokenization, corpus statistics, ordering, and explanation terms; score math and bounds were also independently recomputed and reviewed.",
+  "submitted_at": "2026-08-03T15:02:54Z",
+  "updated_at": "2026-08-03T15:02:54Z"
+}
