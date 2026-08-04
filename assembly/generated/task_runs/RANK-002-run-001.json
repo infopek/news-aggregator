@@ -1,0 +1,29 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "RANK-002",
+  "run_id": "RANK-002-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "done",
+  "implementation_summary": "Implemented and independently reviewed deterministic bounded primary ranking signal extractors for recency, interests, text similarity, source preference, library behavior, and explicit coarse location.",
+  "files_changed": [
+    {"path": "internal/application/ranking/signals.go", "change": "Added versioned finite signal extractors with stable reasons, explicit disabled/absent handling, fixed-clock recency, behavior exclusion, and coarse-location matching."},
+    {"path": "internal/application/ranking/signals_test.go", "change": "Added exhaustive boundaries, transitions, determinism, strict fixture decoding, adversarial inputs, fuzz invariants, and no-evidence tests."},
+    {"path": "test/fixtures/ranking/primary-signal-ranges.json", "change": "Added strictly enforced version, range, reason-code, zero-reason, and limitation metadata."}
+  ],
+  "verification": [
+    {"command": "focused ranking signal tests -count=20", "result": "passed", "output": "All signal boundaries, transitions, reasons, fixture, and determinism tests passed repeatedly."},
+    {"command": "go test -race ./internal/application/ranking", "result": "passed", "output": "Ranking package passed under the race detector."},
+    {"command": "signal fuzz targets", "result": "passed", "output": "Finite bounds, determinism, disabled/malformed no-evidence, and hidden-exclusion invariants passed."},
+    {"command": "go vet ./... && ./scripts/verify.sh", "result": "passed", "output": "Vet and full repository verification passed."},
+    {"command": "Windows amd64 CGO-free compile, git diff --check, scope and secret checks", "result": "passed", "output": "Windows, diff, scope, and secrecy checks passed."}
+  ],
+  "proof": [
+    {"kind": "test_output", "summary": "Hidden articles remain excluded independently of behavior personalization; restored/read/saved/untouched semantics are enforced.", "status": "passed"},
+    {"kind": "test_output", "summary": "Strict typed fixture decoding rejects unknown fields and trailing JSON while enforcing exact signal metadata.", "status": "passed"},
+    {"kind": "manual_note", "summary": "Independent reviewer approved exact revision fdbac9221b9bd9a37ffc06850d6cda5511894aa0 after hidden-exclusion and proof corrections.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "Signals are unweighted inputs only; no final score, demographics, inference, geolocation, or network access was added.",
+  "submitted_at": "2026-08-03T17:50:00Z",
+  "updated_at": "2026-08-03T17:50:00Z"
+}
