@@ -31,17 +31,17 @@ func (r *RankingRepository) SaveConfiguration(ctx context.Context, c domain.Rank
 func (r *RankingRepository) SaveResults(ctx context.Context, results []domain.RankingResult) error {
 	return r.store.WithinTransaction(ctx, func(ctx context.Context) error {
 		for _, v := range results {
-			if v.ArticleID == "" || v.Score < 0 || v.Score > 1 || math.IsNaN(v.Score) || v.AlgorithmVersion == "" {
+			if v.ArticleID == "" || v.Score < 0 || v.Score > 1 || math.IsNaN(v.Score) || math.IsInf(v.Score, 0) || v.AlgorithmVersion == "" || v.CalculatedAt.IsZero() || len(v.Contributions) == 0 {
 				return application.ErrInvalidInput
 			}
 			sum := 0.0
 			for _, c := range v.Contributions {
-				if c.RawScore < 0 || c.RawScore > 1 || c.Weight < 0 || c.Weight > 1 || c.WeightedScore < 0 || c.WeightedScore > 1 || c.ReasonCode == "" {
+				if c.RawScore < 0 || c.RawScore > 1 || math.IsNaN(c.RawScore) || math.IsInf(c.RawScore, 0) || c.Weight < 0 || c.Weight > 1 || math.IsNaN(c.Weight) || math.IsInf(c.Weight, 0) || c.WeightedScore < 0 || c.WeightedScore > 1 || math.IsNaN(c.WeightedScore) || math.IsInf(c.WeightedScore, 0) || math.Abs(c.RawScore*c.Weight-c.WeightedScore) > 0.000000001 || c.ReasonCode == "" {
 					return application.ErrInvalidInput
 				}
 				sum += c.WeightedScore
 			}
-			if sum > 1.000000001 {
+			if sum > 1.000000001 || math.Abs(sum-v.Score) > 0.000000001 {
 				return application.ErrInvalidInput
 			}
 			if _, err := r.store.q(ctx).ExecContext(ctx, `INSERT INTO ranking_results(article_id,score,algorithm_version,calculated_at_ms)VALUES(?,?,?,?) ON CONFLICT(article_id)DO UPDATE SET score=excluded.score,algorithm_version=excluded.algorithm_version,calculated_at_ms=excluded.calculated_at_ms`, v.ArticleID, v.Score, v.AlgorithmVersion, millis(v.CalculatedAt)); err != nil {
