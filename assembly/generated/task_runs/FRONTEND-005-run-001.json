@@ -1,0 +1,33 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "FRONTEND-005",
+  "run_id": "FRONTEND-005-run-001",
+  "actor_id": "frontend-agent",
+  "status": "done",
+  "implementation_summary": "Implemented and independently reviewed API-authoritative first-run setup, profile editing, and ranking-signal settings with accessible privacy-preserving workflows and lifecycle-safe server state.",
+  "files_changed": [
+    {"path": "web/src/features/setup/**", "change": "Added the guided first-run entry workflow."},
+    {"path": "web/src/features/profile/**", "change": "Added profile forms, validation, state-layer loading/mutations, cancellation, authoritative redirects, clearing, and partial-save recovery."},
+    {"path": "web/src/features/ranking-settings/**", "change": "Added bounded ranking controls and demographic-cap disclosure."},
+    {"path": "web/src/router/router.ts", "change": "Added authoritative empty-profile setup routing and completed-profile setup bypass."},
+    {"path": "web/src/components/layout/RoutePlaceholder.vue", "change": "Added the authorized minimal generic feature-route rendering seam while preserving other placeholders."},
+    {"path": "web/tests/**", "change": "Added component, accessibility, lifecycle, privacy, routing, browser reload/clear, responsive screenshot, and proof coverage."}
+  ],
+  "verification": [
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Full repository verification passed with 15 frontend files and 87 tests plus browser and primitive proofs."},
+    {"command": "npm --prefix web run test:browser", "result": "passed", "output": "Empty setup, save, completed /setup redirect to /settings, authoritative reload, edit/clear, privacy, responsive, and overflow proof passed."},
+    {"command": "npm --prefix web run lint && npm --prefix web run typecheck", "result": "passed", "output": "Lint and TypeScript/Vue checks passed."},
+    {"command": "npm --prefix web audit --audit-level=high", "result": "passed", "output": "Zero vulnerabilities reported."},
+    {"command": "generated drift, git diff --check, scope and privacy sentinels", "result": "passed", "output": "API drift, diff, authorized scope exception, same-origin, storage, geolocation, and secret checks passed."}
+  ],
+  "proof": [
+    {"kind": "test_output", "summary": "Loads use ServerStateClient cancellation/generation guards; saves use ServerMutations invalidation and authoritative reconciliation.", "status": "passed"},
+    {"kind": "test_output", "summary": "Completed setup redirects to settings and reloads interests, starter source, manual location, and retained disabled age from the API.", "status": "passed"},
+    {"kind": "screenshot", "path": "web/tests/evidence/desktop-setup-saved.png", "summary": "Desktop saved-setup browser evidence.", "status": "accepted"},
+    {"kind": "manual_note", "summary": "Independent reviewer approved exact revision 15ea3c1bae64e25364679594ce27c6a141047d83 after state, routing, partial-save, and browser-proof corrections.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "No account, geolocation, IP lookup, inferred demographics, authoritative browser storage, cross-origin profile transmission, or client ranking recomputation was added.",
+  "submitted_at": "2026-08-04T11:16:58Z",
+  "updated_at": "2026-08-04T11:16:58Z"
+}
