@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import type { AppRoute } from '../../router/routes'
 import AppLink from '../../router/AppLink.vue'
+import { ProfileSettings } from '../../features/profile'
+import { FirstRunSetup } from '../../features/setup'
 
 defineProps<{ route: AppRoute; articleId?: string }>()
 </script>
 
 <template>
+  <FirstRunSetup v-if="route.name === 'setup'" />
+  <ProfileSettings v-else-if="route.name === 'settings'" />
   <section
+    v-else
     class="route-boundary"
     :aria-labelledby="`${route.name}-title`"
   >

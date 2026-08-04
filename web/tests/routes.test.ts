@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
+import { firstRunDestination } from '../src/router/router'
 import { articleRoute, matchRoute, notFoundRoute, routes } from '../src/router/routes'
+import type { Profile } from '../src/api/generated/models'
 
 describe('route contract', () => {
   it('keeps every accepted screen on a stable path', () => {
@@ -24,5 +26,15 @@ describe('route contract', () => {
   it('decodes contextual article paths and rejects partial matches', () => {
     expect(matchRoute('/articles/local%20news')).toEqual({ route: articleRoute, params: { articleId: 'local news' } })
     expect(matchRoute('/articles/one/extra').route).toBe(notFoundRoute)
+  })
+
+  it('routes only an authoritatively empty profile into first-run', () => {
+    const empty = { interests: [], preferredSourceIds: [], location: { present: false } } as Profile
+    const complete = { ...empty, interests: [{ name: 'news', weight: 1 }] } as Profile
+    expect(firstRunDestination('/', empty)).toBe('/setup')
+    expect(firstRunDestination('/', complete)).toBeUndefined()
+    expect(firstRunDestination('/setup', complete)).toBe('/settings')
+    expect(firstRunDestination('/setup', empty)).toBeUndefined()
+    expect(firstRunDestination('/settings', empty)).toBeUndefined()
   })
 })
