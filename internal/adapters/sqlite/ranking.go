@@ -31,7 +31,7 @@ func (r *RankingRepository) SaveConfiguration(ctx context.Context, c domain.Rank
 func (r *RankingRepository) SaveResults(ctx context.Context, results []domain.RankingResult) error {
 	return r.store.WithinTransaction(ctx, func(ctx context.Context) error {
 		for _, v := range results {
-			if v.ArticleID == "" || v.Score < 0 || v.Score > 1 || math.IsNaN(v.Score) || math.IsInf(v.Score, 0) || v.AlgorithmVersion == "" || v.CalculatedAt.IsZero() || len(v.Contributions) == 0 {
+			if v.ArticleID == "" || v.Score < 0 || v.Score > 1 || math.IsNaN(v.Score) || math.IsInf(v.Score, 0) || v.AlgorithmVersion == "" || len(v.Contributions) == 0 {
 				return application.ErrInvalidInput
 			}
 			sum := 0.0

@@ -165,6 +165,10 @@ func TestRankingRepositoryRejectsNonReconcilingOrNonFiniteResults(t *testing.T) 
 			t.Fatalf("case %d error=%v", i, err)
 		}
 	}
+	valid.CalculatedAt = time.Time{}
+	if err := store.Rankings().SaveResults(ctx, []domain.RankingResult{valid}); err != nil {
+		t.Fatalf("RANK-001-compatible zero calculation time rejected: %v", err)
+	}
 }
 
 func rankStored(t *testing.T, store *sqlite.Store, interests []domain.WeightedInterest) []domain.RankingResult {

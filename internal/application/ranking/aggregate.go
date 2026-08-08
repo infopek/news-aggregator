@@ -69,13 +69,8 @@ func Aggregate(ctx context.Context, input AggregateInput) ([]domain.RankingResul
 		return nil, domain.ErrInvalidRankingConfiguration
 	}
 	weights := configuredWeights(input.Configuration)
-	total := 0.0
-	for _, weight := range weights {
-		if weight.Enabled {
-			total += weight.Weight
-		}
-	}
-	if !finitePositive(total) {
+	primaryTotal := activeWeight(weights, primarySignals())
+	if !finitePositive(primaryTotal) {
 		return nil, domain.ErrInvalidRankingConfiguration
 	}
 
@@ -92,10 +87,14 @@ func Aggregate(ctx context.Context, input AggregateInput) ([]domain.RankingResul
 			return nil, ErrInvalidSignalInput
 		}
 		seen[candidate.ArticleID] = struct{}{}
-		if excluded(candidate.Signals) {
+		hidden, err := validateCandidate(candidate, weights)
+		if err != nil {
+			return nil, err
+		}
+		if hidden {
 			continue
 		}
-		contributions, err := contributionsFor(candidate, weights, total, input.Configuration)
+		contributions, err := contributionsFor(candidate, weights, primaryTotal, input.Configuration)
 		if err != nil {
 			return nil, err
 		}
@@ -105,7 +104,7 @@ func Aggregate(ctx context.Context, input AggregateInput) ([]domain.RankingResul
 		}
 		score = clamp(score)
 		if len(contributions) == 0 {
-			contributions = []domain.ScoreContribution{neutralContribution(weights, total)}
+			contributions = []domain.ScoreContribution{neutralContribution(weights, primaryTotal)}
 		}
 		results = append(results, rankedCandidate{result: domain.RankingResult{
 			ArticleID: candidate.ArticleID, Score: score, Contributions: contributions,
@@ -143,7 +142,7 @@ type rankedCandidate struct {
 	publishedAt *time.Time
 }
 
-func contributionsFor(candidate Candidate, weights map[domain.RankingSignal]domain.SignalWeight, total float64, configuration domain.RankingConfiguration) ([]domain.ScoreContribution, error) {
+func contributionsFor(candidate Candidate, weights map[domain.RankingSignal]domain.SignalWeight, primaryTotal float64, configuration domain.RankingConfiguration) ([]domain.ScoreContribution, error) {
 	bySignal := make(map[domain.RankingSignal]SignalResult, len(candidate.Signals)+2)
 	for _, result := range candidate.Signals {
 		if result.Signal == domain.SignalAge || result.Signal == domain.SignalGender || result.Excluded || !validResult(result) {
@@ -167,32 +166,43 @@ func contributionsFor(candidate Candidate, weights map[domain.RankingSignal]doma
 		bySignal[signal] = result
 	}
 
-	order := []domain.RankingSignal{domain.SignalRecency, domain.SignalInterest, domain.SignalSource, domain.SignalBehavior, domain.SignalLocation, domain.SignalTextSimilarity}
+	demographicBudget := configuredDemographicBudget(weights, configuration)
+	primaryBudget := 1 - demographicBudget
+	order := primarySignals()
 	contributions := make([]domain.ScoreContribution, 0, len(order)+2)
 	for _, signal := range order {
 		result, ok := bySignal[signal]
 		weight := weights[signal]
-		if !ok || !weight.Enabled || result.Score == 0 {
+		if !ok || !weight.Enabled || weight.Weight == 0 || result.Score == 0 {
 			continue
 		}
-		contributions = append(contributions, contribution(result, weight.Weight/total, result.Score*weight.Weight/total))
+		effectiveWeight := weight.Weight / primaryTotal * primaryBudget
+		contributions = append(contributions, contribution(result, effectiveWeight, result.Score*effectiveWeight))
 	}
 
-	demographic := make([]domain.ScoreContribution, 0, 2)
-	for _, signal := range []domain.RankingSignal{domain.SignalAge, domain.SignalGender} {
+	primaryScore := 0.0
+	for _, item := range contributions {
+		primaryScore += item.WeightedScore
+	}
+	if primaryScore == 0 {
+		return contributions, nil
+	}
+	demographic := make([]domain.ScoreContribution, 0, 3)
+	for _, signal := range demographicSignals() {
 		result, weight := bySignal[signal], weights[signal]
-		if !weight.Enabled || result.Score == 0 {
+		if !weight.Enabled || weight.Weight == 0 || result.Score == 0 {
 			continue
 		}
-		weighted := math.Min(result.Score*weight.Weight/total, configuration.PerDemographicCap)
+		weighted := math.Min(result.Score*weight.Weight, configuration.PerDemographicCap)
 		demographic = append(demographic, contribution(result, weighted/result.Score, weighted))
 	}
 	demographicTotal := 0.0
 	for _, item := range demographic {
 		demographicTotal += item.WeightedScore
 	}
-	if demographicTotal > configuration.TotalDemographicCap {
-		factor := configuration.TotalDemographicCap / demographicTotal
+	allowedDemographic := math.Min(demographicBudget, primaryScore)
+	if demographicTotal > allowedDemographic {
+		factor := allowedDemographic / demographicTotal
 		for i := range demographic {
 			demographic[i].Weight *= factor
 			demographic[i].WeightedScore *= factor
@@ -209,27 +219,51 @@ func contribution(result SignalResult, normalizedWeight, weighted float64) domai
 	return domain.ScoreContribution{Signal: result.Signal, RawScore: result.Score, Weight: normalizedWeight, WeightedScore: weighted, ReasonCode: result.ReasonCode, ReasonValues: values}
 }
 
-func neutralContribution(weights map[domain.RankingSignal]domain.SignalWeight, total float64) domain.ScoreContribution {
-	order := []domain.RankingSignal{domain.SignalRecency, domain.SignalInterest, domain.SignalSource, domain.SignalBehavior, domain.SignalLocation, domain.SignalTextSimilarity, domain.SignalAge, domain.SignalGender}
-	for _, signal := range order {
+func neutralContribution(weights map[domain.RankingSignal]domain.SignalWeight, primaryTotal float64) domain.ScoreContribution {
+	for _, signal := range primarySignals() {
 		if weight := weights[signal]; weight.Enabled {
-			return domain.ScoreContribution{Signal: signal, Weight: weight.Weight / total, ReasonCode: ReasonNeutralDefault, ReasonValues: map[string]string{}}
+			return domain.ScoreContribution{Signal: signal, Weight: weight.Weight / primaryTotal, ReasonCode: ReasonNeutralDefault, ReasonValues: map[string]string{}}
 		}
 	}
 	panic("validated configuration has no active signal")
 }
 
 func validResult(result SignalResult) bool {
-	return result.Signal != "" && finiteUnit(result.Score) && (result.Score == 0 || result.ReasonCode != "")
+	if result.Signal == "" || !finiteUnit(result.Score) {
+		return false
+	}
+	if result.Score == 0 {
+		return result.ReasonCode == "" || result.ReasonCode == ReasonSignalDisabled || result.ReasonCode == ReasonSignalUnavailable
+	}
+	if result.Signal == domain.SignalBehavior {
+		return result.ReasonCode == ReasonArticleRead || result.ReasonCode == ReasonArticleSaved
+	}
+	return result.ReasonCode == reasonFor(result.Signal)
 }
 
-func excluded(results []SignalResult) bool {
-	for _, result := range results {
+func validateCandidate(candidate Candidate, weights map[domain.RankingSignal]domain.SignalWeight) (bool, error) {
+	seen := make(map[domain.RankingSignal]struct{}, len(candidate.Signals))
+	hidden := false
+	for _, result := range candidate.Signals {
+		if _, known := weights[result.Signal]; !known || result.Signal == domain.SignalAge || result.Signal == domain.SignalGender {
+			return false, ErrInvalidSignalInput
+		}
+		if _, duplicate := seen[result.Signal]; duplicate {
+			return false, ErrInvalidSignalInput
+		}
+		seen[result.Signal] = struct{}{}
 		if result.Excluded {
-			return true
+			if result.Signal != domain.SignalBehavior || result.Score != 0 || result.ReasonCode != ReasonArticleHidden || result.ReasonValues["action"] != "hidden" {
+				return false, ErrInvalidSignalInput
+			}
+			hidden = true
+			continue
+		}
+		if !validResult(result) {
+			return false, ErrInvalidSignalInput
 		}
 	}
-	return false
+	return hidden, nil
 }
 
 func configuredWeights(configuration domain.RankingConfiguration) map[domain.RankingSignal]domain.SignalWeight {
@@ -243,4 +277,55 @@ func configuredWeights(configuration domain.RankingConfiguration) map[domain.Ran
 
 func finitePositive(value float64) bool {
 	return value > 0 && !math.IsNaN(value) && !math.IsInf(value, 0)
+}
+
+func primarySignals() []domain.RankingSignal {
+	return []domain.RankingSignal{domain.SignalRecency, domain.SignalInterest, domain.SignalSource, domain.SignalBehavior, domain.SignalTextSimilarity}
+}
+
+func demographicSignals() []domain.RankingSignal {
+	return []domain.RankingSignal{domain.SignalLocation, domain.SignalAge, domain.SignalGender}
+}
+
+func activeWeight(weights map[domain.RankingSignal]domain.SignalWeight, signals []domain.RankingSignal) float64 {
+	total := 0.0
+	for _, signal := range signals {
+		if weight := weights[signal]; weight.Enabled {
+			total += weight.Weight
+		}
+	}
+	return total
+}
+
+func configuredDemographicBudget(weights map[domain.RankingSignal]domain.SignalWeight, configuration domain.RankingConfiguration) float64 {
+	total := 0.0
+	for _, signal := range demographicSignals() {
+		if weight := weights[signal]; weight.Enabled {
+			total += math.Min(weight.Weight, configuration.PerDemographicCap)
+		}
+	}
+	return math.Min(total, configuration.TotalDemographicCap)
+}
+
+func reasonFor(signal domain.RankingSignal) string {
+	switch signal {
+	case domain.SignalRecency:
+		return ReasonRecencyFresh
+	case domain.SignalInterest:
+		return ReasonInterestMatch
+	case domain.SignalSource:
+		return ReasonPreferredSource
+	case domain.SignalBehavior:
+		return ReasonArticleSaved // read is handled as another truthful behavior reason below.
+	case domain.SignalLocation:
+		return ReasonLocationMatch
+	case domain.SignalTextSimilarity:
+		return ReasonLocalTextMatch
+	case domain.SignalAge:
+		return ReasonAgeAdjustment
+	case domain.SignalGender:
+		return ReasonGenderAdjustment
+	default:
+		return ""
+	}
 }
