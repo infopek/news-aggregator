@@ -157,6 +157,9 @@ func parseSelector(raw string) (selector, error) {
 			s.class = parts[1]
 		}
 	}
+	if s.tag == "" && s.class == "" || strings.HasSuffix(raw, ".") {
+		return selector{}, application.ErrInvalidInput
+	}
 	return s, nil
 }
 func matches(n *html.Node, s selector) bool {
@@ -210,6 +213,9 @@ func text(n *html.Node) string {
 	var b strings.Builder
 	var walk func(*html.Node)
 	walk = func(v *html.Node) {
+		if v.Type == html.ElementNode && (v.Data == "script" || v.Data == "style" || v.Data == "template") {
+			return
+		}
 		if v.Type == html.TextNode {
 			b.WriteString(v.Data)
 			b.WriteByte(' ')

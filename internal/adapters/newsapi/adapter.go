@@ -21,6 +21,13 @@ const maxBody = int64(4 << 20)
 
 var ErrInvalidResponse = errors.New("official API adapter: invalid response")
 
+type RateLimitError struct {
+	Retryable  bool
+	RetryAfter time.Duration
+}
+
+func (err *RateLimitError) Error() string { return "official API adapter: rate limited" }
+
 type Adapter struct {
 	Fetcher     application.HTTPFetcher
 	Credentials application.CredentialResolver
@@ -87,7 +94,7 @@ func (a Adapter) Fetch(ctx context.Context, source domain.Source, cursor applica
 		return application.AdapterResult{}, application.ErrCredentialMissing
 	}
 	if response.StatusCode == http.StatusTooManyRequests {
-		return application.AdapterResult{}, fmt.Errorf("official API adapter: rate limited (retryable=%t retry_after=%s)", response.Retryable, response.RetryAfter)
+		return application.AdapterResult{}, &RateLimitError{Retryable: response.Retryable, RetryAfter: response.RetryAfter}
 	}
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
 		return application.AdapterResult{}, fmt.Errorf("official API adapter: HTTP status %d", response.StatusCode)

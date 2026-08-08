@@ -44,7 +44,7 @@ func TestFixtureExtractionAndPermission(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(result.Items[0].FullContent, "Permitted full content") || strings.Contains(result.Items[0].FullContent, "<script") {
+	if !strings.Contains(result.Items[0].FullContent, "Permitted full content") || strings.Contains(result.Items[0].FullContent, "<script") || strings.Contains(result.Items[0].FullContent, "malicious()") {
 		t.Fatalf("content=%q", result.Items[0].FullContent)
 	}
 }
@@ -77,10 +77,12 @@ func TestSelectorAndMissingStructureRejected(t *testing.T) {
 	if _, err := adapter.Fetch(context.Background(), scraperSource(now.Add(-time.Hour), domain.ContentMetadataOnly), application.FetchCursor{}); !errors.Is(err, ErrInvalidPage) {
 		t.Fatalf("error=%v", err)
 	}
-	source := scraperSource(now.Add(-time.Hour), domain.ContentMetadataOnly)
-	source.AdapterConfig.Scraper.ArticleSelector = "article > a"
-	if _, err := adapter.Fetch(context.Background(), source, application.FetchCursor{}); !errors.Is(err, application.ErrInvalidInput) {
-		t.Fatalf("selector error=%v", err)
+	for _, invalid := range []string{"article > a", ".", "article."} {
+		source := scraperSource(now.Add(-time.Hour), domain.ContentMetadataOnly)
+		source.AdapterConfig.Scraper.ArticleSelector = invalid
+		if _, err := adapter.Fetch(context.Background(), source, application.FetchCursor{}); !errors.Is(err, application.ErrInvalidInput) {
+			t.Fatalf("selector %q error=%v", invalid, err)
+		}
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/infopek/news-aggregator/internal/application"
 	"github.com/infopek/news-aggregator/internal/domain"
@@ -56,13 +57,23 @@ func TestFixturePaginationAndScopedCredential(t *testing.T) {
 }
 
 func TestStatusShapeCursorAndCancellationFailures(t *testing.T) {
-	for _, status := range []int{http.StatusUnauthorized, http.StatusForbidden, http.StatusTooManyRequests} {
+	for _, status := range []int{http.StatusUnauthorized, http.StatusForbidden} {
 		adapter := Adapter{Fetcher: fetcherFunc(func(context.Context, application.FetchRequest) (application.FetchResponse, error) {
 			return response(status, nil), nil
 		})}
 		if _, err := adapter.Fetch(context.Background(), apiSource(nil), application.FetchCursor{}); err == nil {
 			t.Fatalf("status %d accepted", status)
 		}
+	}
+	adapter := Adapter{Fetcher: fetcherFunc(func(context.Context, application.FetchRequest) (application.FetchResponse, error) {
+		value := response(http.StatusTooManyRequests, nil)
+		value.Retryable, value.RetryAfter = true, 45*time.Second
+		return value, nil
+	})}
+	_, err := adapter.Fetch(context.Background(), apiSource(nil), application.FetchCursor{})
+	var rateLimit *RateLimitError
+	if !errors.As(err, &rateLimit) || !rateLimit.Retryable || rateLimit.RetryAfter != 45*time.Second {
+		t.Fatalf("rate limit error=%v", err)
 	}
 	for _, body := range []string{`{"provider":"wrong","items":[]}`, `{"provider":"fictional-official-api","nextCursor":"same","items":[]}`, `{"provider":"fictional-official-api","items":[],"unknown":true}`} {
 		adapter := Adapter{Fetcher: fetcherFunc(func(context.Context, application.FetchRequest) (application.FetchResponse, error) {
@@ -78,7 +89,7 @@ func TestStatusShapeCursorAndCancellationFailures(t *testing.T) {
 	}
 	cancelled, cancel := context.WithCancel(context.Background())
 	cancel()
-	adapter := Adapter{Fetcher: fetcherFunc(func(ctx context.Context, _ application.FetchRequest) (application.FetchResponse, error) {
+	adapter = Adapter{Fetcher: fetcherFunc(func(ctx context.Context, _ application.FetchRequest) (application.FetchResponse, error) {
 		return application.FetchResponse{}, ctx.Err()
 	})}
 	if _, err := adapter.Fetch(cancelled, apiSource(nil), application.FetchCursor{}); !errors.Is(err, context.Canceled) {
