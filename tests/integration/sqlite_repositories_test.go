@@ -136,6 +136,10 @@ func TestRepositoryRoundTripsAndRestart(t *testing.T) {
 	}
 	config := domain.RankingConfiguration{Recency: domain.SignalWeight{Enabled: true, Weight: .4}, Interest: domain.SignalWeight{Enabled: true, Weight: .6}, PerDemographicCap: .1, TotalDemographicCap: .2, NormalizationVersion: "v1"}
 	must(t, store.Rankings().SaveConfiguration(ctx, config))
+	demographicOnly := domain.RankingConfiguration{Age: domain.SignalWeight{Enabled: true, Weight: .1}, PerDemographicCap: .1, TotalDemographicCap: .2, NormalizationVersion: "v1"}
+	if err := store.Rankings().SaveConfiguration(ctx, demographicOnly); !errors.Is(err, application.ErrInvalidInput) {
+		t.Fatalf("SaveConfiguration(demographic-only) error = %v, want %v", err, application.ErrInvalidInput)
+	}
 	ranking := domain.RankingResult{ArticleID: article.ID, Score: .48, AlgorithmVersion: "v1", CalculatedAt: now, Contributions: []domain.ScoreContribution{{Signal: domain.SignalInterest, RawScore: .8, Weight: .6, WeightedScore: .48, ReasonCode: "topic", ReasonValues: map[string]string{"topic": "science"}}}}
 	must(t, store.Rankings().SaveResults(ctx, []domain.RankingResult{ranking}))
 	gotRanking, err := store.Rankings().GetResult(ctx, article.ID)

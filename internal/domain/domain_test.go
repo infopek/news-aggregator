@@ -130,6 +130,7 @@ func TestRankingConfigurationRejectsNonFiniteAndEmptyWeights(t *testing.T) {
 		{},
 		{Interest: SignalWeight{Enabled: true, Weight: math.NaN()}},
 		{Interest: SignalWeight{Enabled: true, Weight: 0.5}, PerDemographicCap: 0.2, TotalDemographicCap: 0.1},
+		{Age: SignalWeight{Enabled: true, Weight: 0.1}, PerDemographicCap: 0.1, TotalDemographicCap: 0.2},
 	}
 	for index, configuration := range tests {
 		if err := configuration.Validate(); !errors.Is(err, ErrInvalidRankingConfiguration) {
