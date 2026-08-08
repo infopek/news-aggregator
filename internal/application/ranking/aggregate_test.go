@@ -228,6 +228,7 @@ func TestAggregateRejectsInvalidConfigurationAndSignals(t *testing.T) {
 		{Configuration: configuration, CalculatedAt: now, Candidates: []Candidate{{ArticleID: "a"}, {ArticleID: "a"}}},
 		{Configuration: configuration, CalculatedAt: now, Candidates: []Candidate{{ArticleID: "a", Signals: []SignalResult{{Signal: domain.SignalInterest, Score: 1, ReasonCode: ReasonArticleSaved}}}}},
 		{Configuration: configuration, CalculatedAt: now, Candidates: []Candidate{{ArticleID: "a", Signals: []SignalResult{{Signal: "unknown", Excluded: true, ReasonCode: ReasonArticleHidden, ReasonValues: map[string]string{"action": "hidden"}}}}}},
+		{Configuration: configuration, CalculatedAt: now, Candidates: []Candidate{{ArticleID: "a", Signals: []SignalResult{{Signal: domain.SignalBehavior, Excluded: true, ReasonCode: ReasonArticleHidden, ReasonValues: map[string]string{"action": "hidden"}}}, Age: SignalResult{Signal: domain.SignalAge, Score: math.NaN()}}}},
 	}
 	for i, input := range tests {
 		if _, err := Aggregate(context.Background(), input); err == nil {

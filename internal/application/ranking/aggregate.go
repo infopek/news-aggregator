@@ -263,6 +263,14 @@ func validateCandidate(candidate Candidate, weights map[domain.RankingSignal]dom
 			return false, ErrInvalidSignalInput
 		}
 	}
+	for signal, result := range map[domain.RankingSignal]SignalResult{domain.SignalAge: candidate.Age, domain.SignalGender: candidate.Gender} {
+		if result.Signal == "" {
+			result.Signal = signal
+		}
+		if result.Signal != signal || result.Excluded || !validResult(result) {
+			return false, ErrInvalidSignalInput
+		}
+	}
 	return hidden, nil
 }
 
