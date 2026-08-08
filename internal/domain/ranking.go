@@ -56,16 +56,18 @@ func (configuration RankingConfiguration) Validate() error {
 		configuration.Gender,
 		configuration.TextSimilarity,
 	}
-	activeWeight := 0.0
 	for _, weight := range weights {
 		if !validUnitWeight(weight.Weight) {
 			return ErrInvalidRankingConfiguration
 		}
+	}
+	primaryWeight := 0.0
+	for _, weight := range []SignalWeight{configuration.Recency, configuration.Interest, configuration.SourcePreference, configuration.Behavior, configuration.TextSimilarity} {
 		if weight.Enabled {
-			activeWeight += weight.Weight
+			primaryWeight += weight.Weight
 		}
 	}
-	if activeWeight == 0 || !validUnitWeight(configuration.PerDemographicCap) || !validUnitWeight(configuration.TotalDemographicCap) || configuration.TotalDemographicCap < configuration.PerDemographicCap {
+	if primaryWeight == 0 || !validUnitWeight(configuration.PerDemographicCap) || !validUnitWeight(configuration.TotalDemographicCap) || configuration.TotalDemographicCap < configuration.PerDemographicCap {
 		return ErrInvalidRankingConfiguration
 	}
 	if configuration.PerDemographicCap > MaximumPerDemographicWeight || configuration.TotalDemographicCap > MaximumTotalDemographicWeight {

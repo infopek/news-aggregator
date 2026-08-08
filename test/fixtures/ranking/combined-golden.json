@@ -1,0 +1,21 @@
+{
+  "algorithm_version": "weighted-signals-v1+v1",
+  "calculated_at": "2026-08-04T12:00:00Z",
+  "configuration": {
+    "interest_weight": 0.8,
+    "age_weight": 0.1,
+    "gender_weight": 0.1,
+    "per_demographic_cap": 0.1,
+    "total_demographic_cap": 0.2
+  },
+  "candidates": [
+    {"id": "partial", "published_at": "2026-08-04T11:00:00Z", "interest": 0.5, "age": 1, "gender": 1},
+    {"id": "exact-b", "published_at": "2026-08-04T10:00:00Z", "interest": 1, "age": 1, "gender": 1},
+    {"id": "exact-a", "published_at": "2026-08-04T10:00:00Z", "interest": 1, "age": 1, "gender": 1}
+  ],
+  "expected": [
+    {"id": "exact-a", "score": 1, "signals": ["interest", "age", "gender"]},
+    {"id": "exact-b", "score": 1, "signals": ["interest", "age", "gender"]},
+    {"id": "partial", "score": 0.6, "signals": ["interest", "age", "gender"]}
+  ]
+}

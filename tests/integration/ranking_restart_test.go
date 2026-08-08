@@ -3,6 +3,8 @@ package integration_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"math"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -91,6 +93,81 @@ func TestRankingGoldenAndDatabaseReloadDeterminism(t *testing.T) {
 		if got != joinTerms(want) {
 			t.Fatalf("article %s matches=%q want %v", result.ArticleID, got, want)
 		}
+	}
+}
+
+func TestCombinedRankingPersistsReconciledComponentsAcrossReload(t *testing.T) {
+	store, path := openStore(t)
+	ctx := context.Background()
+	source := feedSource("combined-ranking-source", "https://example.com/combined-feed")
+	must(t, store.Sources().Save(ctx, source))
+	calculated := time.Date(2026, 8, 4, 12, 0, 0, 0, time.UTC)
+	article := domain.Article{ID: "combined-article", Fingerprint: "combined-fp", SourceID: source.ID, CanonicalURL: "https://example.com/combined", Title: "Combined", FetchedAt: calculated, ContentPermission: domain.ContentMetadataOnly}
+	_, err := store.Articles().Upsert(ctx, article)
+	must(t, err)
+	configuration := domain.RankingConfiguration{
+		Interest: domain.SignalWeight{Enabled: true, Weight: .8},
+		Age:      domain.SignalWeight{Enabled: true, Weight: .1}, Gender: domain.SignalWeight{Enabled: true, Weight: .1},
+		PerDemographicCap: .1, TotalDemographicCap: .2, NormalizationVersion: "v1",
+	}
+	input := localranking.AggregateInput{Configuration: configuration, CalculatedAt: calculated, Candidates: []localranking.Candidate{{
+		ArticleID: article.ID,
+		Signals:   []localranking.SignalResult{{Signal: domain.SignalInterest, Score: .75, ReasonCode: localranking.ReasonInterestMatch, ReasonValues: map[string]string{"matched_interests": "science"}}},
+		Age:       localranking.SignalResult{Signal: domain.SignalAge, Score: 1, ReasonCode: localranking.ReasonAgeAdjustment, ReasonValues: map[string]string{"source": "explicit_profile"}},
+	}}}
+	service := localranking.RankingService{Repository: store.Rankings()}
+	results, err := service.RankAndSave(ctx, input)
+	must(t, err)
+	if len(results) != 1 {
+		t.Fatalf("results=%d", len(results))
+	}
+	must(t, store.Close())
+	store = reopenStore(t, path)
+	defer store.Close()
+	persisted, err := store.Rankings().GetResult(ctx, article.ID)
+	must(t, err)
+	if !reflect.DeepEqual(persisted, results[0]) {
+		t.Fatalf("reload changed result:\n%+v\n%+v", results[0], persisted)
+	}
+	sum := 0.0
+	for _, contribution := range persisted.Contributions {
+		sum += contribution.WeightedScore
+	}
+	if difference := sum - persisted.Score; difference > 1e-12 || difference < -1e-12 {
+		t.Fatalf("persisted contributions do not reconcile: sum=%v score=%v", sum, persisted.Score)
+	}
+}
+
+func TestRankingRepositoryRejectsNonReconcilingOrNonFiniteResults(t *testing.T) {
+	store, _ := openStore(t)
+	defer store.Close()
+	ctx := context.Background()
+	source := feedSource("ranking-validation-source", "https://example.com/validation-feed")
+	must(t, store.Sources().Save(ctx, source))
+	now := time.Unix(100, 0).UTC()
+	article := domain.Article{ID: "ranking-validation-article", Fingerprint: "validation-fp", SourceID: source.ID, CanonicalURL: "https://example.com/validation", Title: "Validation", FetchedAt: now, ContentPermission: domain.ContentMetadataOnly}
+	_, err := store.Articles().Upsert(ctx, article)
+	must(t, err)
+	valid := domain.RankingResult{ArticleID: article.ID, Score: .5, AlgorithmVersion: "test", CalculatedAt: now, Contributions: []domain.ScoreContribution{{Signal: domain.SignalInterest, RawScore: .5, Weight: 1, WeightedScore: .5, ReasonCode: "test", ReasonValues: map[string]string{}}}}
+	tests := []domain.RankingResult{
+		{ArticleID: article.ID, Score: .5, AlgorithmVersion: "test", CalculatedAt: now},
+		func() domain.RankingResult { value := valid; value.Score = .4; return value }(),
+		func() domain.RankingResult {
+			value := valid
+			value.Contributions = append([]domain.ScoreContribution(nil), valid.Contributions...)
+			value.Contributions[0].WeightedScore = .4
+			return value
+		}(),
+		func() domain.RankingResult { value := valid; value.Score = math.NaN(); return value }(),
+	}
+	for i, value := range tests {
+		if err := store.Rankings().SaveResults(ctx, []domain.RankingResult{value}); !errors.Is(err, application.ErrInvalidInput) {
+			t.Fatalf("case %d error=%v", i, err)
+		}
+	}
+	valid.CalculatedAt = time.Time{}
+	if err := store.Rankings().SaveResults(ctx, []domain.RankingResult{valid}); err != nil {
+		t.Fatalf("RANK-001-compatible zero calculation time rejected: %v", err)
 	}
 }
 
