@@ -1,0 +1,68 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "RANK-003",
+  "run_id": "RANK-003-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "done",
+  "implementation_summary": "Implemented capped, deterministic weighted ranking aggregation with truthful explanations, persistence, defensive input validation, and a unified configuration boundary.",
+  "files_changed": [
+    {
+      "path": "internal/application/ranking/aggregate.go",
+      "change": "Added normalized aggregation, demographic subordination and caps, stable ordering, explanations, exclusion handling, and strict validation."
+    },
+    {
+      "path": "internal/domain/ranking.go",
+      "change": "Required a positive primary-signal weight so domain, persistence, and aggregation validation agree."
+    },
+    {
+      "path": "internal/adapters/sqlite/ranking.go",
+      "change": "Persisted reconciled ranking results and contribution components."
+    },
+    {
+      "path": "internal/application/ranking/aggregate_test.go",
+      "change": "Added golden, deterministic, cap, disablement, malformed-input, exclusion, and fuzz coverage."
+    },
+    {
+      "path": "tests/integration/ranking_restart_test.go",
+      "change": "Added persistence and restart verification for ranking results and explanations."
+    }
+  ],
+  "verification": [
+    {
+      "command": "go test ./...",
+      "result": "passed",
+      "output": "All Go unit and integration packages passed."
+    },
+    {
+      "command": "go test -race ./...",
+      "result": "passed",
+      "output": "All Go packages passed under the race detector."
+    },
+    {
+      "command": "go vet ./...",
+      "result": "passed",
+      "output": "Go vet reported no findings."
+    },
+    {
+      "command": "./scripts/verify.sh",
+      "result": "passed",
+      "output": "Repository contracts, backend, frontend, PWA, and browser proof passed."
+    }
+  ],
+  "proof": [
+    {
+      "kind": "test_output",
+      "summary": "Golden, reconciliation, deterministic ordering, demographic cap, disabled-demographic, malformed-input, and restart tests passed.",
+      "status": "passed"
+    },
+    {
+      "kind": "manual_note",
+      "summary": "Web reviewer approved exact revision c0c9acb1182b228cd3e08a7499efc2ec2d491c67 before PR #34 merged.",
+      "status": "accepted"
+    }
+  ],
+  "blockers": [],
+  "notes": "No demographic inference, automated tuning, or opaque explanations were introduced.",
+  "submitted_at": "2026-08-08T09:50:00Z",
+  "updated_at": "2026-08-08T09:55:55Z"
+}

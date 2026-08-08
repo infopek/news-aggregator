@@ -26,10 +26,10 @@
     },
     {
       "actor_id": "reviewer-agent",
-      "display_name": "Independent Reviewer Agent",
-      "kind": "local_ai",
+      "display_name": "Web PR Reviewer",
+      "kind": "web_ai",
       "status": "active",
-      "notes": "Mandatory independent reviewer with authority to reject implementation pull requests; does not merge them."
+      "notes": "Read-only web reviewer verifies exact pull-request revisions from GitHub links; does not implement or merge."
     }
   ],
   "task_assignments": [
@@ -294,6 +294,17 @@
       "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/FRONTEND-005-run-001.json", "summary": "First-run/profile/ranking settings workflow approved and merged in PR #32.", "status": "accepted", "recorded_at": "2026-08-04T11:17:45Z"}],
       "notes": "Revision 15ea3c1 resolved state lifecycle, setup bypass, partial-save, and browser-proof findings and received independent approval before merge.",
       "updated_at": "2026-08-04T11:17:45Z"
+    },
+    {
+      "task_id": "RANK-003",
+      "assigned_to": "backend-core-agent",
+      "assignee_type": "local_ai",
+      "assignee_label": "Backend/Core Implementation Agent",
+      "status": "done",
+      "claimed_at": "2026-08-08T09:00:00Z",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/RANK-003-run-001.json", "summary": "Capped explainable ranking aggregation approved by the web reviewer and merged in PR #34.", "status": "accepted", "recorded_at": "2026-08-08T09:55:55Z"}],
+      "notes": "Revision c0c9acb resolved hidden-input and configuration-boundary findings and received exact-revision web approval before merge.",
+      "updated_at": "2026-08-08T09:55:55Z"
     }
   ],
   "task_claims": [
@@ -476,6 +487,15 @@
       "claimed_at": "2026-08-03T15:24:00Z",
       "released_at": "2026-08-04T11:17:45Z",
       "notes": "Released after correction rounds, independent approval, and merge."
+    },
+    {
+      "claim_id": "rank-003-run-001-claim",
+      "task_id": "RANK-003",
+      "actor_id": "backend-core-agent",
+      "status": "released",
+      "claimed_at": "2026-08-08T09:00:00Z",
+      "released_at": "2026-08-08T09:55:55Z",
+      "notes": "Released after correction rounds, exact-revision web approval, and merge."
     }
   ],
   "artifact_submissions": [
@@ -742,6 +762,16 @@
       "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/FRONTEND-005-run-001.json", "summary": "Unit, accessibility, state lifecycle, privacy, redirect, reload/clear, browser, responsive, audit, drift, and full-suite evidence.", "status": "accepted", "recorded_at": "2026-08-04T11:17:45Z"}],
       "status": "accepted",
       "submitted_at": "2026-08-04T11:16:58Z"
+    },
+    {
+      "submission_id": "rank-003-run-001-submission",
+      "task_id": "RANK-003",
+      "actor_id": "backend-core-agent",
+      "artifact_paths": ["internal/application/ranking/aggregate.go", "internal/application/ranking/aggregate_test.go", "internal/domain/ranking.go", "internal/adapters/sqlite/ranking.go", "test/fixtures/ranking/combined-golden.json", "tests/integration/ranking_restart_test.go", "assembly/generated/task_runs/RANK-003-run-001.json"],
+      "summary": "Capped deterministic weighted ranking aggregation with truthful explanations, persistence, strict inputs, and unified configuration validation.",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/RANK-003-run-001.json", "summary": "Golden, reconciliation, cap, determinism, race, restart, full-suite, and web-review evidence.", "status": "accepted", "recorded_at": "2026-08-08T09:55:55Z"}],
+      "status": "accepted",
+      "submitted_at": "2026-08-08T09:50:00Z"
     }
   ],
   "reviews": [
@@ -1132,6 +1162,14 @@
       "status": "approved",
       "findings": ["All findings are resolved at revision 15ea3c1.", "State lifecycle, mutation invalidation, redirect, partial recovery, privacy, accessibility, browser reload/clear proof, and full verification passed."],
       "reviewed_at": "2026-08-04T11:15:00Z"
+    },
+    {
+      "review_id": "rank-003-review-001",
+      "submission_id": "rank-003-run-001-submission",
+      "reviewer_actor_id": "reviewer-agent",
+      "status": "approved",
+      "findings": ["All blocking findings were resolved at revision c0c9acb1182b228cd3e08a7499efc2ec2d491c67.", "The exact revision satisfies aggregation, reconciliation, demographic subordination, deterministic ordering, explanation, and persistence requirements."],
+      "reviewed_at": "2026-08-08T09:54:00Z"
     }
   ],
   "audit_events": [
@@ -1534,6 +1572,14 @@
       "target_id": "news-aggregator",
       "created_at": "2026-08-04T11:19:00Z",
       "details": "Reconciled durable state after primary ranking signals and first-run/profile workflow merges."
+    },
+    {
+      "event_id": "rank-003-completed",
+      "actor_id": "reviewer-agent",
+      "event_type": "status_changed",
+      "target_id": "RANK-003",
+      "created_at": "2026-08-08T09:55:55Z",
+      "details": "Recorded correction rounds, exact-revision web approval at c0c9acb, and PR #34 merge."
     }
   ]
 }
