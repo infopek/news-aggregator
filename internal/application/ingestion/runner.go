@@ -24,6 +24,7 @@ type RunResult struct {
 	Writes    []application.ArticleWriteResult
 	Warnings  []string
 	Unchanged bool
+	Fetched   int
 }
 
 func (r Runner) Run(ctx context.Context, sourceID domain.SourceID) (RunResult, error) {
@@ -59,5 +60,5 @@ func (r Runner) Run(ctx context.Context, sourceID domain.SourceID) (RunResult, e
 	if err != nil {
 		return RunResult{}, err
 	}
-	return RunResult{Writes: writes, Warnings: result.Warnings, Unchanged: result.Unchanged}, nil
+	return RunResult{Writes: writes, Warnings: result.Warnings, Unchanged: result.Unchanged, Fetched: len(result.Items) + len(result.Warnings)}, nil
 }
