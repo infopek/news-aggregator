@@ -2,6 +2,7 @@ package ingestion
 
 import (
 	"context"
+	"errors"
 
 	"github.com/infopek/news-aggregator/internal/application"
 	"github.com/infopek/news-aggregator/internal/domain"
@@ -40,6 +41,14 @@ func (r Runner) Run(ctx context.Context, sourceID domain.SourceID) (RunResult, e
 	}
 	result, err := r.Adapter.Fetch(ctx, source, application.FetchCursor{Value: source.RefreshCursor, ETag: source.RefreshETag, LastModified: source.RefreshLastModified})
 	if err != nil {
+		var rateLimit *application.RateLimitError
+		if errors.As(err, &rateLimit) {
+			retryAt := r.Clock.Now().UTC().Add(rateLimit.RetryAfter)
+			source.LastError, source.RetryAfter = "rate_limited", &retryAt
+			if saveErr := r.Sources.Save(ctx, source); saveErr != nil {
+				return RunResult{}, saveErr
+			}
+		}
 		return RunResult{}, err
 	}
 	var writes []application.ArticleWriteResult

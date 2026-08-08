@@ -22,9 +22,10 @@ type Coordinator struct {
 	ProcessContext context.Context
 	MaxConcurrency int
 
-	mu     sync.Mutex
-	active bool
-	wg     sync.WaitGroup
+	mu      sync.Mutex
+	active  bool
+	pending *domain.RefreshRun
+	wg      sync.WaitGroup
 }
 
 func (c *Coordinator) StartRefresh(ctx context.Context, _ application.StartRefreshCommand) (domain.RefreshRun, error) {
@@ -39,15 +40,32 @@ func (c *Coordinator) StartRefresh(ctx context.Context, _ application.StartRefre
 		c.mu.Unlock()
 		return domain.RefreshRun{}, application.ErrConflict
 	}
+	pending := c.pending
+	c.pending = nil
 	c.active = true
 	c.mu.Unlock()
-	active, err := c.Refreshes.Active(ctx)
-	if err != nil || active != nil {
-		c.release()
-		if err != nil {
-			return domain.RefreshRun{}, err
+	if pending != nil {
+		if err := c.Refreshes.Save(ctx, *pending); err != nil {
+			c.setPending(pending)
+			c.release()
+			return domain.RefreshRun{}, application.ErrUnavailable
 		}
-		return domain.RefreshRun{}, application.ErrConflict
+	}
+	active, err := c.Refreshes.Active(ctx)
+	if err != nil {
+		c.release()
+		return domain.RefreshRun{}, err
+	}
+	if active != nil {
+		finished := c.Clock.Now().UTC()
+		if finished.Before(active.StartedAt) {
+			finished = active.StartedAt
+		}
+		active.Status, active.FinishedAt, active.Outcomes = domain.RefreshCancelled, &finished, nil
+		if err := c.Refreshes.Save(ctx, *active); err != nil {
+			c.release()
+			return domain.RefreshRun{}, application.ErrUnavailable
+		}
 	}
 	run := domain.RefreshRun{ID: c.NewID(), StartedAt: c.Clock.Now().UTC(), Status: domain.RefreshRunning}
 	if run.ID == "" || run.StartedAt.IsZero() {
@@ -161,7 +179,11 @@ func (c *Coordinator) runSource(ctx context.Context, source domain.Source) domai
 	result, err := runner.Run(ctx, source.ID)
 	if err != nil {
 		outcome.Failed = 1
-		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		var rateLimit *application.RateLimitError
+		if errors.As(err, &rateLimit) {
+			outcome.ErrorCode = "rate_limited"
+			outcome.ErrorSummary = "Source is rate limited."
+		} else if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			outcome.ErrorCode = "cancelled"
 			outcome.ErrorSummary = "Refresh was cancelled."
 		} else {
@@ -192,7 +214,13 @@ func (c *Coordinator) finish(run domain.RefreshRun, status domain.RefreshStatus,
 		finished = run.StartedAt
 	}
 	run.Status, run.FinishedAt, run.Outcomes = status, &finished, outcomes
-	_ = c.Refreshes.Save(context.WithoutCancel(c.processContext()), run)
+	ctx := context.WithoutCancel(c.processContext())
+	for attempt := 0; attempt < 3; attempt++ {
+		if c.Refreshes.Save(ctx, run) == nil {
+			return
+		}
+	}
+	c.setPending(&run)
 }
 func (c *Coordinator) processContext() context.Context {
 	if c.ProcessContext != nil {
@@ -200,7 +228,8 @@ func (c *Coordinator) processContext() context.Context {
 	}
 	return context.Background()
 }
-func (c *Coordinator) release() { c.mu.Lock(); c.active = false; c.mu.Unlock() }
+func (c *Coordinator) release()                          { c.mu.Lock(); c.active = false; c.mu.Unlock() }
+func (c *Coordinator) setPending(run *domain.RefreshRun) { c.mu.Lock(); c.pending = run; c.mu.Unlock() }
 func cancelledOutcome(id domain.SourceID) domain.SourceRefreshOutcome {
 	return domain.SourceRefreshOutcome{SourceID: id, Failed: 1, ErrorCode: "cancelled", ErrorSummary: "Refresh was cancelled."}
 }

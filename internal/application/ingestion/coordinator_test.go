@@ -12,8 +12,9 @@ import (
 )
 
 type refreshMemory struct {
-	mu   sync.Mutex
-	runs map[domain.RefreshRunID]domain.RefreshRun
+	mu           sync.Mutex
+	runs         map[domain.RefreshRunID]domain.RefreshRun
+	saveFailures int
 }
 
 func (m *refreshMemory) Create(_ context.Context, v domain.RefreshRun) error {
@@ -39,8 +40,41 @@ func (m *refreshMemory) Get(_ context.Context, id domain.RefreshRunID) (domain.R
 func (m *refreshMemory) Save(_ context.Context, v domain.RefreshRun) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if m.saveFailures > 0 {
+		m.saveFailures--
+		return application.ErrUnavailable
+	}
 	m.runs[v.ID] = v
 	return nil
+}
+
+func TestCoordinatorReconcilesFailedTerminalSave(t *testing.T) {
+	repo := &refreshMemory{runs: map[domain.RefreshRunID]domain.RefreshRun{}, saveFailures: 3}
+	ids := []domain.RefreshRunID{"first", "second"}
+	index := 0
+	c := &Coordinator{Refreshes: repo, Sources: sourceMemory{}, Runners: map[domain.SourceKind]SourceRunner{domain.SourceKindFeed: runnerFunc(func(context.Context, domain.SourceID) (RunResult, error) { return RunResult{}, nil })}, Clock: fixedClock{time.Unix(10, 0)}, NewID: func() domain.RefreshRunID { id := ids[index]; index++; return id }}
+	first, err := c.StartRefresh(context.Background(), application.StartRefreshCommand{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.Wait()
+	stale, _ := repo.Get(context.Background(), first.ID)
+	if stale.Status != domain.RefreshRunning {
+		t.Fatalf("expected injected stale run, got %+v", stale)
+	}
+	second, err := c.StartRefresh(context.Background(), application.StartRefreshCommand{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.Wait()
+	recovered, _ := repo.Get(context.Background(), first.ID)
+	if recovered.Status == domain.RefreshRunning || recovered.FinishedAt == nil {
+		t.Fatalf("unreconciled=%+v", recovered)
+	}
+	latest, _ := repo.Get(context.Background(), second.ID)
+	if latest.Status != domain.RefreshSucceeded {
+		t.Fatalf("latest=%+v", latest)
+	}
 }
 func (m *refreshMemory) Active(context.Context) (*domain.RefreshRun, error) {
 	m.mu.Lock()
