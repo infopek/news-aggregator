@@ -94,7 +94,7 @@ func TestFeedAdapterToSQLiteConditionalLifecycle(t *testing.T) {
 	runner := ingestion.Runner{Adapter: adapter, Sources: store.Sources(), Articles: store.Articles(), Transactions: store, Clock: ingestionClock{time.Date(2026, 8, 3, 10, 0, 0, 0, time.UTC)}, NewID: func(fp string) domain.ArticleID { return domain.ArticleID("feed-" + fp[len(fp)-12:]) }}
 	first, err := runner.Run(ctx, source.ID)
 	must(t, err)
-	if len(first.Writes) != 1 || !first.Writes[0].Inserted || len(first.Warnings) != 1 {
+	if len(first.Writes) != 1 || !first.Writes[0].Inserted || len(first.Warnings) != 1 || first.Fetched != 2 {
 		t.Fatalf("writes=%+v warnings=%v", first.Writes, first.Warnings)
 	}
 	persisted, err := store.Sources().Get(ctx, source.ID)
