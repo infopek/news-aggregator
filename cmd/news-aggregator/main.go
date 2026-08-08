@@ -3,7 +3,10 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
 	"embed"
+	"encoding/hex"
 	"errors"
 	"io/fs"
 	"log/slog"
@@ -15,8 +18,13 @@ import (
 	"time"
 
 	"github.com/infopek/news-aggregator/internal/adapters/credentials"
+	"github.com/infopek/news-aggregator/internal/adapters/feeds"
+	"github.com/infopek/news-aggregator/internal/adapters/httpfetch"
+	"github.com/infopek/news-aggregator/internal/adapters/newsapi"
+	"github.com/infopek/news-aggregator/internal/adapters/scraper"
 	"github.com/infopek/news-aggregator/internal/adapters/sqlite"
 	"github.com/infopek/news-aggregator/internal/application"
+	"github.com/infopek/news-aggregator/internal/application/ingestion"
 	"github.com/infopek/news-aggregator/internal/domain"
 	"github.com/infopek/news-aggregator/internal/httpapi"
 	"github.com/infopek/news-aggregator/internal/platform"
@@ -71,14 +79,28 @@ func run() error {
 	if err := configuration.Initialize(ctx, defaultProfile(), defaultRanking()); err != nil {
 		return errors.New("local configuration could not be initialized")
 	}
+	fetcher, err := httpfetch.New(httpfetch.Config{UserAgent: "NewsAggregator/" + applicationVersion + " (local Windows application)"})
+	if err != nil {
+		return errors.New("ingestion fetcher could not be initialized")
+	}
+	newRunner := func(adapter application.IngestionAdapter) *ingestion.Runner {
+		return &ingestion.Runner{Adapter: adapter, Sources: store.Sources(), Articles: store.Articles(), Transactions: store, Clock: systemClock{}, NewID: articleID}
+	}
+	refresh := &ingestion.Coordinator{Refreshes: store.Refreshes(), Sources: store.Sources(), Clock: systemClock{}, NewID: refreshID, ProcessContext: ctx, MaxConcurrency: 4, Runners: map[domain.SourceKind]ingestion.SourceRunner{
+		domain.SourceKindFeed:    newRunner(feeds.Adapter{Fetcher: fetcher}),
+		domain.SourceKindAPI:     newRunner(newsapi.Adapter{Fetcher: fetcher, Credentials: vault}),
+		domain.SourceKindScraper: newRunner(scraper.Adapter{Fetcher: fetcher}),
+	}}
 
-	api := httpapi.NewAPIHandler(applicationVersion, httpapi.ConfigurationAPI{Profiles: configuration, Sources: configuration, Starters: starterSources()})
+	api := httpapi.NewAPIHandler(applicationVersion, httpapi.ConfigurationAPI{Profiles: configuration, Sources: configuration, Starters: starterSources()}, httpapi.RefreshAPI{Service: refresh})
 	host := platform.Host{
 		Address: "127.0.0.1:" + strconv.Itoa(port),
 		Handler: httpapi.NewLocalHandler(api, assets),
 		Browser: platform.SystemBrowser{},
 	}
-	return host.Run(ctx)
+	err = host.Run(ctx)
+	refresh.Wait()
+	return err
 }
 
 func materializeMigrations(dataDir string) (string, error) {
@@ -153,6 +175,17 @@ func installMigrationAtomically(dir, target string, contents []byte) error {
 type systemClock struct{}
 
 func (systemClock) Now() time.Time { return time.Now().UTC() }
+func articleID(fingerprint string) domain.ArticleID {
+	sum := sha256.Sum256([]byte(fingerprint))
+	return domain.ArticleID("article-" + hex.EncodeToString(sum[:16]))
+}
+func refreshID() domain.RefreshRunID {
+	var value [16]byte
+	if _, err := rand.Read(value[:]); err != nil {
+		return ""
+	}
+	return domain.RefreshRunID("refresh-" + hex.EncodeToString(value[:]))
+}
 
 func defaultProfile() domain.UserProfile { return domain.UserProfile{ID: domain.LocalProfileID} }
 func defaultRanking() domain.RankingConfiguration {
