@@ -305,6 +305,11 @@
       "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/RANK-003-run-001.json", "summary": "Capped explainable ranking aggregation approved by the web reviewer and merged in PR #34.", "status": "accepted", "recorded_at": "2026-08-08T09:55:55Z"}],
       "notes": "Revision c0c9acb resolved hidden-input and configuration-boundary findings and received exact-revision web approval before merge.",
       "updated_at": "2026-08-08T09:55:55Z"
+    },
+    {
+      "task_id": "INGEST-004", "assigned_to": "backend-core-agent", "assignee_type": "local_ai", "assignee_label": "Backend/Core Implementation Agent", "status": "done", "claimed_at": "2026-08-08T12:00:00Z",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/INGEST-004-run-001.json", "summary": "API and approved-scraper foundations approved by the web reviewer and merged in PR #36.", "status": "accepted", "recorded_at": "2026-08-08T17:40:15Z"}],
+      "notes": "Revision 42273a9 resolved markup, typed retry, and selector findings and received exact-revision web approval before merge.", "updated_at": "2026-08-08T17:40:15Z"
     }
   ],
   "task_claims": [
@@ -496,6 +501,9 @@
       "claimed_at": "2026-08-08T09:00:00Z",
       "released_at": "2026-08-08T09:55:55Z",
       "notes": "Released after correction rounds, exact-revision web approval, and merge."
+    },
+    {
+      "claim_id": "ingest-004-run-001-claim", "task_id": "INGEST-004", "actor_id": "backend-core-agent", "status": "released", "claimed_at": "2026-08-08T12:00:00Z", "released_at": "2026-08-08T17:40:15Z", "notes": "Released after correction, exact-revision web approval, and merge."
     }
   ],
   "artifact_submissions": [
@@ -772,6 +780,13 @@
       "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/RANK-003-run-001.json", "summary": "Golden, reconciliation, cap, determinism, race, restart, full-suite, and web-review evidence.", "status": "accepted", "recorded_at": "2026-08-08T09:55:55Z"}],
       "status": "accepted",
       "submitted_at": "2026-08-08T09:50:00Z"
+    },
+    {
+      "submission_id": "ingest-004-run-001-submission", "task_id": "INGEST-004", "actor_id": "backend-core-agent",
+      "artifact_paths": ["internal/adapters/newsapi", "internal/adapters/scraper", "test/fixtures/api-providers", "test/fixtures/scrapers", "assembly/generated/task_runs/INGEST-004-run-001.json"],
+      "summary": "Provider-neutral official API and fail-closed approved scraper foundations with fictional fixtures.",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/INGEST-004-run-001.json", "summary": "Adapter, policy, secrecy, no-live-network, race, and repository verification evidence.", "status": "accepted", "recorded_at": "2026-08-08T17:40:15Z"}],
+      "status": "accepted", "submitted_at": "2026-08-08T17:35:00Z"
     }
   ],
   "reviews": [
@@ -1170,6 +1185,11 @@
       "status": "approved",
       "findings": ["All blocking findings were resolved at revision c0c9acb1182b228cd3e08a7499efc2ec2d491c67.", "The exact revision satisfies aggregation, reconciliation, demographic subordination, deterministic ordering, explanation, and persistence requirements."],
       "reviewed_at": "2026-08-08T09:54:00Z"
+    },
+    {
+      "review_id": "ingest-004-review-001", "submission_id": "ingest-004-run-001-submission", "reviewer_actor_id": "reviewer-agent", "status": "approved",
+      "findings": ["All blocking findings were resolved at revision 42273a9b5944b1fcc40b118d0c8d8c5c756cdecd.", "The exact revision satisfies API, scraper-policy, credential, permission, malicious-markup, selector, and retry-metadata requirements."],
+      "reviewed_at": "2026-08-08T17:39:00Z"
     }
   ],
   "audit_events": [
@@ -1580,6 +1600,9 @@
       "target_id": "RANK-003",
       "created_at": "2026-08-08T09:55:55Z",
       "details": "Recorded correction rounds, exact-revision web approval at c0c9acb, and PR #34 merge."
+    },
+    {
+      "event_id": "ingest-004-completed", "actor_id": "reviewer-agent", "event_type": "status_changed", "target_id": "INGEST-004", "created_at": "2026-08-08T17:40:15Z", "details": "Recorded correction, exact-revision web approval at 42273a9, and PR #36 merge."
     }
   ]
 }

@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "INGEST-004",
+  "run_id": "INGEST-004-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "done",
+  "implementation_summary": "Implemented fixture-only official API and fail-closed approved scraper adapter foundations with scoped credentials, structured retry metadata, policy enforcement, and permission-safe extraction.",
+  "files_changed": [
+    {"path": "internal/adapters/newsapi", "change": "Added strict fictional official-API adapter and tests."},
+    {"path": "internal/adapters/scraper", "change": "Added narrow policy-gated public-page scraper and tests."},
+    {"path": "test/fixtures/api-providers", "change": "Added fictional API fixture."},
+    {"path": "test/fixtures/scrapers", "change": "Added malicious-markup scraper fixture."}
+  ],
+  "verification": [
+    {"command": "go test ./...", "result": "passed", "output": "All Go tests passed."},
+    {"command": "go test -race ./...", "result": "passed", "output": "All Go packages passed under the race detector."},
+    {"command": "go vet ./...", "result": "passed", "output": "Go vet passed."},
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Full repository verification passed."}
+  ],
+  "proof": [
+    {"kind": "test_output", "summary": "Pagination, authorization, typed rate limits, cancellation, strict shapes, policy refusal, selector refusal, malicious markup, permission, redirect, and secret-leak tests passed.", "status": "passed"},
+    {"kind": "manual_note", "summary": "Web reviewer approved exact revision 42273a9b5944b1fcc40b118d0c8d8c5c756cdecd before PR #36 merged.", "status": "accepted"}
+  ],
+  "blockers": [],
+  "notes": "No live provider, scraper target, authenticated scraping, browser automation, or access-control bypass was selected or added.",
+  "submitted_at": "2026-08-08T17:35:00Z",
+  "updated_at": "2026-08-08T17:40:15Z"
+}
