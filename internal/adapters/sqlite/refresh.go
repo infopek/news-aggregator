@@ -109,6 +109,7 @@ func validRefresh(v domain.RefreshRun) bool {
 var _ application.TransactionManager = (*Store)(nil)
 var _ application.ProfileRepository = (*ProfileRepository)(nil)
 var _ application.SourceRepository = (*SourceRepository)(nil)
+var _ application.SourceIngestionRepository = (*SourceRepository)(nil)
 var _ application.ArticleRepository = (*ArticleRepository)(nil)
 var _ application.LibraryRepository = (*LibraryRepository)(nil)
 var _ application.FeedFilterRepository = (*FeedFilterRepository)(nil)

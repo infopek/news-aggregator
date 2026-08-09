@@ -23,6 +23,20 @@ func (r *SourceRepository) Get(ctx context.Context, id domain.SourceID) (domain.
 func (r *SourceRepository) Delete(ctx context.Context, id domain.SourceID) error {
 	return r.store.deleteSource(ctx, id)
 }
+func (r *SourceRepository) UpdateIngestionState(ctx context.Context, id domain.SourceID, state application.SourceIngestionState) error {
+	result, err := r.store.q(ctx).ExecContext(ctx, `UPDATE sources SET refresh_cursor=?,refresh_etag=?,refresh_last_modified=?,last_success_at_ms=?,last_error=?,retry_after_ms=? WHERE id=? AND deleted_at_ms IS NULL`, state.RefreshCursor, state.RefreshETag, state.RefreshLastModified, nullableMillis(state.LastSuccessAt), state.LastError, nullableMillis(state.RetryAfter), id)
+	if err != nil {
+		return mapError(err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return mapError(err)
+	}
+	if rows == 0 {
+		return application.ErrNotFound
+	}
+	return nil
+}
 func (s *Store) saveSource(ctx context.Context, source domain.Source) error {
 	if err := source.Validate(); err != nil {
 		return application.ErrInvalidInput

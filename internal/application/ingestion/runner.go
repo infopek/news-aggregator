@@ -14,7 +14,7 @@ import (
 // leaves both articles and the previous cursor unchanged.
 type Runner struct {
 	Adapter      application.IngestionAdapter
-	Sources      application.SourceRepository
+	Sources      application.SourceIngestionRepository
 	Articles     application.ArticleRepository
 	Transactions application.TransactionManager
 	Clock        application.Clock
@@ -44,8 +44,9 @@ func (r Runner) Run(ctx context.Context, sourceID domain.SourceID) (RunResult, e
 		var rateLimit *application.RateLimitError
 		if errors.As(err, &rateLimit) {
 			retryAt := r.Clock.Now().UTC().Add(rateLimit.RetryAfter)
-			source.LastError, source.RetryAfter = "rate_limited", &retryAt
-			if saveErr := r.Sources.Save(ctx, source); saveErr != nil {
+			state := ingestionState(source)
+			state.LastError, state.RetryAfter = "rate_limited", &retryAt
+			if saveErr := r.Sources.UpdateIngestionState(ctx, source.ID, state); saveErr != nil {
 				return RunResult{}, saveErr
 			}
 		}
@@ -59,15 +60,22 @@ func (r Runner) Run(ctx context.Context, sourceID domain.SourceID) (RunResult, e
 				return err
 			}
 		}
-		source.RefreshCursor = result.NextCursor.Value
-		source.RefreshETag = result.NextCursor.ETag
-		source.RefreshLastModified = result.NextCursor.LastModified
 		now := r.Clock.Now().UTC()
-		source.LastSuccessAt, source.LastError, source.RetryAfter = &now, "", nil
-		return r.Sources.Save(txctx, source)
+		return r.Sources.UpdateIngestionState(txctx, source.ID, application.SourceIngestionState{
+			RefreshCursor: result.NextCursor.Value, RefreshETag: result.NextCursor.ETag,
+			RefreshLastModified: result.NextCursor.LastModified, LastSuccessAt: &now,
+		})
 	})
 	if err != nil {
 		return RunResult{}, err
 	}
 	return RunResult{Writes: writes, Warnings: result.Warnings, Unchanged: result.Unchanged, Fetched: len(result.Items) + len(result.Warnings)}, nil
+}
+
+func ingestionState(source domain.Source) application.SourceIngestionState {
+	return application.SourceIngestionState{
+		RefreshCursor: source.RefreshCursor, RefreshETag: source.RefreshETag,
+		RefreshLastModified: source.RefreshLastModified, LastSuccessAt: source.LastSuccessAt,
+		LastError: source.LastError, RetryAfter: source.RetryAfter,
+	}
 }
