@@ -99,7 +99,11 @@ func run() error {
 		Browser: platform.SystemBrowser{},
 	}
 	err = host.Run(ctx)
-	refresh.Wait()
+	finalizeCtx, cancelFinalize := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelFinalize()
+	if finalizeErr := refresh.Finalize(finalizeCtx); finalizeErr != nil {
+		return errors.Join(err, errors.New("refresh state could not be finalized"))
+	}
 	return err
 }
 

@@ -269,6 +269,45 @@ func TestCoordinatorCancellationIsTerminal(t *testing.T) {
 	}
 }
 
+func TestCoordinatorFinalizesCancelledRunAfterTerminalSaveFailures(t *testing.T) {
+	repo := &refreshMemory{runs: map[domain.RefreshRunID]domain.RefreshRun{}, saveFailures: 3}
+	process, cancel := context.WithCancel(context.Background())
+	c := &Coordinator{Refreshes: repo, Sources: sourceMemory{[]domain.Source{{ID: "slow", Kind: domain.SourceKindFeed, Enabled: true}}}, Runners: map[domain.SourceKind]SourceRunner{domain.SourceKindFeed: runnerFunc(func(ctx context.Context, _ domain.SourceID) (RunResult, error) {
+		<-ctx.Done()
+		return RunResult{}, ctx.Err()
+	})}, Clock: fixedClock{time.Unix(10, 0)}, NewID: func() domain.RefreshRunID { return "shutdown" }, ProcessContext: process}
+	run, err := c.StartRefresh(context.Background(), application.StartRefreshCommand{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	cancel()
+	if err := c.Finalize(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	restarted := &Coordinator{Refreshes: repo, Sources: sourceMemory{}, Runners: c.Runners, Clock: fixedClock{time.Unix(20, 0)}, NewID: func() domain.RefreshRunID { return "unused" }}
+	persisted, err := restarted.GetRefresh(context.Background(), run.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if persisted.Status != domain.RefreshCancelled || persisted.FinishedAt == nil || len(persisted.Outcomes) != 1 || persisted.Outcomes[0].SourceID != "slow" || persisted.Outcomes[0].ErrorCode != "cancelled" {
+		t.Fatalf("finalized cancellation was not preserved: %+v", persisted)
+	}
+}
+
+func TestCoordinatorFinalizeSurfacesPendingSaveFailure(t *testing.T) {
+	repo := &refreshMemory{runs: map[domain.RefreshRunID]domain.RefreshRun{}, saveFailures: 4}
+	c := &Coordinator{Refreshes: repo, Sources: sourceMemory{}, Runners: map[domain.SourceKind]SourceRunner{domain.SourceKindFeed: runnerFunc(func(context.Context, domain.SourceID) (RunResult, error) { return RunResult{}, nil })}, Clock: fixedClock{time.Unix(10, 0)}, NewID: func() domain.RefreshRunID { return "failed-finalize" }}
+	if _, err := c.StartRefresh(context.Background(), application.StartRefreshCommand{}); err != nil {
+		t.Fatal(err)
+	}
+	if err := c.Finalize(context.Background()); !errors.Is(err, application.ErrUnavailable) {
+		t.Fatalf("finalize error=%v, want unavailable", err)
+	}
+	if err := c.Finalize(context.Background()); err != nil {
+		t.Fatalf("pending result was not retained for retry: %v", err)
+	}
+}
+
 func waitTerminal(t *testing.T, repo *refreshMemory, id domain.RefreshRunID) {
 	t.Helper()
 	deadline := time.After(time.Second)

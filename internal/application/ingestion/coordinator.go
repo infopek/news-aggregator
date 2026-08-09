@@ -97,6 +97,30 @@ func (c *Coordinator) StartRefresh(ctx context.Context, _ application.StartRefre
 
 func (c *Coordinator) Wait() { c.wg.Wait() }
 
+// Finalize waits for refresh work and durably flushes any terminal result that
+// could not be saved during execution. Callers must surface an error rather
+// than closing the authoritative store and discarding the pending result.
+func (c *Coordinator) Finalize(ctx context.Context) error {
+	if c.Refreshes == nil {
+		return application.ErrInvalidInput
+	}
+	c.lifecycle.Lock()
+	defer c.lifecycle.Unlock()
+	c.wg.Wait()
+	c.mu.Lock()
+	if c.pending == nil {
+		c.mu.Unlock()
+		return nil
+	}
+	pending := *c.pending
+	c.mu.Unlock()
+	if err := c.Refreshes.Save(ctx, pending); err != nil {
+		return err
+	}
+	c.clearPending(pending.ID)
+	return nil
+}
+
 func (c *Coordinator) GetRefresh(ctx context.Context, id domain.RefreshRunID) (domain.RefreshRun, error) {
 	if c.Refreshes == nil || id == "" {
 		return domain.RefreshRun{}, application.ErrInvalidInput
