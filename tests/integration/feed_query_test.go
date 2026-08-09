@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -114,3 +115,63 @@ func TestRankedFeedPaginationFiltersAndPermission(t *testing.T) {
 }
 
 func boolPointer(value bool) *bool { return &value }
+
+func TestRankedFeedMatchesRankingTieOrderAndRejectsStructuralCursors(t *testing.T) {
+	store, _ := openStore(t)
+	defer store.Close()
+	ctx := context.Background()
+	at := time.Date(2026, 8, 9, 10, 0, 0, 0, time.UTC)
+	source := serviceFeed("tie-source", "https://example.com/ties")
+	must(t, store.Sources().Save(ctx, source))
+	published := at.Add(-24 * time.Hour)
+	articles := []domain.Article{
+		{ID: "published", Fingerprint: "tie-p", SourceID: source.ID, CanonicalURL: "https://example.com/ties/p", Title: "Published", PublishedAt: &published, FetchedAt: published, ContentPermission: domain.ContentMetadataOnly},
+		{ID: "missing-a", Fingerprint: "tie-a", SourceID: source.ID, CanonicalURL: "https://example.com/ties/a", Title: "Missing A", FetchedAt: at.Add(-time.Hour), ContentPermission: domain.ContentMetadataOnly},
+		{ID: "missing-z", Fingerprint: "tie-z", SourceID: source.ID, CanonicalURL: "https://example.com/ties/z", Title: "Missing Z", FetchedAt: at, ContentPermission: domain.ContentMetadataOnly},
+		{ID: "unranked", Fingerprint: "tie-u", SourceID: source.ID, CanonicalURL: "https://example.com/ties/u", Title: "Unranked", FetchedAt: at.Add(time.Hour), ContentPermission: domain.ContentMetadataOnly},
+	}
+	for _, article := range articles {
+		_, err := store.Articles().Upsert(ctx, article)
+		must(t, err)
+	}
+	for _, id := range []domain.ArticleID{"published", "missing-a", "missing-z"} {
+		must(t, store.Rankings().SaveResults(ctx, []domain.RankingResult{{ArticleID: id, Score: .7, AlgorithmVersion: "test-v1", CalculatedAt: at, Contributions: []domain.ScoreContribution{{Signal: domain.SignalInterest, RawScore: .7, Weight: 1, WeightedScore: .7, ReasonCode: "TIE", ReasonValues: map[string]string{}}}}}))
+	}
+	service := appfeed.Service{Articles: store.Articles(), Library: store.Libraries(), Rankings: store.Rankings()}
+	var got []domain.ArticleID
+	cursor := ""
+	for {
+		page, err := service.GetFeed(ctx, application.FeedQuery{Limit: 1, Cursor: cursor})
+		must(t, err)
+		if len(page.Articles) == 0 {
+			break
+		}
+		got = append(got, page.Articles[0].Article.ID)
+		if page.NextCursor == "" {
+			break
+		}
+		cursor = page.NextCursor
+	}
+	want := []domain.ArticleID{"published", "missing-a", "missing-z"}
+	if len(got) != len(want) {
+		t.Fatalf("tie order=%v want=%v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("tie order=%v want=%v", got, want)
+		}
+	}
+	for _, raw := range []string{
+		`{"publicationPresent":false,"time":0,"id":"x"}`,
+		`{"score":0,"time":0,"id":"x"}`,
+		`{"score":0,"publicationPresent":false,"id":"x"}`,
+		`{"score":0,"publicationPresent":false,"time":0}`,
+		`{"score":"zero","publicationPresent":false,"time":0,"id":"x"}`,
+		`{"score":0,"publicationPresent":false,"time":0,"id":"x","extra":true}`,
+	} {
+		encoded := base64.RawURLEncoding.EncodeToString([]byte(raw))
+		if _, err := service.GetFeed(ctx, application.FeedQuery{Limit: 1, Cursor: encoded}); err != application.ErrInvalidInput {
+			t.Fatalf("cursor %s error=%v", raw, err)
+		}
+	}
+}

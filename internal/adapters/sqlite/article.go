@@ -1,11 +1,13 @@
 package sqlite
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"io"
 	"sort"
 	"strings"
 
@@ -296,9 +298,10 @@ func (s *Store) listArticles(ctx context.Context, q application.FeedQuery) ([]do
 }
 
 type feedCursor struct {
-	Score float64          `json:"score"`
-	Time  int64            `json:"time"`
-	ID    domain.ArticleID `json:"id"`
+	Score              *float64          `json:"score"`
+	PublicationPresent *bool             `json:"publicationPresent"`
+	Time               *int64            `json:"time"`
+	ID                 *domain.ArticleID `json:"id"`
 }
 
 func feedWhere(q application.FeedQuery) (string, []any, error) {
@@ -348,11 +351,13 @@ func feedWhere(q application.FeedQuery) (string, []any, error) {
 			return "", nil, application.ErrInvalidInput
 		}
 		var cursor feedCursor
-		if json.Unmarshal(decoded, &cursor) != nil || cursor.ID == "" || cursor.Score < 0 || cursor.Score > 1 {
+		decoder := json.NewDecoder(bytes.NewReader(decoded))
+		decoder.DisallowUnknownFields()
+		if decoder.Decode(&cursor) != nil || decoder.Decode(&struct{}{}) != io.EOF || cursor.Score == nil || cursor.PublicationPresent == nil || cursor.Time == nil || cursor.ID == nil || *cursor.ID == "" || *cursor.Score < 0 || *cursor.Score > 1 || (!*cursor.PublicationPresent && *cursor.Time != 0) {
 			return "", nil, application.ErrInvalidInput
 		}
-		clauses = append(clauses, "(COALESCE(r.score,0)<? OR (COALESCE(r.score,0)=? AND (COALESCE(a.published_at_ms,a.fetched_at_ms)<? OR (COALESCE(a.published_at_ms,a.fetched_at_ms)=? AND a.id>?))))")
-		args = append(args, cursor.Score, cursor.Score, cursor.Time, cursor.Time, cursor.ID)
+		clauses = append(clauses, "(r.score<? OR (r.score=? AND ((a.published_at_ms IS NOT NULL)<? OR ((a.published_at_ms IS NOT NULL)=? AND (COALESCE(a.published_at_ms,0)<? OR (COALESCE(a.published_at_ms,0)=? AND a.id>?))))))")
+		args = append(args, *cursor.Score, *cursor.Score, *cursor.PublicationPresent, *cursor.PublicationPresent, *cursor.Time, *cursor.Time, *cursor.ID)
 	}
 	if len(clauses) == 0 {
 		return "", args, nil
@@ -374,7 +379,7 @@ func (s *Store) queryFeed(ctx context.Context, q application.FeedQuery) (applica
 	if err != nil {
 		return page, err
 	}
-	query := `SELECT ` + articleColumns + ` FROM articles a LEFT JOIN ranking_results r ON r.article_id=a.id LEFT JOIN library_states l ON l.article_id=a.id` + where + ` ORDER BY COALESCE(r.score,0) DESC,COALESCE(a.published_at_ms,a.fetched_at_ms) DESC,a.id ASC LIMIT ?`
+	query := `SELECT ` + articleColumns + ` FROM ranking_results r JOIN articles a ON a.id=r.article_id LEFT JOIN library_states l ON l.article_id=a.id` + where + ` ORDER BY r.score DESC,(a.published_at_ms IS NOT NULL) DESC,a.published_at_ms DESC,a.id ASC LIMIT ?`
 	args = append(args, q.Limit)
 	rows, err := s.q(ctx).QueryContext(ctx, query, args...)
 	if err != nil {
@@ -409,21 +414,20 @@ func (s *Store) queryFeed(ctx context.Context, q application.FeedQuery) (applica
 			return page, err
 		}
 		ranking, err := s.Rankings().GetResult(ctx, a.ID)
-		if errors.Is(err, application.ErrNotFound) {
-			ranking = domain.RankingResult{ArticleID: a.ID}
-		} else if err != nil {
+		if err != nil {
 			return page, err
 		}
 		page.Articles = append(page.Articles, application.RankedArticle{Article: a, Library: library, Ranking: ranking})
 	}
 	if hasMore {
 		last := articles[len(articles)-1]
-		t := last.FetchedAt
+		published := last.PublishedAt != nil
+		var timestamp int64
 		if last.PublishedAt != nil {
-			t = *last.PublishedAt
+			timestamp = millis(*last.PublishedAt)
 		}
 		ranking := page.Articles[len(page.Articles)-1].Ranking
-		encoded, _ := json.Marshal(feedCursor{Score: ranking.Score, Time: millis(t), ID: last.ID})
+		encoded, _ := json.Marshal(feedCursor{Score: &ranking.Score, PublicationPresent: &published, Time: &timestamp, ID: &last.ID})
 		page.NextCursor = base64.RawURLEncoding.EncodeToString(encoded)
 	}
 	return page, nil

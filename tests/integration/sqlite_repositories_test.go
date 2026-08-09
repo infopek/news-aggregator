@@ -310,19 +310,24 @@ func TestQueryFeedRejectsInvalidCursorAndPropagatesRepositoryErrors(t *testing.T
 	}
 	page, err := store.Articles().QueryFeed(ctx, application.FeedQuery{})
 	must(t, err)
-	if len(page.Articles) != 1 || page.Articles[0].Library.ArticleID != article.ID || page.Articles[0].Ranking.ArticleID != article.ID {
-		t.Fatalf("empty optional state feed=%+v", page)
+	if len(page.Articles) != 0 {
+		t.Fatalf("unranked article entered ranked feed=%+v", page)
 	}
 	value := true
 	_, err = store.Libraries().Apply(ctx, article.ID, domain.LibraryPatch{Read: &value}, time.Now())
 	must(t, err)
 	page, err = store.Articles().QueryFeed(ctx, application.FeedQuery{})
 	must(t, err)
-	if page.Articles[0].Library.ReadAt == nil || page.Articles[0].Ranking.ArticleID != article.ID {
-		t.Fatalf("missing ranking feed=%+v", page)
+	if len(page.Articles) != 0 {
+		t.Fatalf("library state made unranked article visible=%+v", page)
 	}
 	ranking := domain.RankingResult{ArticleID: article.ID, Score: .5, AlgorithmVersion: "test", CalculatedAt: time.Now(), Contributions: []domain.ScoreContribution{{Signal: domain.SignalInterest, RawScore: .5, Weight: 1, WeightedScore: .5, ReasonCode: "test_reason", ReasonValues: map[string]string{}}}}
 	must(t, store.Rankings().SaveResults(ctx, []domain.RankingResult{ranking}))
+	page, err = store.Articles().QueryFeed(ctx, application.FeedQuery{})
+	must(t, err)
+	if len(page.Articles) != 1 || page.Articles[0].Library.ReadAt == nil || page.Articles[0].Ranking.ArticleID != article.ID {
+		t.Fatalf("ranked feed=%+v", page)
+	}
 	db := rawDB(t, path)
 	_, err = db.Exec(`DELETE FROM library_states WHERE article_id='feed-a'`)
 	must(t, err)
