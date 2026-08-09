@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -94,7 +95,7 @@ func TestFeedAdapterToSQLiteConditionalLifecycle(t *testing.T) {
 	runner := ingestion.Runner{Adapter: adapter, Sources: store.Sources(), Articles: store.Articles(), Transactions: store, Clock: ingestionClock{time.Date(2026, 8, 3, 10, 0, 0, 0, time.UTC)}, NewID: func(fp string) domain.ArticleID { return domain.ArticleID("feed-" + fp[len(fp)-12:]) }}
 	first, err := runner.Run(ctx, source.ID)
 	must(t, err)
-	if len(first.Writes) != 1 || !first.Writes[0].Inserted || len(first.Warnings) != 1 {
+	if len(first.Writes) != 1 || !first.Writes[0].Inserted || len(first.Warnings) != 1 || first.Fetched != 2 {
 		t.Fatalf("writes=%+v warnings=%v", first.Writes, first.Warnings)
 	}
 	persisted, err := store.Sources().Get(ctx, source.ID)
@@ -131,9 +132,118 @@ func (a staticFeedAdapter) Fetch(context.Context, domain.Source, application.Fet
 	return a.result, nil
 }
 
-type failingSources struct{ application.SourceRepository }
+type blockingFeedAdapter struct {
+	started chan struct{}
+	release chan struct{}
+	result  application.AdapterResult
+}
 
-func (f failingSources) Save(context.Context, domain.Source) error { return application.ErrUnavailable }
+func (blockingFeedAdapter) Kind() domain.SourceKind { return domain.SourceKindFeed }
+func (a blockingFeedAdapter) Fetch(ctx context.Context, _ domain.Source, _ application.FetchCursor) (application.AdapterResult, error) {
+	close(a.started)
+	select {
+	case <-a.release:
+		return a.result, nil
+	case <-ctx.Done():
+		return application.AdapterResult{}, ctx.Err()
+	}
+}
+
+func TestIngestionRunnerDoesNotResurrectOrOverwriteSource(t *testing.T) {
+	t.Run("deleted during fetch", func(t *testing.T) {
+		store, path := openStore(t)
+		defer store.Close()
+		ctx := context.Background()
+		source := feedSource("delete-during-fetch", "https://publisher.example/feed")
+		must(t, store.Sources().Save(ctx, source))
+		adapter := blockingFeedAdapter{started: make(chan struct{}), release: make(chan struct{}), result: application.AdapterResult{Items: []application.AdapterItem{{ExternalID: "one", CanonicalURL: "/one", Title: "One"}}}}
+		runner := ingestion.Runner{Adapter: adapter, Sources: store.Sources(), Articles: store.Articles(), Transactions: store, Clock: ingestionClock{time.Now().UTC()}, NewID: func(string) domain.ArticleID { return "deleted-article" }}
+		done := make(chan error, 1)
+		go func() { _, err := runner.Run(ctx, source.ID); done <- err }()
+		<-adapter.started
+		must(t, store.Sources().Delete(ctx, source.ID))
+		close(adapter.release)
+		if err := <-done; !errors.Is(err, application.ErrNotFound) {
+			t.Fatalf("run error=%v, want not found", err)
+		}
+		if _, err := store.Sources().Get(ctx, source.ID); !errors.Is(err, application.ErrNotFound) {
+			t.Fatalf("deleted source was restored: %v", err)
+		}
+		db := rawDB(t, path)
+		defer db.Close()
+		var articles int
+		must(t, db.QueryRow(`SELECT count(*) FROM articles WHERE primary_source_id=?`, source.ID).Scan(&articles))
+		if articles != 0 {
+			t.Fatalf("articles committed for deleted source: %d", articles)
+		}
+	})
+
+	t.Run("configuration edited during fetch", func(t *testing.T) {
+		store, _ := openStore(t)
+		defer store.Close()
+		ctx := context.Background()
+		source := feedSource("edit-during-fetch", "https://publisher.example/feed")
+		must(t, store.Sources().Save(ctx, source))
+		adapter := blockingFeedAdapter{started: make(chan struct{}), release: make(chan struct{}), result: application.AdapterResult{Unchanged: true, NextCursor: application.FetchCursor{ETag: `"new"`}}}
+		runner := ingestion.Runner{Adapter: adapter, Sources: store.Sources(), Articles: store.Articles(), Transactions: store, Clock: ingestionClock{time.Now().UTC()}, NewID: func(string) domain.ArticleID { return "unused" }}
+		done := make(chan error, 1)
+		go func() { _, err := runner.Run(ctx, source.ID); done <- err }()
+		<-adapter.started
+		edited, err := store.Sources().Get(ctx, source.ID)
+		must(t, err)
+		edited.Name = "Edited while refreshing"
+		must(t, store.Sources().Save(ctx, edited))
+		close(adapter.release)
+		must(t, <-done)
+		persisted, err := store.Sources().Get(ctx, source.ID)
+		must(t, err)
+		if persisted.Name != edited.Name || persisted.RefreshETag != `"new"` {
+			t.Fatalf("concurrent edit or ingestion state lost: %+v", persisted)
+		}
+	})
+
+	t.Run("ingestion configuration changed during fetch", func(t *testing.T) {
+		store, path := openStore(t)
+		defer store.Close()
+		ctx := context.Background()
+		source := feedSource("reconfigured-during-fetch", "https://publisher.example/old-feed")
+		source.RefreshETag = `"old"`
+		must(t, store.Sources().Save(ctx, source))
+		adapter := blockingFeedAdapter{started: make(chan struct{}), release: make(chan struct{}), result: application.AdapterResult{Items: []application.AdapterItem{{ExternalID: "stale", CanonicalURL: "/stale", Title: "Stale"}}, NextCursor: application.FetchCursor{ETag: `"stale"`}}}
+		runner := ingestion.Runner{Adapter: adapter, Sources: store.Sources(), Articles: store.Articles(), Transactions: store, Clock: ingestionClock{time.Now().UTC()}, NewID: func(string) domain.ArticleID { return "stale-article" }}
+		done := make(chan error, 1)
+		go func() { _, err := runner.Run(ctx, source.ID); done <- err }()
+		<-adapter.started
+		edited, err := store.Sources().Get(ctx, source.ID)
+		must(t, err)
+		edited.URL = "https://publisher.example/new-feed"
+		must(t, store.Sources().Save(ctx, edited))
+		close(adapter.release)
+		if err := <-done; !errors.Is(err, application.ErrConflict) {
+			t.Fatalf("run error=%v, want conflict", err)
+		}
+		persisted, err := store.Sources().Get(ctx, source.ID)
+		must(t, err)
+		if persisted.URL != edited.URL || persisted.RefreshETag != `"old"` {
+			t.Fatalf("stale ingestion state committed: %+v", persisted)
+		}
+		db := rawDB(t, path)
+		defer db.Close()
+		var articles int
+		must(t, db.QueryRow(`SELECT count(*) FROM articles WHERE primary_source_id=?`, source.ID).Scan(&articles))
+		if articles != 0 {
+			t.Fatalf("stale articles committed: %d", articles)
+		}
+	})
+}
+
+type failingSources struct {
+	application.SourceIngestionRepository
+}
+
+func (f failingSources) UpdateIngestionState(context.Context, domain.SourceID, application.SourceIngestionState) error {
+	return application.ErrUnavailable
+}
 
 type failingArticles struct {
 	application.ArticleRepository
@@ -168,9 +278,9 @@ func TestIngestionRunnerFailureAndTransactionSemantics(t *testing.T) {
 			if test.failArticle {
 				articles = failingArticles{ArticleRepository: articles, calls: &articleCalls}
 			}
-			var sources application.SourceRepository = store.Sources()
+			var sources application.SourceIngestionRepository = store.Sources()
 			if test.failSource {
-				sources = failingSources{SourceRepository: sources}
+				sources = failingSources{SourceIngestionRepository: sources}
 			}
 			runner := ingestion.Runner{Adapter: staticFeedAdapter{result: application.AdapterResult{Items: []application.AdapterItem{test.item}, NextCursor: application.FetchCursor{ETag: `"new"`}}}, Sources: sources, Articles: articles, Transactions: store, Clock: ingestionClock{time.Date(2026, 8, 3, 12, 0, 0, 0, time.UTC)}, NewID: func(string) domain.ArticleID { return "rollback-article" }}
 			if _, err := runner.Run(ctx, source.ID); err == nil {

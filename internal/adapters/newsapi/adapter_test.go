@@ -71,7 +71,7 @@ func TestStatusShapeCursorAndCancellationFailures(t *testing.T) {
 		return value, nil
 	})}
 	_, err := adapter.Fetch(context.Background(), apiSource(nil), application.FetchCursor{})
-	var rateLimit *RateLimitError
+	var rateLimit *application.RateLimitError
 	if !errors.As(err, &rateLimit) || !rateLimit.Retryable || rateLimit.RetryAfter != 45*time.Second {
 		t.Fatalf("rate limit error=%v", err)
 	}

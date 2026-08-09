@@ -606,9 +606,13 @@ func validAdapterShape(v sourceWrite) bool {
 	}
 }
 
-func NewAPIHandler(version string, configuration ConfigurationAPI) http.Handler {
+func NewAPIHandler(version string, configuration ConfigurationAPI, refresh ...RefreshAPI) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("GET /api/v1/health", NewHealthHandler(version))
+	if len(refresh) > 0 {
+		mux.Handle("/api/v1/refresh", NewRefreshHandler(refresh[0]))
+		mux.Handle("/api/v1/refresh/", NewRefreshHandler(refresh[0]))
+	}
 	mux.Handle("/api/v1/", NewConfigurationHandler(configuration))
 	return mux
 }

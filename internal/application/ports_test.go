@@ -11,18 +11,19 @@ import (
 )
 
 var (
-	_ Clock              = fixedClock{}
-	_ HTTPFetcher        = fetcherStub{}
-	_ CredentialStore    = credentialStoreStub{}
-	_ IngestionAdapter   = ingestionAdapterStub{}
-	_ Ranker             = rankerStub{}
-	_ ProfileRepository  = profileRepositoryStub{}
-	_ SourceRepository   = sourceRepositoryStub{}
-	_ ArticleRepository  = articleRepositoryStub{}
-	_ LibraryRepository  = libraryRepositoryStub{}
-	_ RankingRepository  = rankingRepositoryStub{}
-	_ RefreshRepository  = refreshRepositoryStub{}
-	_ TransactionManager = transactionManagerStub{}
+	_ Clock                     = fixedClock{}
+	_ HTTPFetcher               = fetcherStub{}
+	_ CredentialStore           = credentialStoreStub{}
+	_ IngestionAdapter          = ingestionAdapterStub{}
+	_ Ranker                    = rankerStub{}
+	_ ProfileRepository         = profileRepositoryStub{}
+	_ SourceRepository          = sourceRepositoryStub{}
+	_ SourceIngestionRepository = sourceRepositoryStub{}
+	_ ArticleRepository         = articleRepositoryStub{}
+	_ LibraryRepository         = libraryRepositoryStub{}
+	_ RankingRepository         = rankingRepositoryStub{}
+	_ RefreshRepository         = refreshRepositoryStub{}
+	_ TransactionManager        = transactionManagerStub{}
 )
 
 func TestCredentialResolutionIsCallbackScoped(t *testing.T) {
@@ -98,6 +99,9 @@ func (sourceRepositoryStub) Get(context.Context, domain.SourceID) (domain.Source
 }
 func (sourceRepositoryStub) Save(context.Context, domain.Source) error     { return nil }
 func (sourceRepositoryStub) Delete(context.Context, domain.SourceID) error { return nil }
+func (sourceRepositoryStub) UpdateIngestionState(context.Context, domain.SourceID, SourceIngestionState) error {
+	return nil
+}
 
 type articleRepositoryStub struct{}
 

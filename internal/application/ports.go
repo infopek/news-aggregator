@@ -28,6 +28,22 @@ type SourceRepository interface {
 	Delete(context.Context, domain.SourceID) error
 }
 
+// SourceIngestionState contains only fields owned by ingestion. Updating it
+// must fail when the source has been deleted.
+type SourceIngestionState struct {
+	RefreshCursor       string
+	RefreshETag         string
+	RefreshLastModified string
+	LastSuccessAt       *time.Time
+	LastError           string
+	RetryAfter          *time.Time
+}
+
+type SourceIngestionRepository interface {
+	Get(context.Context, domain.SourceID) (domain.Source, error)
+	UpdateIngestionState(context.Context, domain.SourceID, SourceIngestionState) error
+}
+
 type ArticleRepository interface {
 	Get(context.Context, domain.ArticleID) (domain.Article, error)
 	Upsert(context.Context, domain.Article) (ArticleWriteResult, error)
