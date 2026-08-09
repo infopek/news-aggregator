@@ -49,10 +49,10 @@ func (m *refreshMemory) Save(_ context.Context, v domain.RefreshRun) error {
 }
 
 func TestCoordinatorReconcilesFailedTerminalSave(t *testing.T) {
-	repo := &refreshMemory{runs: map[domain.RefreshRunID]domain.RefreshRun{}, saveFailures: 3}
-	ids := []domain.RefreshRunID{"first", "second"}
-	index := 0
-	c := &Coordinator{Refreshes: repo, Sources: sourceMemory{}, Runners: map[domain.SourceKind]SourceRunner{domain.SourceKindFeed: runnerFunc(func(context.Context, domain.SourceID) (RunResult, error) { return RunResult{}, nil })}, Clock: fixedClock{time.Unix(10, 0)}, NewID: func() domain.RefreshRunID { id := ids[index]; index++; return id }}
+	repo := &refreshMemory{runs: map[domain.RefreshRunID]domain.RefreshRun{}, saveFailures: 4}
+	c := &Coordinator{Refreshes: repo, Sources: sourceMemory{values: []domain.Source{{ID: "feed", Kind: domain.SourceKindFeed, Enabled: true}}}, Runners: map[domain.SourceKind]SourceRunner{domain.SourceKindFeed: runnerFunc(func(context.Context, domain.SourceID) (RunResult, error) {
+		return RunResult{Fetched: 2, Writes: []application.ArticleWriteResult{{Inserted: true}}}, nil
+	})}, Clock: fixedClock{time.Unix(10, 0)}, NewID: func() domain.RefreshRunID { return "first" }}
 	first, err := c.StartRefresh(context.Background(), application.StartRefreshCommand{})
 	if err != nil {
 		t.Fatal(err)
@@ -62,6 +62,9 @@ func TestCoordinatorReconcilesFailedTerminalSave(t *testing.T) {
 	if stale.Status != domain.RefreshRunning {
 		t.Fatalf("expected injected stale run, got %+v", stale)
 	}
+	if _, err := c.GetRefresh(context.Background(), first.ID); !errors.Is(err, application.ErrUnavailable) {
+		t.Fatalf("first poll error=%v, want unavailable", err)
+	}
 	recovered, err := c.GetRefresh(context.Background(), first.ID)
 	if err != nil {
 		t.Fatal(err)
@@ -69,14 +72,16 @@ func TestCoordinatorReconcilesFailedTerminalSave(t *testing.T) {
 	if recovered.Status == domain.RefreshRunning || recovered.FinishedAt == nil {
 		t.Fatalf("unreconciled=%+v", recovered)
 	}
-	second, err := c.StartRefresh(context.Background(), application.StartRefreshCommand{})
+	if recovered.Status != domain.RefreshSucceeded || len(recovered.Outcomes) != 1 || recovered.Outcomes[0].Fetched != 2 || recovered.Outcomes[0].Inserted != 1 || recovered.Outcomes[0].Skipped != 1 {
+		t.Fatalf("recovered outcomes=%+v", recovered)
+	}
+	restarted := &Coordinator{Refreshes: repo, Sources: sourceMemory{}, Runners: c.Runners, Clock: fixedClock{time.Unix(20, 0)}, NewID: func() domain.RefreshRunID { return "unused" }}
+	persisted, err := restarted.GetRefresh(context.Background(), first.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	c.Wait()
-	latest, _ := repo.Get(context.Background(), second.ID)
-	if latest.Status != domain.RefreshSucceeded {
-		t.Fatalf("latest=%+v", latest)
+	if persisted.Status != recovered.Status || len(persisted.Outcomes) != 1 || persisted.Outcomes[0] != recovered.Outcomes[0] {
+		t.Fatalf("persisted=%+v recovered=%+v", persisted, recovered)
 	}
 }
 
