@@ -24,6 +24,7 @@ import (
 	"github.com/infopek/news-aggregator/internal/adapters/scraper"
 	"github.com/infopek/news-aggregator/internal/adapters/sqlite"
 	"github.com/infopek/news-aggregator/internal/application"
+	appfeed "github.com/infopek/news-aggregator/internal/application/feed"
 	"github.com/infopek/news-aggregator/internal/application/ingestion"
 	"github.com/infopek/news-aggregator/internal/domain"
 	"github.com/infopek/news-aggregator/internal/httpapi"
@@ -92,7 +93,8 @@ func run() error {
 		domain.SourceKindScraper: newRunner(scraper.Adapter{Fetcher: fetcher}),
 	}}
 
-	api := httpapi.NewAPIHandler(applicationVersion, httpapi.ConfigurationAPI{Profiles: configuration, Sources: configuration, Starters: starterSources()}, httpapi.RefreshAPI{Service: refresh})
+	feedQueries := appfeed.Service{Articles: store.Articles(), Library: store.Libraries(), Rankings: store.Rankings()}
+	api := httpapi.NewAPIHandlerWithFeed(applicationVersion, httpapi.ConfigurationAPI{Profiles: configuration, Sources: configuration, Starters: starterSources()}, httpapi.RefreshAPI{Service: refresh}, httpapi.FeedAPI{Service: feedQueries})
 	host := platform.Host{
 		Address: "127.0.0.1:" + strconv.Itoa(port),
 		Handler: httpapi.NewLocalHandler(api, assets),
