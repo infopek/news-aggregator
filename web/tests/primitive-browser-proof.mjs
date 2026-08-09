@@ -1,5 +1,6 @@
 /* global URL, clearTimeout, console, document, fetch, process, setTimeout */
 import { spawn } from 'node:child_process'
+import { Buffer } from 'node:buffer'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { chromium } from 'playwright-core'
