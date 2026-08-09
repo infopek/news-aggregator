@@ -3,6 +3,7 @@ package feed
 import (
 	"context"
 	"errors"
+	"unicode/utf8"
 
 	"github.com/infopek/news-aggregator/internal/application"
 	"github.com/infopek/news-aggregator/internal/domain"
@@ -21,7 +22,7 @@ func (s Service) GetFeed(ctx context.Context, query application.FeedQuery) (appl
 	if query.Limit == 0 {
 		query.Limit = 30
 	}
-	if query.Limit < 1 || query.Limit > 100 || len(query.Filter.Text) > 200 {
+	if query.Limit < 1 || query.Limit > 100 || utf8.RuneCountInString(query.Filter.Text) > 200 {
 		return application.FeedPage{}, application.ErrInvalidInput
 	}
 	return s.Articles.QueryFeed(ctx, query)

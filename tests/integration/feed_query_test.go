@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -41,6 +42,12 @@ func TestRankedFeedPaginationFiltersAndPermission(t *testing.T) {
 	must(t, err)
 	_ = mustState
 	service := appfeed.Service{Articles: store.Articles(), Library: store.Libraries(), Rankings: store.Rankings()}
+	if _, err := service.GetFeed(ctx, application.FeedQuery{Limit: 30, Filter: application.FeedFilter{Text: strings.Repeat("é", 200)}}); err != nil {
+		t.Fatalf("200-character Unicode query rejected: %v", err)
+	}
+	if _, err := service.GetFeed(ctx, application.FeedQuery{Limit: 30, Filter: application.FeedFilter{Text: strings.Repeat("é", 201)}}); err != application.ErrInvalidInput {
+		t.Fatalf("201-character Unicode query error=%v, want invalid input", err)
+	}
 	first, err := service.GetFeed(ctx, application.FeedQuery{Limit: 1})
 	must(t, err)
 	if len(first.Articles) != 1 || first.Articles[0].Article.ID != "article-a" || first.NextCursor == "" {
