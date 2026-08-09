@@ -60,6 +60,8 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: web/package-lock.json
+      - name: Use repository-compatible npm
+        run: npm install --global npm@11.6.2
       - name: Install frontend dependencies
         run: npm --prefix web ci
       - name: Run repository verification
