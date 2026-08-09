@@ -1,5 +1,6 @@
 /* global URL, clearTimeout, console, document, fetch, process, setTimeout */
 import { spawn } from 'node:child_process'
+import { Buffer } from 'node:buffer'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { chromium } from 'playwright-core'
@@ -23,13 +24,19 @@ try {
     await assertScreenshot(page, 'narrow-primitives.png')
     if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)) throw new Error('Primitive variants overflow narrow viewport')
     if (await page.locator('img, script[src="x"]').count()) throw new Error('Untrusted article text became executable markup')
-    console.log('Primitive browser proof passed: deterministic desktop/narrow screenshots, Unicode wrapping, and malicious-text containment.')
+    const screenshotProof = process.env.SCREENSHOT_MODE === 'smoke' ? 'desktop/narrow screenshot smoke output' : 'deterministic desktop/narrow screenshots'
+    console.log(`Primitive browser proof passed: ${screenshotProof}, Unicode wrapping, and malicious-text containment.`)
   } finally { await browser.close() }
 } finally { await stop(server) }
 
 async function availablePort() { const listener = createServer(); await new Promise((resolve, reject) => listener.once('error', reject).listen(0, '127.0.0.1', resolve)); const address = listener.address(); if (!address || typeof address === 'string') throw new Error('Could not reserve primitive proof port'); await new Promise((resolve, reject) => listener.close(error => error ? reject(error) : resolve())); return address.port }
 async function assertScreenshot(page, name) {
   const actual = await page.screenshot({ fullPage: true, animations: 'disabled', caret: 'hide' })
+  if (process.env.SCREENSHOT_MODE === 'smoke') {
+    const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+    if (actual.length < 1024 || !actual.subarray(0, pngSignature.length).equals(pngSignature)) throw new Error(`Screenshot smoke proof failed: ${name}`)
+    return
+  }
   const path = new URL(name, evidence)
   if (process.env.UPDATE_SCREENSHOTS === '1') { await writeFile(path, actual); return }
   let expected
