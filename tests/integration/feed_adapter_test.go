@@ -201,6 +201,40 @@ func TestIngestionRunnerDoesNotResurrectOrOverwriteSource(t *testing.T) {
 			t.Fatalf("concurrent edit or ingestion state lost: %+v", persisted)
 		}
 	})
+
+	t.Run("ingestion configuration changed during fetch", func(t *testing.T) {
+		store, path := openStore(t)
+		defer store.Close()
+		ctx := context.Background()
+		source := feedSource("reconfigured-during-fetch", "https://publisher.example/old-feed")
+		source.RefreshETag = `"old"`
+		must(t, store.Sources().Save(ctx, source))
+		adapter := blockingFeedAdapter{started: make(chan struct{}), release: make(chan struct{}), result: application.AdapterResult{Items: []application.AdapterItem{{ExternalID: "stale", CanonicalURL: "/stale", Title: "Stale"}}, NextCursor: application.FetchCursor{ETag: `"stale"`}}}
+		runner := ingestion.Runner{Adapter: adapter, Sources: store.Sources(), Articles: store.Articles(), Transactions: store, Clock: ingestionClock{time.Now().UTC()}, NewID: func(string) domain.ArticleID { return "stale-article" }}
+		done := make(chan error, 1)
+		go func() { _, err := runner.Run(ctx, source.ID); done <- err }()
+		<-adapter.started
+		edited, err := store.Sources().Get(ctx, source.ID)
+		must(t, err)
+		edited.URL = "https://publisher.example/new-feed"
+		must(t, store.Sources().Save(ctx, edited))
+		close(adapter.release)
+		if err := <-done; !errors.Is(err, application.ErrConflict) {
+			t.Fatalf("run error=%v, want conflict", err)
+		}
+		persisted, err := store.Sources().Get(ctx, source.ID)
+		must(t, err)
+		if persisted.URL != edited.URL || persisted.RefreshETag != `"old"` {
+			t.Fatalf("stale ingestion state committed: %+v", persisted)
+		}
+		db := rawDB(t, path)
+		defer db.Close()
+		var articles int
+		must(t, db.QueryRow(`SELECT count(*) FROM articles WHERE primary_source_id=?`, source.ID).Scan(&articles))
+		if articles != 0 {
+			t.Fatalf("stale articles committed: %d", articles)
+		}
+	})
 }
 
 type failingSources struct {

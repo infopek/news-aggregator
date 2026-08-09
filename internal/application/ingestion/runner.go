@@ -3,6 +3,7 @@ package ingestion
 import (
 	"context"
 	"errors"
+	"reflect"
 
 	"github.com/infopek/news-aggregator/internal/application"
 	"github.com/infopek/news-aggregator/internal/domain"
@@ -46,7 +47,7 @@ func (r Runner) Run(ctx context.Context, sourceID domain.SourceID) (RunResult, e
 			retryAt := r.Clock.Now().UTC().Add(rateLimit.RetryAfter)
 			state := ingestionState(source)
 			state.LastError, state.RetryAfter = "rate_limited", &retryAt
-			if saveErr := r.Sources.UpdateIngestionState(ctx, source.ID, state); saveErr != nil {
+			if saveErr := r.updateIfCurrent(ctx, source, state); saveErr != nil {
 				return RunResult{}, saveErr
 			}
 		}
@@ -54,6 +55,9 @@ func (r Runner) Run(ctx context.Context, sourceID domain.SourceID) (RunResult, e
 	}
 	var writes []application.ArticleWriteResult
 	err = r.Transactions.WithinTransaction(ctx, func(txctx context.Context) error {
+		if err := r.requireCurrentConfiguration(txctx, source); err != nil {
+			return err
+		}
 		if !result.Unchanged {
 			writes, err = (Service{Articles: r.Articles, Clock: r.Clock, NewID: r.NewID}).Ingest(txctx, source, result.Items)
 			if err != nil {
@@ -70,6 +74,34 @@ func (r Runner) Run(ctx context.Context, sourceID domain.SourceID) (RunResult, e
 		return RunResult{}, err
 	}
 	return RunResult{Writes: writes, Warnings: result.Warnings, Unchanged: result.Unchanged, Fetched: len(result.Items) + len(result.Warnings)}, nil
+}
+
+func (r Runner) updateIfCurrent(ctx context.Context, source domain.Source, state application.SourceIngestionState) error {
+	return r.Transactions.WithinTransaction(ctx, func(txctx context.Context) error {
+		if err := r.requireCurrentConfiguration(txctx, source); err != nil {
+			return err
+		}
+		return r.Sources.UpdateIngestionState(txctx, source.ID, state)
+	})
+}
+
+func (r Runner) requireCurrentConfiguration(ctx context.Context, expected domain.Source) error {
+	current, err := r.Sources.Get(ctx, expected.ID)
+	if err != nil {
+		return err
+	}
+	if !sameIngestionConfiguration(expected, current) {
+		return application.ErrConflict
+	}
+	return nil
+}
+
+func sameIngestionConfiguration(left, right domain.Source) bool {
+	return left.URL == right.URL && left.Kind == right.Kind && left.Enabled == right.Enabled &&
+		left.ContentPermission == right.ContentPermission &&
+		reflect.DeepEqual(left.AdapterConfig, right.AdapterConfig) &&
+		reflect.DeepEqual(left.ScraperPolicy, right.ScraperPolicy) &&
+		reflect.DeepEqual(left.CredentialRef, right.CredentialRef)
 }
 
 func ingestionState(source domain.Source) application.SourceIngestionState {
