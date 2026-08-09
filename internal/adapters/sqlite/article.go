@@ -367,6 +367,16 @@ func feedWhere(q application.FeedQuery) (string, []any, error) {
 
 func (s *Store) queryFeed(ctx context.Context, q application.FeedQuery) (application.FeedPage, error) {
 	var page application.FeedPage
+	err := s.WithinTransaction(ctx, func(txctx context.Context) error {
+		var err error
+		page, err = s.queryFeedSnapshot(txctx, q)
+		return err
+	})
+	return page, err
+}
+
+func (s *Store) queryFeedSnapshot(ctx context.Context, q application.FeedQuery) (application.FeedPage, error) {
+	var page application.FeedPage
 	limit := q.Limit
 	if limit == 0 {
 		limit = 30

@@ -175,3 +175,56 @@ func TestRankedFeedMatchesRankingTieOrderAndRejectsStructuralCursors(t *testing.
 		}
 	}
 }
+
+func TestRankedFeedCursorUsesOneReadSnapshot(t *testing.T) {
+	store, path := openStore(t)
+	defer store.Close()
+	writer := reopenStore(t, path)
+	defer writer.Close()
+	ctx := context.Background()
+	at := time.Date(2026, 8, 9, 10, 0, 0, 0, time.UTC)
+	source := serviceFeed("snapshot-source", "https://example.com/snapshot")
+	must(t, store.Sources().Save(ctx, source))
+	for _, article := range []domain.Article{
+		{ID: "snapshot-a", Fingerprint: "snapshot-fp-a", SourceID: source.ID, CanonicalURL: "https://example.com/snapshot/a", Title: "A", FetchedAt: at, ContentPermission: domain.ContentMetadataOnly},
+		{ID: "snapshot-b", Fingerprint: "snapshot-fp-b", SourceID: source.ID, CanonicalURL: "https://example.com/snapshot/b", Title: "B", FetchedAt: at, ContentPermission: domain.ContentMetadataOnly},
+	} {
+		_, err := store.Articles().Upsert(ctx, article)
+		must(t, err)
+	}
+	saveRank := func(repository application.RankingRepository, id domain.ArticleID, score float64) error {
+		return repository.SaveResults(ctx, []domain.RankingResult{{ArticleID: id, Score: score, AlgorithmVersion: "snapshot-v1", CalculatedAt: at, Contributions: []domain.ScoreContribution{{Signal: domain.SignalInterest, RawScore: score, Weight: 1, WeightedScore: score, ReasonCode: "SNAPSHOT", ReasonValues: map[string]string{}}}}})
+	}
+	must(t, saveRank(store.Rankings(), "snapshot-a", .8))
+	must(t, saveRank(store.Rankings(), "snapshot-b", .7))
+	var cursor string
+	err := store.WithinTransaction(ctx, func(txctx context.Context) error {
+		first, err := store.Articles().QueryFeed(txctx, application.FeedQuery{Limit: 1})
+		if err != nil {
+			return err
+		}
+		if len(first.Articles) != 1 || first.Articles[0].Article.ID != "snapshot-a" || first.Articles[0].Ranking.Score != .8 || first.NextCursor == "" {
+			t.Fatalf("first snapshot page=%+v", first)
+		}
+		cursor = first.NextCursor
+		updated := make(chan error, 1)
+		go func() { updated <- saveRank(writer.Rankings(), "snapshot-a", .1) }()
+		if err := <-updated; err != nil {
+			return err
+		}
+		second, err := store.Articles().QueryFeed(txctx, application.FeedQuery{Limit: 1, Cursor: cursor})
+		if err != nil {
+			return err
+		}
+		if len(second.Articles) != 1 || second.Articles[0].Article.ID != "snapshot-b" {
+			t.Fatalf("snapshot continuation=%+v", second)
+		}
+		return nil
+	})
+	must(t, err)
+	afterUpdate, err := store.Articles().QueryFeed(ctx, application.FeedQuery{Limit: 1, Cursor: cursor})
+	must(t, err)
+	if len(afterUpdate.Articles) != 1 || afterUpdate.Articles[0].Article.ID != "snapshot-b" {
+		t.Fatalf("unchanged article omitted after update: %+v", afterUpdate)
+	}
+}
