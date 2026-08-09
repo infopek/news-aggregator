@@ -22,11 +22,12 @@ type Coordinator struct {
 	ProcessContext context.Context
 	MaxConcurrency int
 
-	mu       sync.Mutex
-	active   bool
-	activeID domain.RefreshRunID
-	pending  *domain.RefreshRun
-	wg       sync.WaitGroup
+	mu        sync.Mutex
+	lifecycle sync.Mutex
+	active    bool
+	activeID  domain.RefreshRunID
+	pending   *domain.RefreshRun
+	wg        sync.WaitGroup
 }
 
 func (c *Coordinator) StartRefresh(ctx context.Context, _ application.StartRefreshCommand) (domain.RefreshRun, error) {
@@ -36,6 +37,8 @@ func (c *Coordinator) StartRefresh(ctx context.Context, _ application.StartRefre
 	if err := ctx.Err(); err != nil {
 		return domain.RefreshRun{}, err
 	}
+	c.lifecycle.Lock()
+	defer c.lifecycle.Unlock()
 	c.mu.Lock()
 	if c.active {
 		c.mu.Unlock()
@@ -98,6 +101,8 @@ func (c *Coordinator) GetRefresh(ctx context.Context, id domain.RefreshRunID) (d
 	if c.Refreshes == nil || id == "" {
 		return domain.RefreshRun{}, application.ErrInvalidInput
 	}
+	c.lifecycle.Lock()
+	defer c.lifecycle.Unlock()
 	c.mu.Lock()
 	if c.pending != nil && c.pending.ID == id {
 		pending := *c.pending

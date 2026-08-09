@@ -17,6 +17,31 @@ type refreshMemory struct {
 	saveFailures int
 }
 
+type blockingRefresh struct {
+	*refreshMemory
+	mu          sync.Mutex
+	saveCalls   int
+	blockCall   int
+	saveStarted chan struct{}
+	releaseSave chan struct{}
+}
+
+func (r *blockingRefresh) Save(ctx context.Context, run domain.RefreshRun) error {
+	r.mu.Lock()
+	r.saveCalls++
+	call := r.saveCalls
+	r.mu.Unlock()
+	if call == r.blockCall {
+		close(r.saveStarted)
+		select {
+		case <-r.releaseSave:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	return r.refreshMemory.Save(ctx, run)
+}
+
 func (m *refreshMemory) Create(_ context.Context, v domain.RefreshRun) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -84,6 +109,59 @@ func TestCoordinatorReconcilesFailedTerminalSave(t *testing.T) {
 	if persisted.Status != recovered.Status || len(persisted.Outcomes) != 1 || persisted.Outcomes[0] != recovered.Outcomes[0] {
 		t.Fatalf("persisted=%+v recovered=%+v", persisted, recovered)
 	}
+}
+
+func TestCoordinatorSerializesPendingReconciliationWithPolling(t *testing.T) {
+	memory := &refreshMemory{runs: map[domain.RefreshRunID]domain.RefreshRun{}, saveFailures: 3}
+	repo := &blockingRefresh{refreshMemory: memory, blockCall: 4, saveStarted: make(chan struct{}), releaseSave: make(chan struct{})}
+	ids := []domain.RefreshRunID{"first", "second"}
+	c := &Coordinator{Refreshes: repo, Sources: sourceMemory{}, Runners: map[domain.SourceKind]SourceRunner{domain.SourceKindFeed: runnerFunc(func(context.Context, domain.SourceID) (RunResult, error) { return RunResult{}, nil })}, Clock: fixedClock{time.Unix(10, 0)}, NewID: func() domain.RefreshRunID {
+		id := ids[0]
+		ids = ids[1:]
+		return id
+	}}
+	first, err := c.StartRefresh(context.Background(), application.StartRefreshCommand{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.Wait()
+	startedNext := make(chan error, 1)
+	go func() {
+		_, err := c.StartRefresh(context.Background(), application.StartRefreshCommand{})
+		startedNext <- err
+	}()
+	<-repo.saveStarted
+	polled := make(chan domain.RefreshRun, 1)
+	pollErr := make(chan error, 1)
+	go func() {
+		run, err := c.GetRefresh(context.Background(), first.ID)
+		polled <- run
+		pollErr <- err
+	}()
+	select {
+	case <-polled:
+		t.Fatal("poll returned while pending reconciliation was in progress")
+	case <-time.After(20 * time.Millisecond):
+	}
+	close(repo.releaseSave)
+	if err := <-startedNext; err != nil {
+		t.Fatal(err)
+	}
+	got := <-polled
+	if err := <-pollErr; err != nil {
+		t.Fatal(err)
+	}
+	if got.Status != domain.RefreshSucceeded || got.FinishedAt == nil {
+		t.Fatalf("poll overwrote recovered terminal run: %+v", got)
+	}
+	persisted, err := repo.Get(context.Background(), first.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if persisted.Status != got.Status || persisted.FinishedAt == nil {
+		t.Fatalf("persisted=%+v polled=%+v", persisted, got)
+	}
+	c.Wait()
 }
 
 func TestCoordinatorReconcilesOrphanedRunDuringPolling(t *testing.T) {
