@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -13,6 +14,53 @@ import (
 type serviceClock struct{ now time.Time }
 
 func (clock serviceClock) Now() time.Time { return clock.now }
+
+type blockingConfigurationSources struct {
+	application.SourceRepository
+	once        sync.Once
+	saveStarted chan struct{}
+	releaseSave chan struct{}
+}
+
+func (r *blockingConfigurationSources) Save(ctx context.Context, source domain.Source) error {
+	r.once.Do(func() { close(r.saveStarted) })
+	select {
+	case <-r.releaseSave:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	return r.SourceRepository.Save(ctx, source)
+}
+
+func TestConfigurationEditPreservesConcurrentIngestionState(t *testing.T) {
+	store, _ := openStore(t)
+	defer store.Close()
+	ctx := context.Background()
+	source := serviceFeed("concurrent-edit", "https://example.com/feed")
+	source.RefreshCursor, source.RefreshETag = "old-cursor", `"old"`
+	must(t, store.Sources().Save(ctx, source))
+	blocked := &blockingConfigurationSources{SourceRepository: store.Sources(), saveStarted: make(chan struct{}), releaseSave: make(chan struct{})}
+	service := application.ConfigurationService{Sources: blocked}
+	edited := source
+	edited.Name = "Edited name"
+	done := make(chan error, 1)
+	go func() {
+		_, err := service.SaveSource(ctx, application.SaveSourceCommand{Source: edited})
+		done <- err
+	}()
+	<-blocked.saveStarted
+	succeeded := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
+	must(t, store.Sources().UpdateIngestionState(ctx, source.ID, application.SourceIngestionState{
+		RefreshCursor: "new-cursor", RefreshETag: `"new"`, RefreshLastModified: "new-modified", LastSuccessAt: &succeeded,
+	}))
+	close(blocked.releaseSave)
+	must(t, <-done)
+	persisted, err := store.Sources().Get(ctx, source.ID)
+	must(t, err)
+	if persisted.Name != edited.Name || persisted.RefreshCursor != "new-cursor" || persisted.RefreshETag != `"new"` || persisted.RefreshLastModified != "new-modified" || persisted.LastSuccessAt == nil || !persisted.LastSuccessAt.Equal(succeeded) {
+		t.Fatalf("configuration or ingestion state lost: %+v", persisted)
+	}
+}
 
 func TestConfigurationServiceSurvivesRestartAndRetainsArticlesOnSourceDelete(t *testing.T) {
 	ctx := context.Background()
