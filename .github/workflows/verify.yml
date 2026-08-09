@@ -65,6 +65,8 @@ jobs:
       - name: Install frontend dependencies
         run: npm --prefix web ci
       - name: Run repository verification
+        env:
+          SCREENSHOT_MODE: smoke
         run: ./scripts/verify.sh
 
   windows-build:
