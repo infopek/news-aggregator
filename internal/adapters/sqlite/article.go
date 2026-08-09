@@ -338,11 +338,11 @@ func feedWhere(q application.FeedQuery) (string, []any, error) {
 		args = append(args, term, term)
 	}
 	if q.Filter.PublishedAfter != nil {
-		clauses = append(clauses, "COALESCE(a.published_at_ms,a.fetched_at_ms)>?")
+		clauses = append(clauses, "a.published_at_ms>?")
 		args = append(args, millis(*q.Filter.PublishedAfter))
 	}
 	if q.Filter.PublishedBefore != nil {
-		clauses = append(clauses, "COALESCE(a.published_at_ms,a.fetched_at_ms)<?")
+		clauses = append(clauses, "a.published_at_ms<?")
 		args = append(args, millis(*q.Filter.PublishedBefore))
 	}
 	if q.Cursor != "" {

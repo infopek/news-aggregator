@@ -42,9 +42,7 @@ func (s Service) GetArticle(ctx context.Context, id domain.ArticleID) (applicati
 		return application.ArticleDetail{}, err
 	}
 	ranking, err := s.Rankings.GetResult(ctx, id)
-	if errors.Is(err, application.ErrNotFound) {
-		ranking = domain.RankingResult{ArticleID: id, Contributions: []domain.ScoreContribution{}}
-	} else if err != nil {
+	if err != nil {
 		return application.ArticleDetail{}, err
 	}
 	if article.ContentPermission != domain.ContentFullAllowed {

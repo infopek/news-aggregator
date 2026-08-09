@@ -27,7 +27,7 @@ func TestRankedFeedPaginationFiltersAndPermission(t *testing.T) {
 	articles := []domain.Article{
 		{ID: "article-a", Fingerprint: "fp-a", SourceID: "source-a", CanonicalURL: "https://example.com/a/1", Title: "Alpha local news", FetchedAt: at, PublishedAt: &at, Excerpt: "first", ContentPermission: domain.ContentMetadataOnly},
 		{ID: "article-b", Fingerprint: "fp-b", SourceID: "source-b", CanonicalURL: "https://example.com/b/1", Title: "Beta", FetchedAt: at, PublishedAt: &at, Excerpt: "second local", FullContent: "permitted body", ContentPermission: domain.ContentFullAllowed},
-		{ID: "article-c", Fingerprint: "fp-c", SourceID: "source-a", CanonicalURL: "https://example.com/a/2", Title: "Gamma", FetchedAt: at.Add(-time.Hour), Excerpt: "third", ContentPermission: domain.ContentMetadataOnly},
+		{ID: "article-c", Fingerprint: "fp-c", SourceID: "source-a", CanonicalURL: "https://example.com/a/2", Title: "Gamma", FetchedAt: at.Add(time.Hour), Excerpt: "third", ContentPermission: domain.ContentMetadataOnly},
 	}
 	for _, article := range articles {
 		if _, err := store.Articles().Upsert(ctx, article); err != nil {
@@ -79,14 +79,25 @@ func TestRankedFeedPaginationFiltersAndPermission(t *testing.T) {
 		t.Fatalf("read/hidden filter=%+v", readHidden)
 	}
 	after := at.Add(-30 * time.Minute)
-	sourceAndDate, err := service.GetFeed(ctx, application.FeedQuery{Limit: 30, Filter: application.FeedFilter{SourceIDs: []domain.SourceID{"source-a"}, PublishedAfter: &after}})
+	sourceAndDate, err := service.GetFeed(ctx, application.FeedQuery{Limit: 30, Filter: application.FeedFilter{SourceIDs: []domain.SourceID{"source-a"}, PublishedAfter: &after, IncludeHidden: true}})
 	must(t, err)
 	if len(sourceAndDate.Articles) != 1 || sourceAndDate.Articles[0].Article.ID != "article-a" {
 		t.Fatalf("source/date filter=%+v", sourceAndDate)
 	}
+	if _, err := store.Articles().Upsert(ctx, domain.Article{ID: "article-unranked", Fingerprint: "fp-unranked", SourceID: "source-a", CanonicalURL: "https://example.com/a/unranked", Title: "Unranked", FetchedAt: at, ContentPermission: domain.ContentMetadataOnly}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := service.GetArticle(ctx, "article-unranked"); err != application.ErrNotFound {
+		t.Fatalf("unranked detail error=%v, want not found", err)
+	}
 
 	handler := httpapi.NewFeedHandler(httpapi.FeedAPI{Service: service})
 	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/v1/articles/article-unranked", nil))
+	if response.Code != http.StatusNotFound {
+		t.Fatalf("unranked detail status=%d body=%s", response.Code, response.Body.String())
+	}
+	response = httptest.NewRecorder()
 	handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/v1/articles/article-a", nil))
 	if response.Code != http.StatusOK {
 		t.Fatalf("metadata status=%d body=%s", response.Code, response.Body.String())
