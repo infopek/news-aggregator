@@ -52,6 +52,23 @@ func TestRefreshHTTPStartAndGet(t *testing.T) {
 		t.Fatalf("body=%v", body)
 	}
 }
+
+func TestRefreshHTTPReturnsAuthoritativeRunningRecoveryState(t *testing.T) {
+	started := time.Date(2026, 8, 8, 1, 2, 3, 0, time.UTC)
+	handler := NewRefreshHandler(RefreshAPI{Service: refreshServiceStub{get: domain.RefreshRun{ID: "recovering", Status: domain.RefreshRunning, StartedAt: started}}})
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/v1/refresh/recovering", nil))
+	if response.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", response.Code, response.Body.String())
+	}
+	var body map[string]any
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+		t.Fatal(err)
+	}
+	if body["status"] != "running" || body["finishedAt"] != nil {
+		t.Fatalf("body=%v", body)
+	}
+}
 func TestRefreshHTTPConflictAndNotFound(t *testing.T) {
 	for _, test := range []struct {
 		method, path string

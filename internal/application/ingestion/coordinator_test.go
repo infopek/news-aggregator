@@ -62,8 +62,9 @@ func TestCoordinatorReconcilesFailedTerminalSave(t *testing.T) {
 	if stale.Status != domain.RefreshRunning {
 		t.Fatalf("expected injected stale run, got %+v", stale)
 	}
-	if _, err := c.GetRefresh(context.Background(), first.ID); !errors.Is(err, application.ErrUnavailable) {
-		t.Fatalf("first poll error=%v, want unavailable", err)
+	stillRunning, err := c.GetRefresh(context.Background(), first.ID)
+	if err != nil || stillRunning.Status != domain.RefreshRunning {
+		t.Fatalf("first poll=%+v error=%v, want authoritative running state", stillRunning, err)
 	}
 	recovered, err := c.GetRefresh(context.Background(), first.ID)
 	if err != nil {

@@ -103,7 +103,7 @@ func (c *Coordinator) GetRefresh(ctx context.Context, id domain.RefreshRunID) (d
 		pending := *c.pending
 		c.mu.Unlock()
 		if err := c.Refreshes.Save(ctx, pending); err != nil {
-			return domain.RefreshRun{}, application.ErrUnavailable
+			return c.Refreshes.Get(ctx, id)
 		}
 		c.clearPending(id)
 		return pending, nil
