@@ -62,18 +62,39 @@ func TestCoordinatorReconcilesFailedTerminalSave(t *testing.T) {
 	if stale.Status != domain.RefreshRunning {
 		t.Fatalf("expected injected stale run, got %+v", stale)
 	}
+	recovered, err := c.GetRefresh(context.Background(), first.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if recovered.Status == domain.RefreshRunning || recovered.FinishedAt == nil {
+		t.Fatalf("unreconciled=%+v", recovered)
+	}
 	second, err := c.StartRefresh(context.Background(), application.StartRefreshCommand{})
 	if err != nil {
 		t.Fatal(err)
 	}
 	c.Wait()
-	recovered, _ := repo.Get(context.Background(), first.ID)
-	if recovered.Status == domain.RefreshRunning || recovered.FinishedAt == nil {
-		t.Fatalf("unreconciled=%+v", recovered)
-	}
 	latest, _ := repo.Get(context.Background(), second.ID)
 	if latest.Status != domain.RefreshSucceeded {
 		t.Fatalf("latest=%+v", latest)
+	}
+}
+
+func TestCoordinatorReconcilesOrphanedRunDuringPolling(t *testing.T) {
+	repo := &refreshMemory{runs: map[domain.RefreshRunID]domain.RefreshRun{}, saveFailures: 3}
+	first := &Coordinator{Refreshes: repo, Sources: sourceMemory{}, Runners: map[domain.SourceKind]SourceRunner{domain.SourceKindFeed: runnerFunc(func(context.Context, domain.SourceID) (RunResult, error) { return RunResult{}, nil })}, Clock: fixedClock{time.Unix(10, 0)}, NewID: func() domain.RefreshRunID { return "orphan" }}
+	run, err := first.StartRefresh(context.Background(), application.StartRefreshCommand{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	first.Wait()
+	restarted := &Coordinator{Refreshes: repo, Sources: sourceMemory{}, Runners: first.Runners, Clock: fixedClock{time.Unix(20, 0)}, NewID: func() domain.RefreshRunID { return "unused" }}
+	got, err := restarted.GetRefresh(context.Background(), run.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Status != domain.RefreshCancelled || got.FinishedAt == nil {
+		t.Fatalf("orphan=%+v", got)
 	}
 }
 func (m *refreshMemory) Active(context.Context) (*domain.RefreshRun, error) {

@@ -22,10 +22,11 @@ type Coordinator struct {
 	ProcessContext context.Context
 	MaxConcurrency int
 
-	mu      sync.Mutex
-	active  bool
-	pending *domain.RefreshRun
-	wg      sync.WaitGroup
+	mu       sync.Mutex
+	active   bool
+	activeID domain.RefreshRunID
+	pending  *domain.RefreshRun
+	wg       sync.WaitGroup
 }
 
 func (c *Coordinator) StartRefresh(ctx context.Context, _ application.StartRefreshCommand) (domain.RefreshRun, error) {
@@ -79,6 +80,9 @@ func (c *Coordinator) StartRefresh(ctx context.Context, _ application.StartRefre
 		}
 		return domain.RefreshRun{}, err
 	}
+	c.mu.Lock()
+	c.activeID = run.ID
+	c.mu.Unlock()
 	process := c.ProcessContext
 	if process == nil {
 		process = context.Background()
@@ -94,7 +98,32 @@ func (c *Coordinator) GetRefresh(ctx context.Context, id domain.RefreshRunID) (d
 	if c.Refreshes == nil || id == "" {
 		return domain.RefreshRun{}, application.ErrInvalidInput
 	}
-	return c.Refreshes.Get(ctx, id)
+	c.mu.Lock()
+	if c.pending != nil && c.pending.ID == id {
+		pending := *c.pending
+		c.mu.Unlock()
+		if c.Refreshes.Save(ctx, pending) == nil {
+			c.clearPending(id)
+		}
+		return pending, nil
+	}
+	activeID := c.activeID
+	c.mu.Unlock()
+	run, err := c.Refreshes.Get(ctx, id)
+	if err != nil {
+		return domain.RefreshRun{}, err
+	}
+	if run.Status == domain.RefreshRunning && activeID != id {
+		finished := c.Clock.Now().UTC()
+		if finished.Before(run.StartedAt) {
+			finished = run.StartedAt
+		}
+		run.Status, run.FinishedAt, run.Outcomes = domain.RefreshCancelled, &finished, nil
+		if err := c.Refreshes.Save(ctx, run); err != nil {
+			return domain.RefreshRun{}, application.ErrUnavailable
+		}
+	}
+	return run, nil
 }
 
 func (c *Coordinator) execute(ctx context.Context, run domain.RefreshRun) {
@@ -228,8 +257,15 @@ func (c *Coordinator) processContext() context.Context {
 	}
 	return context.Background()
 }
-func (c *Coordinator) release()                          { c.mu.Lock(); c.active = false; c.mu.Unlock() }
+func (c *Coordinator) release()                          { c.mu.Lock(); c.active = false; c.activeID = ""; c.mu.Unlock() }
 func (c *Coordinator) setPending(run *domain.RefreshRun) { c.mu.Lock(); c.pending = run; c.mu.Unlock() }
+func (c *Coordinator) clearPending(id domain.RefreshRunID) {
+	c.mu.Lock()
+	if c.pending != nil && c.pending.ID == id {
+		c.pending = nil
+	}
+	c.mu.Unlock()
+}
 func cancelledOutcome(id domain.SourceID) domain.SourceRefreshOutcome {
 	return domain.SourceRefreshOutcome{SourceID: id, Failed: 1, ErrorCode: "cancelled", ErrorSummary: "Refresh was cancelled."}
 }
