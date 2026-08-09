@@ -37,6 +37,9 @@ func (r Runner) Run(ctx context.Context, sourceID domain.SourceID) (RunResult, e
 	if err != nil {
 		return RunResult{}, err
 	}
+	if !source.Enabled {
+		return RunResult{}, application.ErrConflict
+	}
 	if source.Kind != r.Adapter.Kind() {
 		return RunResult{}, application.ErrInvalidInput
 	}

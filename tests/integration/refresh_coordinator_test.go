@@ -27,6 +27,63 @@ func (rateLimitedAdapter) Fetch(context.Context, domain.Source, application.Fetc
 	return application.AdapterResult{}, &application.RateLimitError{Retryable: true, RetryAfter: time.Minute}
 }
 
+type queuedFeedAdapter struct {
+	firstStarted  chan struct{}
+	releaseFirst  chan struct{}
+	secondFetched chan struct{}
+}
+
+func (queuedFeedAdapter) Kind() domain.SourceKind { return domain.SourceKindFeed }
+func (a queuedFeedAdapter) Fetch(ctx context.Context, source domain.Source, _ application.FetchCursor) (application.AdapterResult, error) {
+	if source.ID == "queued-a" {
+		close(a.firstStarted)
+		select {
+		case <-a.releaseFirst:
+		case <-ctx.Done():
+			return application.AdapterResult{}, ctx.Err()
+		}
+	} else {
+		close(a.secondFetched)
+	}
+	return application.AdapterResult{Unchanged: true}, nil
+}
+
+func TestRefreshSkipsSourceDisabledWhileQueued(t *testing.T) {
+	store, _ := openStore(t)
+	defer store.Close()
+	ctx := context.Background()
+	first := domain.Source{ID: "queued-a", Name: "A", URL: "https://fictional.invalid/a", Kind: domain.SourceKindFeed, Enabled: true, ContentPermission: domain.ContentMetadataOnly, AdapterConfig: domain.AdapterConfiguration{Feed: &domain.FeedConfiguration{Format: domain.FeedFormatAuto}}, ScraperPolicy: domain.ScraperPolicy{Status: domain.ScraperPolicyNotApplicable}}
+	second := first
+	second.ID, second.Name, second.URL = "queued-b", "B", "https://fictional.invalid/b"
+	must(t, store.Sources().Save(ctx, first))
+	must(t, store.Sources().Save(ctx, second))
+	adapter := queuedFeedAdapter{firstStarted: make(chan struct{}), releaseFirst: make(chan struct{}), secondFetched: make(chan struct{})}
+	runner := &ingestion.Runner{Adapter: adapter, Sources: store.Sources(), Articles: store.Articles(), Transactions: store, Clock: refreshClock{time.Now().UTC()}, NewID: func(string) domain.ArticleID { return "unused" }}
+	coordinator := &ingestion.Coordinator{Refreshes: store.Refreshes(), Sources: store.Sources(), Runners: map[domain.SourceKind]ingestion.SourceRunner{domain.SourceKindFeed: runner}, Clock: refreshClock{time.Now().UTC()}, NewID: func() domain.RefreshRunID { return "queued-run" }, MaxConcurrency: 1}
+	run, err := coordinator.StartRefresh(ctx, application.StartRefreshCommand{})
+	must(t, err)
+	<-adapter.firstStarted
+	second.Enabled = false
+	must(t, store.Sources().Save(ctx, second))
+	close(adapter.releaseFirst)
+	coordinator.Wait()
+	select {
+	case <-adapter.secondFetched:
+		t.Fatal("disabled queued source was fetched")
+	default:
+	}
+	persisted, err := store.Sources().Get(ctx, second.ID)
+	must(t, err)
+	if persisted.Enabled || persisted.RefreshCursor != "" || persisted.LastSuccessAt != nil {
+		t.Fatalf("disabled source gained ingestion state: %+v", persisted)
+	}
+	finished, err := store.Refreshes().Get(ctx, run.ID)
+	must(t, err)
+	if len(finished.Outcomes) != 2 || finished.Outcomes[1].SourceID != second.ID || finished.Outcomes[1].ErrorCode != "refresh_failed" {
+		t.Fatalf("unexpected disabled-source outcome: %+v", finished)
+	}
+}
+
 func TestRefreshCoordinatorPersistsTerminalStatusAcrossRestart(t *testing.T) {
 	store, path := openStore(t)
 	source := domain.Source{ID: "feed", Name: "Fixture", URL: "https://fictional.invalid/feed", Kind: domain.SourceKindFeed, Enabled: true, ContentPermission: domain.ContentMetadataOnly, AdapterConfig: domain.AdapterConfiguration{Feed: &domain.FeedConfiguration{Format: domain.FeedFormatAuto}}, ScraperPolicy: domain.ScraperPolicy{Status: domain.ScraperPolicyNotApplicable}}
