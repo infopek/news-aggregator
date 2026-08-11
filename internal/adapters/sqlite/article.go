@@ -1,14 +1,14 @@
 package sqlite
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"io"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/infopek/news-aggregator/internal/application"
@@ -296,6 +296,14 @@ func (s *Store) listArticles(ctx context.Context, q application.FeedQuery) ([]do
 	}
 	return list, nil
 }
+
+type feedCursor struct {
+	Score              *float64          `json:"score"`
+	PublicationPresent *bool             `json:"publicationPresent"`
+	Time               *int64            `json:"time"`
+	ID                 *domain.ArticleID `json:"id"`
+}
+
 func feedWhere(q application.FeedQuery) (string, []any, error) {
 	var clauses []string
 	var args []any
@@ -325,16 +333,16 @@ func feedWhere(q application.FeedQuery) (string, []any, error) {
 		clauses = append(clauses, "l.hidden_at_ms IS NULL")
 	}
 	if q.Filter.Text != "" {
-		clauses = append(clauses, "(a.title LIKE ? OR a.excerpt LIKE ?)")
-		term := "%" + q.Filter.Text + "%"
+		clauses = append(clauses, "(a.title LIKE ? ESCAPE '\\' OR a.excerpt LIKE ? ESCAPE '\\')")
+		term := "%" + escapeLike(q.Filter.Text) + "%"
 		args = append(args, term, term)
 	}
 	if q.Filter.PublishedAfter != nil {
-		clauses = append(clauses, "COALESCE(a.published_at_ms,a.fetched_at_ms)>?")
+		clauses = append(clauses, "a.published_at_ms>?")
 		args = append(args, millis(*q.Filter.PublishedAfter))
 	}
 	if q.Filter.PublishedBefore != nil {
-		clauses = append(clauses, "COALESCE(a.published_at_ms,a.fetched_at_ms)<?")
+		clauses = append(clauses, "a.published_at_ms<?")
 		args = append(args, millis(*q.Filter.PublishedBefore))
 	}
 	if q.Cursor != "" {
@@ -342,16 +350,14 @@ func feedWhere(q application.FeedQuery) (string, []any, error) {
 		if err != nil {
 			return "", nil, application.ErrInvalidInput
 		}
-		parts := strings.SplitN(string(decoded), ":", 2)
-		if len(parts) != 2 || parts[1] == "" {
+		var cursor feedCursor
+		decoder := json.NewDecoder(bytes.NewReader(decoded))
+		decoder.DisallowUnknownFields()
+		if decoder.Decode(&cursor) != nil || decoder.Decode(&struct{}{}) != io.EOF || cursor.Score == nil || cursor.PublicationPresent == nil || cursor.Time == nil || cursor.ID == nil || *cursor.ID == "" || *cursor.Score < 0 || *cursor.Score > 1 || (!*cursor.PublicationPresent && *cursor.Time != 0) {
 			return "", nil, application.ErrInvalidInput
 		}
-		ms, err := strconv.ParseInt(parts[0], 10, 64)
-		if err != nil {
-			return "", nil, application.ErrInvalidInput
-		}
-		clauses = append(clauses, "(COALESCE(a.published_at_ms,a.fetched_at_ms)<? OR (COALESCE(a.published_at_ms,a.fetched_at_ms)=? AND a.id<?))")
-		args = append(args, ms, ms, parts[1])
+		clauses = append(clauses, "(r.score<? OR (r.score=? AND ((a.published_at_ms IS NOT NULL)<? OR ((a.published_at_ms IS NOT NULL)=? AND (COALESCE(a.published_at_ms,0)<? OR (COALESCE(a.published_at_ms,0)=? AND a.id>?))))))")
+		args = append(args, *cursor.Score, *cursor.Score, *cursor.PublicationPresent, *cursor.PublicationPresent, *cursor.Time, *cursor.Time, *cursor.ID)
 	}
 	if len(clauses) == 0 {
 		return "", args, nil
@@ -361,9 +367,54 @@ func feedWhere(q application.FeedQuery) (string, []any, error) {
 
 func (s *Store) queryFeed(ctx context.Context, q application.FeedQuery) (application.FeedPage, error) {
 	var page application.FeedPage
-	articles, err := s.listArticles(ctx, q)
+	err := s.WithinTransaction(ctx, func(txctx context.Context) error {
+		var err error
+		page, err = s.queryFeedSnapshot(txctx, q)
+		return err
+	})
+	return page, err
+}
+
+func (s *Store) queryFeedSnapshot(ctx context.Context, q application.FeedQuery) (application.FeedPage, error) {
+	var page application.FeedPage
+	limit := q.Limit
+	if limit == 0 {
+		limit = 30
+	}
+	if limit < 1 || limit > 100 {
+		return page, application.ErrInvalidInput
+	}
+	q.Limit = limit + 1
+	where, args, err := feedWhere(q)
 	if err != nil {
 		return page, err
+	}
+	query := `SELECT ` + articleColumns + ` FROM ranking_results r JOIN articles a ON a.id=r.article_id LEFT JOIN library_states l ON l.article_id=a.id` + where + ` ORDER BY r.score DESC,(a.published_at_ms IS NOT NULL) DESC,a.published_at_ms DESC,a.id ASC LIMIT ?`
+	args = append(args, q.Limit)
+	rows, err := s.q(ctx).QueryContext(ctx, query, args...)
+	if err != nil {
+		return page, mapError(err)
+	}
+	var articles []domain.Article
+	for rows.Next() {
+		a, scanErr := scanArticle(rows)
+		if scanErr != nil {
+			rows.Close()
+			return page, mapError(scanErr)
+		}
+		articles = append(articles, a)
+	}
+	if err := rows.Close(); err != nil {
+		return page, mapError(err)
+	}
+	hasMore := len(articles) > limit
+	if hasMore {
+		articles = articles[:limit]
+	}
+	for i := range articles {
+		if err := s.loadTopics(ctx, &articles[i]); err != nil {
+			return page, err
+		}
 	}
 	for _, a := range articles {
 		library, err := s.Libraries().Get(ctx, a.ID)
@@ -373,20 +424,27 @@ func (s *Store) queryFeed(ctx context.Context, q application.FeedQuery) (applica
 			return page, err
 		}
 		ranking, err := s.Rankings().GetResult(ctx, a.ID)
-		if errors.Is(err, application.ErrNotFound) {
-			ranking = domain.RankingResult{ArticleID: a.ID}
-		} else if err != nil {
+		if err != nil {
 			return page, err
 		}
 		page.Articles = append(page.Articles, application.RankedArticle{Article: a, Library: library, Ranking: ranking})
 	}
-	if q.Limit > 0 && len(articles) == q.Limit {
+	if hasMore {
 		last := articles[len(articles)-1]
-		t := last.FetchedAt
+		published := last.PublishedAt != nil
+		var timestamp int64
 		if last.PublishedAt != nil {
-			t = *last.PublishedAt
+			timestamp = millis(*last.PublishedAt)
 		}
-		page.NextCursor = base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf("%d:%s", millis(t), last.ID)))
+		ranking := page.Articles[len(page.Articles)-1].Ranking
+		encoded, _ := json.Marshal(feedCursor{Score: &ranking.Score, PublicationPresent: &published, Time: &timestamp, ID: &last.ID})
+		page.NextCursor = base64.RawURLEncoding.EncodeToString(encoded)
 	}
 	return page, nil
+}
+
+func escapeLike(value string) string {
+	value = strings.ReplaceAll(value, `\`, `\\`)
+	value = strings.ReplaceAll(value, `%`, `\%`)
+	return strings.ReplaceAll(value, `_`, `\_`)
 }

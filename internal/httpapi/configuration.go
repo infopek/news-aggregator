@@ -607,11 +607,27 @@ func validAdapterShape(v sourceWrite) bool {
 }
 
 func NewAPIHandler(version string, configuration ConfigurationAPI, refresh ...RefreshAPI) http.Handler {
+	var selected RefreshAPI
+	if len(refresh) > 0 {
+		selected = refresh[0]
+	}
+	return newAPIHandler(version, configuration, selected, FeedAPI{})
+}
+
+func NewAPIHandlerWithFeed(version string, configuration ConfigurationAPI, refresh RefreshAPI, feed FeedAPI) http.Handler {
+	return newAPIHandler(version, configuration, refresh, feed)
+}
+
+func newAPIHandler(version string, configuration ConfigurationAPI, refresh RefreshAPI, feed FeedAPI) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("GET /api/v1/health", NewHealthHandler(version))
-	if len(refresh) > 0 {
-		mux.Handle("/api/v1/refresh", NewRefreshHandler(refresh[0]))
-		mux.Handle("/api/v1/refresh/", NewRefreshHandler(refresh[0]))
+	if refresh.Service != nil {
+		mux.Handle("/api/v1/refresh", NewRefreshHandler(refresh))
+		mux.Handle("/api/v1/refresh/", NewRefreshHandler(refresh))
+	}
+	if feed.Service != nil {
+		mux.Handle("/api/v1/feed", NewFeedHandler(feed))
+		mux.Handle("/api/v1/articles/", NewFeedHandler(feed))
 	}
 	mux.Handle("/api/v1/", NewConfigurationHandler(configuration))
 	return mux
