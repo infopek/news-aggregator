@@ -18,6 +18,7 @@ type Service struct {
 	Clock     application.Clock
 	Recompute ArticleRecomputer
 	Gate      interface{ BeginMutation() func() }
+	Status    *RecomputeStatus
 }
 
 func (s Service) UpdateLibraryState(ctx context.Context, command application.UpdateLibraryStateCommand) (domain.LibraryState, error) {
@@ -37,7 +38,8 @@ func (s Service) UpdateLibraryState(ctx context.Context, command application.Upd
 		return domain.LibraryState{}, application.ErrInvalidInput
 	}
 	if unchanged(current, command.Patch) {
-		return current, s.Recompute.Article(ctx, command.ArticleID)
+		s.record(s.Recompute.Article(ctx, command.ArticleID))
+		return current, nil
 	}
 	done := s.Gate.BeginMutation()
 	updated, err := s.Library.Apply(ctx, command.ArticleID, command.Patch, s.Clock.Now())
@@ -45,10 +47,14 @@ func (s Service) UpdateLibraryState(ctx context.Context, command application.Upd
 	if err != nil {
 		return domain.LibraryState{}, err
 	}
-	if err := s.Recompute.Article(ctx, command.ArticleID); err != nil {
-		return updated, err
-	}
+	s.record(s.Recompute.Article(ctx, command.ArticleID))
 	return updated, nil
+}
+
+func (s Service) record(err error) {
+	if s.Status != nil {
+		s.Status.record(err)
+	}
 }
 
 func unchanged(state domain.LibraryState, patch domain.LibraryPatch) bool {

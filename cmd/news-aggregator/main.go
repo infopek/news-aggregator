@@ -87,6 +87,7 @@ func run() error {
 		return errors.New("ingestion fetcher could not be initialized")
 	}
 	rankingGate := &appranking.VersionGate{}
+	rankingStatus := &applibrary.RecomputeStatus{}
 	recompute := &appranking.Recomputer{Articles: store.Articles(), Library: store.Libraries(), Profiles: store.Profiles(), Rankings: store.Rankings(), Results: store.Rankings(), Clock: systemClock{}, Gate: rankingGate}
 	if err := recompute.Full(ctx); err != nil {
 		return errors.New("ranking state could not be refreshed")
@@ -95,14 +96,14 @@ func run() error {
 		return &ingestion.Runner{Adapter: adapter, Sources: store.Sources(), Articles: store.Articles(), Transactions: store, Clock: systemClock{}, NewID: articleID}
 	}
 	refresh := &ingestion.Coordinator{Refreshes: store.Refreshes(), Sources: store.Sources(), Clock: systemClock{}, NewID: refreshID, ProcessContext: ctx, MaxConcurrency: 4, Runners: map[domain.SourceKind]ingestion.SourceRunner{
-		domain.SourceKindFeed:    applibrary.Runner{Base: newRunner(feeds.Adapter{Fetcher: fetcher}), Recompute: recompute, Gate: rankingGate},
-		domain.SourceKindAPI:     applibrary.Runner{Base: newRunner(newsapi.Adapter{Fetcher: fetcher, Credentials: vault}), Recompute: recompute, Gate: rankingGate},
-		domain.SourceKindScraper: applibrary.Runner{Base: newRunner(scraper.Adapter{Fetcher: fetcher}), Recompute: recompute, Gate: rankingGate},
+		domain.SourceKindFeed:    applibrary.Runner{Base: newRunner(feeds.Adapter{Fetcher: fetcher}), Recompute: recompute, Gate: rankingGate, Status: rankingStatus},
+		domain.SourceKindAPI:     applibrary.Runner{Base: newRunner(newsapi.Adapter{Fetcher: fetcher, Credentials: vault}), Recompute: recompute, Gate: rankingGate, Status: rankingStatus},
+		domain.SourceKindScraper: applibrary.Runner{Base: newRunner(scraper.Adapter{Fetcher: fetcher}), Recompute: recompute, Gate: rankingGate, Status: rankingStatus},
 	}}
 
 	feedQueries := appfeed.Service{Articles: store.Articles(), Library: store.Libraries(), Rankings: store.Rankings()}
-	libraryActions := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: systemClock{}, Recompute: recompute, Gate: rankingGate}
-	rankingConfiguration := applibrary.Configuration{Base: configuration, Recompute: recompute, Gate: rankingGate}
+	libraryActions := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: systemClock{}, Recompute: recompute, Gate: rankingGate, Status: rankingStatus}
+	rankingConfiguration := applibrary.Configuration{Base: configuration, Recompute: recompute, Gate: rankingGate, Status: rankingStatus}
 	api := httpapi.NewAPIHandlerWithFeed(applicationVersion, httpapi.ConfigurationAPI{Profiles: rankingConfiguration, Sources: configuration, Starters: starterSources()}, httpapi.RefreshAPI{Service: refresh}, httpapi.FeedAPI{Service: feedQueries, Library: libraryActions})
 	host := platform.Host{
 		Address: "127.0.0.1:" + strconv.Itoa(port),

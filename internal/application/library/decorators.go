@@ -2,6 +2,7 @@ package library
 
 import (
 	"context"
+	"log/slog"
 	"sync"
 
 	"github.com/infopek/news-aggregator/internal/application"
@@ -15,6 +16,7 @@ type Configuration struct {
 	Base      application.ProfileService
 	Recompute FullRecomputer
 	Gate      interface{ BeginMutation() func() }
+	Status    *RecomputeStatus
 }
 
 func (c Configuration) GetProfile(ctx context.Context) (domain.UserProfile, error) {
@@ -28,7 +30,7 @@ func (c Configuration) UpdateProfile(ctx context.Context, cmd application.Update
 	v, e := c.Base.UpdateProfile(ctx, cmd)
 	done()
 	if e == nil {
-		e = c.Recompute.Full(ctx)
+		c.record(c.Recompute.Full(ctx))
 	}
 	return v, e
 }
@@ -37,9 +39,15 @@ func (c Configuration) UpdateRankingConfiguration(ctx context.Context, cmd appli
 	v, e := c.Base.UpdateRankingConfiguration(ctx, cmd)
 	done()
 	if e == nil {
-		e = c.Recompute.Full(ctx)
+		c.record(c.Recompute.Full(ctx))
 	}
 	return v, e
+}
+
+func (c Configuration) record(err error) {
+	if c.Status != nil {
+		c.Status.record(err)
+	}
 }
 
 type Runner struct {
@@ -69,5 +77,23 @@ type RecomputeStatus struct {
 	failed bool
 }
 
-func (s *RecomputeStatus) record(err error) { s.mu.Lock(); s.failed = err != nil; s.mu.Unlock() }
-func (s *RecomputeStatus) Failed() bool     { s.mu.Lock(); defer s.mu.Unlock(); return s.failed }
+func (s *RecomputeStatus) record(err error) {
+	s.mu.Lock()
+	s.failed = err != nil
+	s.mu.Unlock()
+	if err != nil {
+		slog.Warn("ranking recomputation deferred", "code", "ranking_recompute_failed")
+	}
+}
+
+func (s *RecomputeStatus) Failed() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.failed
+}
+
+func (s *RecomputeStatus) Retry(ctx context.Context, recompute FullRecomputer) error {
+	err := recompute.Full(ctx)
+	s.record(err)
+	return err
+}

@@ -159,10 +159,13 @@ func TestLibraryMutationRecomputeFailureIsIdempotentlyRetryable(t *testing.T) {
 	base := &appranking.Recomputer{Articles: store.Articles(), Library: store.Libraries(), Profiles: store.Profiles(), Rankings: store.Rankings(), Results: store.Rankings(), Clock: clock, Gate: gate}
 	must(t, base.Full(ctx))
 	flaky := &flakyArticleRecompute{base: base, failures: 1}
-	service := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: clock, Recompute: flaky, Gate: gate}
+	status := &applibrary.RecomputeStatus{}
+	service := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: clock, Recompute: flaky, Gate: gate, Status: status}
 	saved := true
-	if _, err := service.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: article.ID, Patch: domain.LibraryPatch{Saved: &saved}}); err != application.ErrUnavailable {
-		t.Fatalf("first error=%v", err)
+	first, err := service.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: article.ID, Patch: domain.LibraryPatch{Saved: &saved}})
+	must(t, err)
+	if first.SavedAt == nil || !status.Failed() {
+		t.Fatalf("mutation result=%+v recompute failed=%v", first, status.Failed())
 	}
 	persisted, err := store.Libraries().Get(ctx, article.ID)
 	must(t, err)
@@ -173,5 +176,19 @@ func TestLibraryMutationRecomputeFailureIsIdempotentlyRetryable(t *testing.T) {
 	must(t, err)
 	if retried.SavedAt == nil || !retried.SavedAt.Equal(*persisted.SavedAt) {
 		t.Fatalf("retry was not idempotent: before=%+v after=%+v", persisted, retried)
+	}
+	if status.Failed() {
+		t.Fatal("successful retry did not clear recomputation failure status")
+	}
+
+	flaky.failures = 1
+	response := httptest.NewRecorder()
+	handler := httpapi.NewFeedHandler(httpapi.FeedAPI{Library: service})
+	handler.ServeHTTP(response, httptest.NewRequest(http.MethodPatch, "/api/v1/articles/"+string(article.ID)+"/library-state", bytes.NewBufferString(`{"read":true}`)))
+	if response.Code != http.StatusOK {
+		t.Fatalf("recompute failure changed successful mutation response: status=%d body=%s", response.Code, response.Body.String())
+	}
+	if !status.Failed() {
+		t.Fatal("HTTP mutation did not retain recomputation failure status")
 	}
 }
