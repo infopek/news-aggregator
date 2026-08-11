@@ -49,11 +49,12 @@ func TestLibraryTransitionsRecomputeTargetAndSurviveRestart(t *testing.T) {
 		_, err := store.Articles().Upsert(ctx, article)
 		must(t, err)
 	}
-	recompute := &appranking.Recomputer{Articles: store.Articles(), Library: store.Libraries(), Profiles: store.Profiles(), Rankings: store.Rankings(), Results: store.Rankings(), Clock: clock}
+	gate := &appranking.VersionGate{}
+	recompute := &appranking.Recomputer{Articles: store.Articles(), Library: store.Libraries(), Profiles: store.Profiles(), Rankings: store.Rankings(), Results: store.Rankings(), Clock: clock, Gate: gate}
 	must(t, recompute.Full(ctx))
 	baselineB, err := store.Rankings().GetResult(ctx, "library-b")
 	must(t, err)
-	service := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: clock, Recompute: recompute}
+	service := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: clock, Recompute: recompute, Gate: gate}
 	clock.now = clock.now.Add(time.Hour)
 	read := true
 	first, err := service.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: "library-a", Patch: domain.LibraryPatch{Read: &read}})
@@ -126,7 +127,7 @@ func TestCancelledRecomputePreservesPriorResult(t *testing.T) {
 	article := domain.Article{ID: "cancel-rank", Fingerprint: "cancel-rank-fp", SourceID: source.ID, CanonicalURL: "https://example.com/cancel-rank/article", Title: "Cancel", PublishedAt: &clock.now, FetchedAt: clock.now, ContentPermission: domain.ContentMetadataOnly}
 	_, err := store.Articles().Upsert(ctx, article)
 	must(t, err)
-	r := &appranking.Recomputer{Articles: store.Articles(), Library: store.Libraries(), Profiles: store.Profiles(), Rankings: store.Rankings(), Results: store.Rankings(), Clock: clock}
+	r := &appranking.Recomputer{Articles: store.Articles(), Library: store.Libraries(), Profiles: store.Profiles(), Rankings: store.Rankings(), Results: store.Rankings(), Clock: clock, Gate: &appranking.VersionGate{}}
 	must(t, r.Full(ctx))
 	before, err := store.Rankings().GetResult(ctx, article.ID)
 	must(t, err)
@@ -154,10 +155,11 @@ func TestLibraryMutationRecomputeFailureIsIdempotentlyRetryable(t *testing.T) {
 	article := domain.Article{ID: "retry-article", Fingerprint: "retry-fp", SourceID: source.ID, CanonicalURL: "https://example.com/retry/article", Title: "Retry", PublishedAt: &clock.now, FetchedAt: clock.now, ContentPermission: domain.ContentMetadataOnly}
 	_, err := store.Articles().Upsert(ctx, article)
 	must(t, err)
-	base := &appranking.Recomputer{Articles: store.Articles(), Library: store.Libraries(), Profiles: store.Profiles(), Rankings: store.Rankings(), Results: store.Rankings(), Clock: clock}
+	gate := &appranking.VersionGate{}
+	base := &appranking.Recomputer{Articles: store.Articles(), Library: store.Libraries(), Profiles: store.Profiles(), Rankings: store.Rankings(), Results: store.Rankings(), Clock: clock, Gate: gate}
 	must(t, base.Full(ctx))
 	flaky := &flakyArticleRecompute{base: base, failures: 1}
-	service := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: clock, Recompute: flaky}
+	service := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: clock, Recompute: flaky, Gate: gate}
 	saved := true
 	if _, err := service.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: article.ID, Patch: domain.LibraryPatch{Saved: &saved}}); err != application.ErrUnavailable {
 		t.Fatalf("first error=%v", err)

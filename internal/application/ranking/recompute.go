@@ -23,7 +23,27 @@ type Recomputer struct {
 	Rankings application.RankingRepository
 	Results  RecomputeRepository
 	Clock    application.Clock
+	Gate     *VersionGate
 	mu       sync.Mutex
+}
+
+type VersionGate struct {
+	mu         sync.Mutex
+	generation uint64
+}
+
+func (g *VersionGate) BeginMutation() func() {
+	g.mu.Lock()
+	return func() { g.generation++; g.mu.Unlock() }
+}
+func (g *VersionGate) current() uint64 { g.mu.Lock(); defer g.mu.Unlock(); return g.generation }
+func (g *VersionGate) commit(version uint64, save func() error) (bool, error) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.generation != version {
+		return false, nil
+	}
+	return true, save()
 }
 
 func (r *Recomputer) Full(ctx context.Context) error { return r.recompute(ctx, nil) }
@@ -35,11 +55,12 @@ func (r *Recomputer) Article(ctx context.Context, id domain.ArticleID) error {
 }
 
 func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID]struct{}) error {
-	if r == nil || r.Articles == nil || r.Library == nil || r.Profiles == nil || r.Rankings == nil || r.Results == nil || r.Clock == nil {
+	if r == nil || r.Articles == nil || r.Library == nil || r.Profiles == nil || r.Rankings == nil || r.Results == nil || r.Clock == nil || r.Gate == nil {
 		return application.ErrUnavailable
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	version := r.Gate.current()
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -92,8 +113,11 @@ func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := r.Results.SaveResults(ctx, results); err != nil {
-		return err
-	}
-	return r.Results.DeleteResults(ctx, hidden)
+	_, err = r.Gate.commit(version, func() error {
+		if err := r.Results.SaveResults(ctx, results); err != nil {
+			return err
+		}
+		return r.Results.DeleteResults(ctx, hidden)
+	})
+	return err
 }

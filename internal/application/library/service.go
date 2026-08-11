@@ -17,10 +17,11 @@ type Service struct {
 	Library   application.LibraryRepository
 	Clock     application.Clock
 	Recompute ArticleRecomputer
+	Gate      interface{ BeginMutation() func() }
 }
 
 func (s Service) UpdateLibraryState(ctx context.Context, command application.UpdateLibraryStateCommand) (domain.LibraryState, error) {
-	if s.Articles == nil || s.Library == nil || s.Clock == nil || s.Recompute == nil || command.ArticleID == "" {
+	if s.Articles == nil || s.Library == nil || s.Clock == nil || s.Recompute == nil || s.Gate == nil || command.ArticleID == "" {
 		return domain.LibraryState{}, application.ErrInvalidInput
 	}
 	if _, err := s.Articles.Get(ctx, command.ArticleID); err != nil {
@@ -38,7 +39,9 @@ func (s Service) UpdateLibraryState(ctx context.Context, command application.Upd
 	if unchanged(current, command.Patch) {
 		return current, s.Recompute.Article(ctx, command.ArticleID)
 	}
+	done := s.Gate.BeginMutation()
 	updated, err := s.Library.Apply(ctx, command.ArticleID, command.Patch, s.Clock.Now())
+	done()
 	if err != nil {
 		return domain.LibraryState{}, err
 	}
