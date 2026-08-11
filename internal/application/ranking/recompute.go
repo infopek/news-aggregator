@@ -30,17 +30,26 @@ type Recomputer struct {
 type VersionGate struct {
 	mu         sync.Mutex
 	generation uint64
+	active     uint64
 }
 
 func (g *VersionGate) BeginMutation() func() {
 	g.mu.Lock()
-	return func() { g.generation++; g.mu.Unlock() }
+	g.generation++
+	g.active++
+	g.mu.Unlock()
+	return func() {
+		g.mu.Lock()
+		g.generation++
+		g.active--
+		g.mu.Unlock()
+	}
 }
 func (g *VersionGate) current() uint64 { g.mu.Lock(); defer g.mu.Unlock(); return g.generation }
 func (g *VersionGate) commit(version uint64, save func() error) (bool, error) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	if g.generation != version {
+	if g.generation != version || g.active != 0 {
 		return false, nil
 	}
 	return true, save()

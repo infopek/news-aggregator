@@ -18,3 +18,15 @@ func TestVersionGateRejectsCommitAfterMutation(t *testing.T) {
 		t.Fatalf("current commit rejected: committed=%v called=%v error=%v", committed, called, err)
 	}
 }
+
+func TestVersionGateRejectsCommitWhileMutationIsActive(t *testing.T) {
+	gate := &VersionGate{}
+	done := gate.BeginMutation()
+	version := gate.current()
+	called := false
+	committed, err := gate.commit(version, func() error { called = true; return nil })
+	done()
+	if err != nil || committed || called {
+		t.Fatalf("committed=%v called=%v error=%v", committed, called, err)
+	}
+}
