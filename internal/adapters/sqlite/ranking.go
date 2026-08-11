@@ -93,3 +93,15 @@ func (r *RankingRepository) GetResult(ctx context.Context, id domain.ArticleID) 
 	}
 	return v, mapError(rows.Err())
 }
+
+func (r *RankingRepository) DeleteResults(ctx context.Context, ids []domain.ArticleID) error {
+	for _, id := range ids {
+		if id == "" {
+			return application.ErrInvalidInput
+		}
+		if _, err := r.store.q(ctx).ExecContext(ctx, `DELETE FROM ranking_results WHERE article_id=?`, id); err != nil {
+			return mapError(err)
+		}
+	}
+	return nil
+}
