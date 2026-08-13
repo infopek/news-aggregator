@@ -23,10 +23,15 @@ try {
     const privacyRequests = []
     let profile = emptyProfile()
     let ranking = rankingConfiguration()
+    let refreshPolls = 0
     await page.addInitScript(() => {
       Object.defineProperty(navigator, 'geolocation', { configurable: true, get() { throw new Error('Browser geolocation must not be accessed') } })
       for (const storage of [localStorage, sessionStorage]) {
-        storage.setItem = () => { throw new Error('Profile state must not be stored in browser storage') }
+        const setItem = storage.setItem.bind(storage)
+        storage.setItem = (key, value) => {
+          if (storage === localStorage && key === 'news-aggregator:last-refresh-id') return setItem(key, value)
+          throw new Error('Private application state must not be stored in browser storage')
+        }
       }
     })
     await page.route('**/api/v1/**', async (route) => {
@@ -39,6 +44,9 @@ try {
       if (url.pathname === '/api/v1/ranking-config' && request.method() === 'GET') return json(ranking)
       if (url.pathname === '/api/v1/ranking-config' && request.method() === 'PUT') { ranking = { ...request.postDataJSON(), perDemographicCap: .1, totalDemographicCap: .2, normalizationVersion: 'v1' }; return json(ranking) }
       if (url.pathname === '/api/v1/starter-sources') return json({ items: [starterSource()] })
+      if (url.pathname === '/api/v1/sources' && request.method() === 'GET') return json({ items: [starterSource()] })
+      if (url.pathname === '/api/v1/refresh' && request.method() === 'POST') return json(refreshRun('running'))
+      if (url.pathname === '/api/v1/refresh/browser-refresh') return json(refreshRun(refreshPolls++ === 0 ? 'running' : 'partial_success'))
       return route.fulfill({ status: 404 })
     })
 
@@ -76,6 +84,15 @@ try {
     await page.getByRole('link', { name: 'Sources' }).focus()
     await page.keyboard.press('Enter')
     await page.getByRole('heading', { name: 'Sources and refresh' }).waitFor()
+    await page.getByRole('button', { name: 'Refresh all enabled sources' }).click()
+    await page.getByRole('link', { name: 'Library' }).click()
+    await page.getByRole('heading', { name: 'Personal library' }).waitFor()
+    await page.getByRole('link', { name: 'Sources' }).click()
+    await page.getByText('Refresh completed with some source failures.').waitFor()
+    await page.getByText('Rate limited — 3 fetched, 2 inserted, 0 updated, 0 skipped, 1 failed — Retry later.').waitFor()
+    await page.reload()
+    await page.getByText('Refresh completed with some source failures.').waitFor()
+    await page.screenshot({ path: new URL('desktop-sources-mixed-refresh.png', evidenceDirectory).pathname, fullPage: true })
     await page.goBack()
     await page.getByRole('heading', { name: 'Personal library' }).waitFor()
 
@@ -107,6 +124,10 @@ function rankingConfiguration() {
 
 function starterSource() {
   return { id: 'starter-1', name: 'Starter feed', url: 'https://example.com/feed', kind: 'feed', enabled: true, contentPermission: 'metadata_only', adapterConfig: { format: 'rss' }, scraperPolicy: { status: 'not_applicable', termsUrl: null, robotsUrl: null, reviewedAt: null, reviewNotes: null }, credentialConfigured: false, lastSuccessAt: null, lastError: null, retryAfter: null }
+}
+
+function refreshRun(status) {
+  return { id: 'browser-refresh', status, startedAt: '2026-08-13T10:00:00Z', finishedAt: status === 'running' ? null : '2026-08-13T10:00:01Z', outcomes: status === 'running' ? [] : [{ sourceId: 'starter-1', fetched: 3, inserted: 2, updated: 0, skipped: 0, failed: 1, errorCode: 'rate_limited', errorSummary: 'Retry later.' }] }
 }
 
 const primitiveProof = spawn(process.execPath, ['tests/primitive-browser-proof.mjs'], { stdio: 'inherit' })

@@ -3,6 +3,7 @@ import type { AppRoute } from '../../router/routes'
 import AppLink from '../../router/AppLink.vue'
 import { ProfileSettings } from '../../features/profile'
 import { FirstRunSetup } from '../../features/setup'
+import { SourceManagement } from '../../features/sources'
 
 defineProps<{ route: AppRoute; articleId?: string }>()
 </script>
@@ -10,6 +11,7 @@ defineProps<{ route: AppRoute; articleId?: string }>()
 <template>
   <FirstRunSetup v-if="route.name === 'setup'" />
   <ProfileSettings v-else-if="route.name === 'settings'" />
+  <SourceManagement v-else-if="route.name === 'sources'" />
   <section
     v-else
     class="route-boundary"
