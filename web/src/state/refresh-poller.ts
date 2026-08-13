@@ -1,10 +1,11 @@
 import type { RefreshRun } from '../api/generated/models'
 
-export type PollStopReason = RefreshRun['status'] | 'missing' | 'timeout' | 'disposed' | 'obsolete'
+export type PollStopReason = RefreshRun['status'] | 'missing' | 'error' | 'timeout' | 'disposed' | 'obsolete'
 
 export interface PollResult {
   reason: PollStopReason
   refresh?: RefreshRun
+  error?: unknown
 }
 
 export interface PollOptions {
@@ -37,8 +38,10 @@ export class RefreshPoller {
         let refresh: RefreshRun | undefined
         try {
           refresh = await load(controller.signal)
-        } catch {
-          refresh = undefined
+        } catch (error) {
+          if (this.disposed || options.signal?.aborted) return { reason: 'disposed' }
+          if (generation !== this.generation) return { reason: 'obsolete' }
+          return { reason: 'error', error }
         }
         if (!refresh) return { reason: 'missing' }
         if (terminal.has(refresh.status)) return { reason: refresh.status, refresh }

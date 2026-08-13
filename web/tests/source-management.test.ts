@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { RefreshRun, Source, SourceWrite } from '../src/api/generated/models'
 import type { ServerApi } from '../src/api/server-api'
 import SourceManagement from '../src/features/sources/SourceManagement.vue'
+import RefreshControl from '../src/features/refresh/RefreshControl.vue'
 
 const policy = { status: 'not_applicable' as const, termsUrl: null, robotsUrl: null, reviewedAt: null, reviewNotes: null }
 const feed: Source = { id: 'feed-1', name: 'Local feed', url: 'https://example.com/feed', kind: 'feed', enabled: true, contentPermission: 'metadata_only', adapterConfig: { format: 'rss' }, scraperPolicy: policy, credentialConfigured: false, lastSuccessAt: null, lastError: null, retryAfter: null }
@@ -55,7 +56,7 @@ describe('source management and refresh', () => {
     await form.trigger('submit'); expect(wrapper.text()).toContain('provider identifier')
     await form.get('select').setValue('scraper'); await flushPromises()
     await form.trigger('submit')
-    expect(wrapper.text()).toContain('approved, dated policy review')
+    expect(wrapper.text()).toContain('approved policy review')
     expect(api.createSource).not.toHaveBeenCalled()
     wrapper.unmount()
   })
@@ -93,6 +94,31 @@ describe('source management and refresh', () => {
     expect(api.refresh).toHaveBeenCalledWith('refresh-1', expect.any(AbortSignal))
     expect(wrapper.text()).toContain('Refresh completed with some source failures.')
     wrapper.unmount()
+  })
+
+  it('retains the recovery ID after transient status failure and succeeds later', async () => {
+    const api = fakeApi()
+    vi.mocked(api.refresh).mockRejectedValueOnce(new TypeError('temporary network failure'))
+    localStorage.setItem('news-aggregator:last-refresh-id', 'refresh-1')
+    const failed = mount(RefreshControl, { props: { server: api } })
+    await flushPromises()
+    expect(failed.text()).toContain('temporarily unavailable')
+    expect(localStorage.getItem('news-aggregator:last-refresh-id')).toBe('refresh-1')
+    failed.unmount()
+    const recovered = mount(RefreshControl, { props: { server: api } })
+    await flushPromises()
+    expect(recovered.text()).toContain('Refresh completed with some source failures.')
+    recovered.unmount()
+  })
+
+  it('retains the recovery ID when route disposal aborts an in-flight status request', async () => {
+    const api = fakeApi()
+    vi.mocked(api.refresh).mockImplementation(async (_id, signal) => new Promise((_, reject) => signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true })))
+    localStorage.setItem('news-aggregator:last-refresh-id', 'refresh-1')
+    const wrapper = mount(RefreshControl, { props: { server: api } })
+    await flushPromises()
+    wrapper.unmount(); await flushPromises()
+    expect(localStorage.getItem('news-aggregator:last-refresh-id')).toBe('refresh-1')
   })
 
   it('marks a newly created starter configured by stable URL identity', async () => {

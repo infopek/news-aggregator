@@ -218,7 +218,15 @@ function normalizedURL(value: string) { try { const url = new URL(value); url.ha
           v-model="form.enabled"
           type="checkbox"
         > Enabled</label><label>Content permission <select v-model="form.contentPermission"><option value="metadata_only">Metadata only</option><option value="full_content_allowed">Full content allowed</option></select></label>
-        <label v-if="form.kind === 'api'">Provider identifier <input v-model="form.apiProvider"></label>
+        <label v-if="form.kind === 'feed'">Feed format <select v-model="form.feedFormat"><option value="auto">Auto-detect</option><option value="rss">RSS</option><option value="atom">Atom</option></select></label>
+        <template v-if="form.kind === 'api'">
+          <label>Provider identifier <input v-model="form.apiProvider"></label><label>Page size <input
+            v-model="form.apiPageSize"
+            type="number"
+            min="0"
+            step="1"
+          ></label>
+        </template>
         <fieldset v-if="form.kind === 'scraper'">
           <legend>Scraper configuration and policy</legend><label>Article selector <input v-model="form.articleSelector"></label><label>Title selector <input v-model="form.titleSelector"></label><label>Content selector <input v-model="form.contentSelector"></label><label>Policy status <select v-model="form.policyStatus"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></label><label>Terms URL <input
             v-model="form.termsUrl"

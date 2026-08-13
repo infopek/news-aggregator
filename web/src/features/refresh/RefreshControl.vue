@@ -3,6 +3,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import type { RefreshRun } from '../../api/generated/models'
 import type { ServerApi } from '../../api/server-api'
+import { ApiRequestError } from '../../api/client'
 import RefreshStatus from '../../components/shared/RefreshStatus.vue'
 import { toUserSafeError } from '../../state/errors'
 import { RefreshPoller } from '../../state/refresh-poller'
@@ -35,9 +36,15 @@ async function recover() {
 }
 
 async function poll(id: string) {
-  const result = await poller.poll((signal) => props.server.refresh(id, signal))
+  const result = await poller.poll(async (signal) => {
+    try { return await props.server.refresh(id, signal) } catch (cause) {
+      if (cause instanceof ApiRequestError && cause.status === 404) return undefined
+      throw cause
+    }
+  })
   if (result.refresh) refresh.value = result.refresh
   else if (result.reason === 'missing') localStorage.removeItem(storageKey)
+  else if (result.reason === 'error') error.value = toUserSafeError(result.error).message
   else if (result.reason === 'timeout') error.value = 'Refresh status timed out. Reload to check its saved status.'
 }
 </script>
