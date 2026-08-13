@@ -28,8 +28,14 @@ export function sourceForm(source: Source): SourceForm {
   return {
     id: source.id, name: source.name, url: source.url, kind: source.kind, enabled: source.enabled, contentPermission: source.contentPermission,
     apiProvider: String(config.provider ?? ''), articleSelector: String(config.articleSelector ?? 'article'), titleSelector: String(config.titleSelector ?? 'h1'), excerptSelector: String(config.excerptSelector ?? ''), contentSelector: String(config.contentSelector ?? ''),
-    policyStatus: source.scraperPolicy.status, termsUrl: source.scraperPolicy.termsUrl ?? '', robotsUrl: source.scraperPolicy.robotsUrl ?? '', reviewedAt: source.scraperPolicy.reviewedAt?.slice(0, 16) ?? '', reviewNotes: source.scraperPolicy.reviewNotes ?? ''
+    policyStatus: source.scraperPolicy.status, termsUrl: source.scraperPolicy.termsUrl ?? '', robotsUrl: source.scraperPolicy.robotsUrl ?? '', reviewedAt: source.scraperPolicy.reviewedAt ? localDateTime(source.scraperPolicy.reviewedAt) : '', reviewNotes: source.scraperPolicy.reviewNotes ?? ''
   }
+}
+
+export function localDateTime(instant: string): string {
+  const date = new Date(instant)
+  const part = (value: number) => String(value).padStart(2, '0')
+  return `${date.getFullYear()}-${part(date.getMonth() + 1)}-${part(date.getDate())}T${part(date.getHours())}:${part(date.getMinutes())}`
 }
 
 export function sourceWrite(form: SourceForm): SourceWrite {

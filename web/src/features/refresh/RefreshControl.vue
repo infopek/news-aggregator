@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from 'vue'
+/* global localStorage */
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import type { RefreshRun } from '../../api/generated/models'
 import type { ServerApi } from '../../api/server-api'
 import RefreshStatus from '../../components/shared/RefreshStatus.vue'
@@ -11,18 +12,33 @@ const refresh = ref<RefreshRun>()
 const loading = ref(false)
 const error = ref('')
 const poller = new RefreshPoller()
+const storageKey = 'news-aggregator:last-refresh-id'
+onMounted(recover)
 onBeforeUnmount(() => poller.dispose())
 
 async function start() {
   loading.value = true; error.value = ''
   try {
     refresh.value = await props.server.startRefresh()
-    const result = await poller.poll((signal) => props.server.refresh(refresh.value!.id, signal))
-    if (result.refresh) refresh.value = result.refresh
-    else if (result.reason === 'timeout') error.value = 'Refresh status timed out. Reload to check its saved status.'
+    localStorage.setItem(storageKey, refresh.value.id)
+    await poll(refresh.value.id)
   } catch (cause) {
     error.value = toUserSafeError(cause).message
   } finally { loading.value = false }
+}
+
+async function recover() {
+  const id = localStorage.getItem(storageKey)
+  if (!id) return
+  loading.value = true
+  try { await poll(id) } catch (cause) { error.value = toUserSafeError(cause).message } finally { loading.value = false }
+}
+
+async function poll(id: string) {
+  const result = await poller.poll((signal) => props.server.refresh(id, signal))
+  if (result.refresh) refresh.value = result.refresh
+  else if (result.reason === 'missing') localStorage.removeItem(storageKey)
+  else if (result.reason === 'timeout') error.value = 'Refresh status timed out. Reload to check its saved status.'
 }
 </script>
 

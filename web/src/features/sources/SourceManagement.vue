@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/* global AbortController */
+/* global AbortController, URL */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { api as client } from '../../api/client'
 import { createServerApi, type ServerApi } from '../../api/server-api'
@@ -18,7 +18,7 @@ const sources = ref<Source[]>([]), starters = ref<Source[]>([])
 const state = ref<'loading'|'ready'|'error'>('loading'), message = ref(''), error = ref('')
 const form = ref<SourceForm>(emptySource()), editing = ref(false), busy = ref(false), credentialFor = ref('')
 const validation = ref<string[]>([])
-const configuredStarterIds = computed(() => new Set(sources.value.map((item) => item.id)))
+const configuredStarterURLs = computed(() => new Set(sources.value.map((item) => normalizedURL(item.url))))
 const controller = new AbortController()
 onMounted(load)
 onBeforeUnmount(() => controller.abort())
@@ -56,6 +56,7 @@ async function deleteCredential(source: Source) {
   try { const status = await server.deleteCredential(source.id); replaceCredentialStatus(source.id, status.configured); message.value = `Credential for ${source.name} deleted.` } catch { error.value = 'The credential could not be deleted. Try again.' }
 }
 function replaceCredentialStatus(id: string, configured: boolean) { sources.value = sources.value.map((item) => item.id === id ? { ...item, credentialConfigured: configured } : item) }
+function normalizedURL(value: string) { try { const url = new URL(value); url.hash = ''; return url.toString().replace(/\/$/, '') } catch { return value.trim().replace(/\/$/, '') } }
 </script>
 
 <template>
@@ -167,10 +168,10 @@ function replaceCredentialStatus(id: string, configured: boolean) { sources.valu
           >
             {{ starter.name }} ({{ starter.kind }}) <button
               type="button"
-              :disabled="configuredStarterIds.has(starter.id)"
+              :disabled="configuredStarterURLs.has(normalizedURL(starter.url))"
               @click="addStarter(starter)"
             >
-              {{ configuredStarterIds.has(starter.id) ? 'Configured' : 'Add starter' }}
+              {{ configuredStarterURLs.has(normalizedURL(starter.url)) ? 'Configured' : 'Add starter' }}
             </button>
           </li>
         </ul>

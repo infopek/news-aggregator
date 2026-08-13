@@ -72,7 +72,12 @@ describe('shared accessible primitives', () => {
     const wrapper = mount(RefreshStatus, { attachTo: document.body, props: { loading: true } })
     expect(wrapper.get('[role=status]').text()).toContain('Refreshing')
     await wrapper.setProps({ loading: false, refresh: partialRefresh() })
-    expect(wrapper.text()).toContain('some source failures'); expect(wrapper.text()).toContain('source-good: 2 new'); expect(wrapper.text()).toContain('Timed out')
+    expect(wrapper.text()).toContain('some source failures'); expect(wrapper.text()).toContain('source-good: Succeeded — 2 fetched, 2 inserted, 0 updated, 0 skipped, 0 failed'); expect(wrapper.text()).toContain('source-bad: Failed'); expect(wrapper.text()).toContain('Timed out')
+    const outcome = partialRefresh().outcomes[0]
+    await wrapper.setProps({ refresh: { ...partialRefresh(), outcomes: [{ ...outcome, fetched: 0, inserted: 0 }] } })
+    expect(wrapper.text()).toContain('Unchanged — 0 fetched')
+    await wrapper.setProps({ refresh: { ...partialRefresh(), outcomes: [{ ...outcome, failed: 1, errorCode: 'rate_limited', errorSummary: 'Retry later.' }] } })
+    expect(wrapper.text()).toContain('Rate limited')
     await wrapper.setProps({ refresh: undefined, error: 'Offline' }); expect(wrapper.get('[role=alert]').text()).toContain('Offline')
     await expectAccessible(wrapper.element)
   })
