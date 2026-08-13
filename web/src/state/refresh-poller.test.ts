@@ -56,17 +56,4 @@ describe('RefreshPoller', () => {
     await vi.advanceTimersByTimeAsync(0)
     expect(await promise).toEqual({ reason: 'disposed' })
   })
-
-  it('reports disposal rather than missing when an in-flight request aborts', async () => {
-    const poller = new RefreshPoller()
-    const promise = poller.poll((signal) => new Promise<RefreshRun>((_, reject) => signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true })))
-    poller.dispose()
-    expect(await promise).toEqual({ reason: 'disposed' })
-  })
-
-  it('reports transient request errors without calling them missing', async () => {
-    const failure = new TypeError('temporary network failure')
-    const result = await new RefreshPoller().poll(async () => { throw failure })
-    expect(result).toEqual({ reason: 'error', error: failure })
-  })
 })

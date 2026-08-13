@@ -6,13 +6,13 @@ import type { ServerApi } from '../../api/server-api'
 import { ApiRequestError } from '../../api/client'
 import RefreshStatus from '../../components/shared/RefreshStatus.vue'
 import { toUserSafeError } from '../../state/errors'
-import { RefreshPoller } from '../../state/refresh-poller'
+import { RefreshRecoveryPoller } from './refresh-recovery-poller'
 
 const props = defineProps<{ server: ServerApi }>()
 const refresh = ref<RefreshRun>()
 const loading = ref(false)
 const error = ref('')
-const poller = new RefreshPoller()
+const poller = new RefreshRecoveryPoller()
 const storageKey = 'news-aggregator:last-refresh-id'
 onMounted(recover)
 onBeforeUnmount(() => poller.dispose())
