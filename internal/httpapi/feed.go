@@ -2,7 +2,9 @@ package httpapi
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -20,6 +22,9 @@ type FeedReader interface {
 
 type FeedAPI struct {
 	Service FeedReader
+	Library interface {
+		UpdateLibraryState(context.Context, application.UpdateLibraryStateCommand) (domain.LibraryState, error)
+	}
 	Logger  *slog.Logger
 	Timeout time.Duration
 }
@@ -34,11 +39,38 @@ func NewFeedHandler(api FeedAPI) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/feed", api.getFeed)
 	mux.HandleFunc("GET /api/v1/articles/{articleId}", api.getArticle)
+	mux.HandleFunc("PATCH /api/v1/articles/{articleId}/library-state", api.patchLibrary)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), api.Timeout)
 		defer cancel()
 		mux.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+type libraryWrite struct {
+	Read   *bool `json:"read,omitempty"`
+	Saved  *bool `json:"saved,omitempty"`
+	Hidden *bool `json:"hidden,omitempty"`
+}
+
+func (api FeedAPI) patchLibrary(w http.ResponseWriter, r *http.Request) {
+	if api.Library == nil {
+		api.fail(w, r, application.ErrUnavailable)
+		return
+	}
+	var body libraryWrite
+	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxRequestBytes))
+	decoder.DisallowUnknownFields()
+	if decoder.Decode(&body) != nil || decoder.Decode(&struct{}{}) != io.EOF || (body.Read == nil && body.Saved == nil && body.Hidden == nil) {
+		api.fail(w, r, application.ErrInvalidInput)
+		return
+	}
+	state, err := api.Library.UpdateLibraryState(r.Context(), application.UpdateLibraryStateCommand{ArticleID: domain.ArticleID(r.PathValue("articleId")), Patch: domain.LibraryPatch{Read: body.Read, Saved: body.Saved, Hidden: body.Hidden}})
+	if err != nil {
+		api.fail(w, r, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, libraryResponse{state.ArticleID, state.ReadAt, state.SavedAt, state.HiddenAt})
 }
 
 func (api FeedAPI) getFeed(w http.ResponseWriter, r *http.Request) {

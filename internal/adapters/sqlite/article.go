@@ -25,7 +25,7 @@ func (r *ArticleRepository) Upsert(ctx context.Context, v domain.Article) (appli
 	return r.store.upsertArticle(ctx, v)
 }
 func (r *ArticleRepository) ListForRanking(ctx context.Context) ([]domain.Article, error) {
-	return r.store.listArticles(ctx, application.FeedQuery{})
+	return r.store.listArticles(ctx, application.FeedQuery{Filter: application.FeedFilter{IncludeHidden: true}})
 }
 func (r *ArticleRepository) QueryFeed(ctx context.Context, q application.FeedQuery) (application.FeedPage, error) {
 	return r.store.queryFeed(ctx, q)
