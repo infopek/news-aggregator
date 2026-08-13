@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -87,6 +88,45 @@ func TestMigrationCompatibilityMatrix(t *testing.T) {
 			t.Fatalf("name error=%v", err)
 		}
 	})
+}
+
+func TestConcurrentIndependentLibraryPatchesArePreserved(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "library-concurrency.sqlite")
+	store, err := sqlite.Open(context.Background(), sqlite.Config{Path: path, MigrationDir: migrations(), BusyTimeout: time.Second, MaxOpenConns: 2})
+	must(t, err)
+	defer store.Close()
+	ctx := context.Background()
+	source := serviceFeed("library-concurrency-source", "https://example.com/library-concurrency")
+	must(t, store.Sources().Save(ctx, source))
+	now := time.Now().UTC()
+	article := domain.Article{ID: "library-concurrency-article", Fingerprint: "library-concurrency-fp", SourceID: source.ID, CanonicalURL: "https://example.com/library-concurrency/article", Title: "Concurrent", FetchedAt: now, ContentPermission: domain.ContentMetadataOnly}
+	_, err = store.Articles().Upsert(ctx, article)
+	must(t, err)
+
+	start := make(chan struct{})
+	errors := make(chan error, 2)
+	var ready sync.WaitGroup
+	ready.Add(2)
+	apply := func(patch domain.LibraryPatch) {
+		ready.Done()
+		<-start
+		_, err := store.Libraries().Apply(ctx, article.ID, patch, now)
+		errors <- err
+	}
+	value := true
+	go apply(domain.LibraryPatch{Read: &value})
+	go apply(domain.LibraryPatch{Saved: &value})
+	ready.Wait()
+	close(start)
+	for range 2 {
+		must(t, <-errors)
+	}
+
+	state, err := store.Libraries().Get(ctx, article.ID)
+	must(t, err)
+	if state.ReadAt == nil || state.SavedAt == nil {
+		t.Fatalf("concurrent independent states were lost: %+v", state)
+	}
 }
 
 func TestRepositoryRoundTripsAndRestart(t *testing.T) {
