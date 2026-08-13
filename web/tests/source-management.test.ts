@@ -8,14 +8,14 @@ import SourceManagement from '../src/features/sources/SourceManagement.vue'
 import RefreshControl from '../src/features/refresh/RefreshControl.vue'
 
 const policy = { status: 'not_applicable' as const, termsUrl: null, robotsUrl: null, reviewedAt: null, reviewNotes: null }
-const feed: Source = { id: 'feed-1', name: 'Local feed', url: 'https://example.com/feed', kind: 'feed', enabled: true, contentPermission: 'metadata_only', adapterConfig: { format: 'rss' }, scraperPolicy: policy, credentialConfigured: false, lastSuccessAt: null, lastError: null, retryAfter: null }
+const feed: Source = { id: '8d7c934a164fab8120cc195e', name: 'Local feed', url: 'https://example.com/feed', kind: 'feed', enabled: true, contentPermission: 'metadata_only', adapterConfig: { format: 'rss' }, scraperPolicy: policy, credentialConfigured: false, lastSuccessAt: null, lastError: null, retryAfter: null }
 const apiSource: Source = { ...feed, id: 'api-1', name: 'Official API', kind: 'api', adapterConfig: { provider: 'fictional', pageSize: 50 }, credentialConfigured: true }
 const scraper: Source = { ...feed, id: 'scraper-1', name: 'Approved pages', kind: 'scraper', enabled: false, adapterConfig: { articleSelector: 'article', titleSelector: 'h1' }, scraperPolicy: { status: 'pending', termsUrl: 'https://example.com/terms', robotsUrl: 'https://example.com/robots.txt', reviewedAt: null, reviewNotes: null } }
 const starter: Source = { ...feed, id: 'starter-2', name: 'Starter science', url: 'https://example.com/science.xml' }
 
 function fakeApi() {
   let items = [structuredClone(feed), structuredClone(apiSource), structuredClone(scraper)]
-  const terminal: RefreshRun = { id: 'refresh-1', status: 'partial_success', startedAt: '2026-08-13T10:00:00Z', finishedAt: '2026-08-13T10:00:01Z', outcomes: [{ sourceId: 'feed-1', fetched: 3, inserted: 2, updated: 0, skipped: 0, failed: 1, errorCode: 'rate_limited', errorSummary: 'Retry later.' }] }
+  const terminal: RefreshRun = { id: 'refresh-1', status: 'partial_success', startedAt: '2026-08-13T10:00:00Z', finishedAt: '2026-08-13T10:00:01Z', outcomes: [{ sourceId: feed.id, fetched: 3, inserted: 2, updated: 0, skipped: 0, failed: 1, errorCode: 'rate_limited', errorSummary: 'Retry later.' }] }
   return {
     sources: vi.fn(async () => ({ items })), starterSources: vi.fn(async () => ({ items: [starter] })),
     createSource: vi.fn(async (body: SourceWrite) => { const created = { ...body, id: `created-${items.length}`, credentialConfigured: false, lastSuccessAt: null, lastError: null, retryAfter: null } as Source; items = [...items, created]; return created }),
@@ -82,6 +82,8 @@ describe('source management and refresh', () => {
     expect(api.refresh).toHaveBeenCalledWith('refresh-1', expect.any(AbortSignal))
     expect(wrapper.text()).toContain('completed with some source failures')
     expect(wrapper.text()).toContain('Rate limited — 3 fetched, 2 inserted, 0 updated, 0 skipped, 1 failed — Retry later.')
+    expect(wrapper.text()).toContain('Local feed: Rate limited')
+    expect(wrapper.text()).not.toContain(feed.id)
     expect(localStorage.getItem('news-aggregator:last-refresh-id')).toBe('refresh-1')
     wrapper.unmount()
   })

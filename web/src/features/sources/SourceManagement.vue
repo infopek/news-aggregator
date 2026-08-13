@@ -19,6 +19,7 @@ const state = ref<'loading'|'ready'|'error'>('loading'), message = ref(''), erro
 const form = ref<SourceForm>(emptySource()), editing = ref(false), busy = ref(false), credentialFor = ref('')
 const validation = ref<string[]>([])
 const configuredStarterURLs = computed(() => new Set(sources.value.map((item) => normalizedURL(item.url))))
+const sourceNames = computed(() => Object.fromEntries(sources.value.map((item) => [item.id, item.name])))
 const controller = new AbortController()
 onMounted(load)
 onBeforeUnmount(() => controller.abort())
@@ -253,7 +254,10 @@ function normalizedURL(value: string) { try { const url = new URL(value); url.ha
           </button>
         </div>
       </form>
-      <RefreshControl :server="server" />
+      <RefreshControl
+        :server="server"
+        :source-names="sourceNames"
+      />
     </template>
   </section>
 </template>

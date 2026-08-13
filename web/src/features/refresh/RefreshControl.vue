@@ -8,7 +8,7 @@ import RefreshStatus from '../../components/shared/RefreshStatus.vue'
 import { toUserSafeError } from '../../state/errors'
 import { RefreshRecoveryPoller } from './refresh-recovery-poller'
 
-const props = defineProps<{ server: ServerApi }>()
+const props = defineProps<{ server: ServerApi; sourceNames?: Record<string, string> }>()
 const refresh = ref<RefreshRun>()
 const loading = ref(false)
 const error = ref('')
@@ -66,6 +66,7 @@ async function poll(id: string) {
       :refresh="refresh"
       :loading="loading"
       :error="error"
+      :source-names="sourceNames"
     />
   </section>
 </template>

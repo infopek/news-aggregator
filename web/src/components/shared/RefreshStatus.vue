@@ -2,16 +2,18 @@
 import type { RefreshRun } from '../../api/generated/models'
 import { useId } from 'vue'
 import LiveRegion from './LiveRegion.vue'
-const props = defineProps<{ refresh?: RefreshRun; loading?: boolean; error?: string }>()
+const props = defineProps<{ refresh?: RefreshRun; loading?: boolean; error?: string; sourceNames?: Record<string, string> }>()
 const titleId = `refresh-title-${useId()}`
 const statusText = () => props.loading ? 'Refreshing sources…' : props.error ? `Refresh failed: ${props.error}` : !props.refresh ? 'Refresh has not run yet.' : props.refresh.status === 'partial_success' ? 'Refresh completed with some source failures.' : `Refresh ${props.refresh.status.replace('_', ' ')}.`
 function outcomeText(outcome: RefreshRun['outcomes'][number]) {
   const counts = `${outcome.fetched} fetched, ${outcome.inserted} inserted, ${outcome.updated} updated, ${outcome.skipped} skipped, ${outcome.failed} failed`
+  if (outcome.errorCode === 'cancelled') return `Cancelled — ${counts}${outcome.errorSummary ? ` — ${outcome.errorSummary}` : ''}`
   if (outcome.errorCode === 'rate_limited') return `Rate limited — ${counts}${outcome.errorSummary ? ` — ${outcome.errorSummary}` : ''}`
   if (outcome.failed) return `Failed — ${counts}${outcome.errorSummary ? ` — ${outcome.errorSummary}` : ''}`
   if (!outcome.inserted && !outcome.updated && !outcome.failed) return `Unchanged — ${counts}`
   return `Succeeded — ${counts}`
 }
+function sourceLabel(sourceId: string) { return props.sourceNames?.[sourceId] ?? `Deleted or unavailable source (${sourceId})` }
 </script>
 <template>
   <div
@@ -30,7 +32,7 @@ function outcomeText(outcome: RefreshRun['outcomes'][number]) {
         v-for="outcome in refresh.outcomes"
         :key="outcome.sourceId"
       >
-        {{ outcome.sourceId }}: {{ outcomeText(outcome) }}
+        {{ sourceLabel(outcome.sourceId) }}: {{ outcomeText(outcome) }}
       </li>
     </ul>
   </div>
