@@ -26,12 +26,14 @@ try {
     let refreshPolls = 0
     let feedRequests = 0
     let browserReadAt = null
+    let browserSavedAt = null
+    let browserHiddenAt = null
     await page.addInitScript(() => {
       Object.defineProperty(navigator, 'geolocation', { configurable: true, get() { throw new Error('Browser geolocation must not be accessed') } })
       for (const storage of [localStorage, sessionStorage]) {
         const setItem = storage.setItem.bind(storage)
         storage.setItem = (key, value) => {
-          if (storage === localStorage && key === 'news-aggregator:last-refresh-id') return setItem(key, value)
+          if (storage === localStorage && ['news-aggregator:last-refresh-id', 'news-aggregator:library-view'].includes(key)) return setItem(key, value)
           throw new Error('Private application state must not be stored in browser storage')
         }
       }
@@ -47,9 +49,9 @@ try {
       if (url.pathname === '/api/v1/ranking-config' && request.method() === 'PUT') { ranking = { ...request.postDataJSON(), perDemographicCap: .1, totalDemographicCap: .2, normalizationVersion: 'v1' }; return json(ranking) }
       if (url.pathname === '/api/v1/starter-sources') return json({ items: [starterSource()] })
       if (url.pathname === '/api/v1/sources' && request.method() === 'GET') return json({ items: [starterSource()] })
-      if (url.pathname === '/api/v1/feed') { feedRequests += 1; return json({ items: [browserArticle(browserReadAt)], nextCursor: null }) }
-      if (url.pathname === '/api/v1/articles/browser-article') return json({ article: browserArticle(browserReadAt), fullContent: null })
-      if (url.pathname === '/api/v1/articles/browser-article/library-state' && request.method() === 'PATCH') { browserReadAt = '2026-08-14T09:00:00Z'; return json({ articleId: 'browser-article', readAt: browserReadAt, savedAt: null, hiddenAt: null }) }
+      if (url.pathname === '/api/v1/feed') { const article=browserArticle(browserReadAt,browserSavedAt,browserHiddenAt),includeHidden=url.searchParams.get('includeHidden')==='true',saved=url.searchParams.get('saved')==='true',read=url.searchParams.get('read');const visible=(includeHidden||!browserHiddenAt)&&(!saved||browserSavedAt)&&(read===null||String(Boolean(browserReadAt))===read);feedRequests += 1; return json({ items: visible?[article]:[], nextCursor: null }) }
+      if (url.pathname === '/api/v1/articles/browser-article') return json({ article: browserArticle(browserReadAt,browserSavedAt,browserHiddenAt), fullContent: null })
+      if (url.pathname === '/api/v1/articles/browser-article/library-state' && request.method() === 'PATCH') { const patch=request.postDataJSON();if(patch.read!==undefined)browserReadAt=patch.read?'2026-08-14T09:00:00Z':null;if(patch.saved!==undefined)browserSavedAt=patch.saved?'2026-08-14T09:01:00Z':null;if(patch.hidden!==undefined)browserHiddenAt=patch.hidden?'2026-08-14T09:02:00Z':null;return json({ articleId: 'browser-article', readAt: browserReadAt, savedAt: browserSavedAt, hiddenAt: browserHiddenAt }) }
       if (url.pathname === '/api/v1/refresh' && request.method() === 'POST') return json(refreshRun('running'))
       if (url.pathname === '/api/v1/refresh/browser-refresh') return json(refreshRun(refreshPolls++ === 0 ? 'running' : 'partial_success'))
       return route.fulfill({ status: 404 })
@@ -90,6 +92,7 @@ try {
     await page.getByText('body is not stored or displayed').waitFor()
     const publisherLink = page.getByRole('link', { name: 'Read the full article at the publisher' })
     if (await publisherLink.getAttribute('href') !== 'https://example.com/story') throw new Error('Reader did not expose the canonical publisher destination')
+    await page.getByRole('button',{name:'Save'}).click();await page.getByRole('button',{name:'Unsave'}).waitFor()
     await page.goto(`${baseUrl}/settings`)
 
     await page.getByLabel('Interests', { exact: true }).fill('')
@@ -102,6 +105,11 @@ try {
     if (privacyRequests.some((url) => !url.startsWith(`${baseUrl}/api/v1/`))) throw new Error('Profile traffic escaped the local same-origin API')
 
     await page.goto(`${baseUrl}/library`)
+    await page.getByRole('heading',{name:'Browser-ranked story'}).waitFor()
+    await page.reload();await page.getByRole('heading',{name:'Browser-ranked story'}).waitFor()
+    await page.getByRole('button',{name:'Hide'}).click();await page.getByText('No saved articles.').waitFor()
+    await page.getByRole('button',{name:'Hidden'}).click();await page.getByRole('button',{name:'Restore'}).focus();await page.keyboard.press('Enter');await page.getByText('No hidden articles.').waitFor()
+    const storedKeys=await page.evaluate(()=>Array.from({length:localStorage.length},(_,index)=>localStorage.key(index)).filter(Boolean));if(storedKeys.some(key=>!['news-aggregator:last-refresh-id','news-aggregator:library-view'].includes(key)))throw new Error(`Private authoritative state leaked to browser storage: ${storedKeys.join(', ')}`)
     await page.screenshot({ path: new URL('desktop-library.png', evidenceDirectory).pathname, fullPage: true })
     await page.getByRole('link', { name: 'Sources' }).focus()
     await page.keyboard.press('Enter')
@@ -152,8 +160,8 @@ function refreshRun(status) {
   return { id: 'browser-refresh', status, startedAt: '2026-08-13T10:00:00Z', finishedAt: status === 'running' ? null : '2026-08-13T10:00:01Z', outcomes: status === 'running' ? [] : [{ sourceId: 'starter-1', fetched: 3, inserted: 2, updated: 0, skipped: 0, failed: 1, errorCode: 'rate_limited', errorSummary: 'Retry later.' }] }
 }
 
-function browserArticle(browserReadAt = null) {
-  return { id: 'browser-article', sourceId: 'starter-1', canonicalUrl: 'https://example.com/story', title: 'Browser-ranked story', author: 'Fixture Reporter', publishedAt: '2026-08-14T08:00:00Z', fetchedAt: '2026-08-14T08:01:00Z', excerpt: 'A permission-aware browser fixture.', contentPermission: 'metadata_only', language: 'en', topics: ['technology'], library: { articleId: 'browser-article', readAt: browserReadAt, savedAt: null, hiddenAt: null }, ranking: { score: .9, algorithmVersion: 'v1', calculatedAt: '2026-08-14T08:02:00Z', contributions: [{ signal: 'interest', rawScore: .9, weight: .5, weightedScore: .45, reasonCode: 'interest_match', reasonValues: { interest: 'technology' } }] } }
+function browserArticle(browserReadAt = null,browserSavedAt=null,browserHiddenAt=null) {
+  return { id: 'browser-article', sourceId: 'starter-1', canonicalUrl: 'https://example.com/story', title: 'Browser-ranked story', author: 'Fixture Reporter', publishedAt: '2026-08-14T08:00:00Z', fetchedAt: '2026-08-14T08:01:00Z', excerpt: 'A permission-aware browser fixture.', contentPermission: 'metadata_only', language: 'en', topics: ['technology'], library: { articleId: 'browser-article', readAt: browserReadAt, savedAt: browserSavedAt, hiddenAt: browserHiddenAt }, ranking: { score: .9, algorithmVersion: 'v1', calculatedAt: '2026-08-14T08:02:00Z', contributions: [{ signal: 'interest', rawScore: .9, weight: .5, weightedScore: .45, reasonCode: 'interest_match', reasonValues: { interest: 'technology' } }] } }
 }
 
 const primitiveProof = spawn(process.execPath, ['tests/primitive-browser-proof.mjs'], { stdio: 'inherit' })

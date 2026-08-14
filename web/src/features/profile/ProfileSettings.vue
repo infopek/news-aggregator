@@ -8,6 +8,7 @@ import AccessibleField from '../../components/shared/AccessibleField.vue'
 import DemographicSignalField from '../../components/shared/DemographicSignalField.vue'
 import LiveRegion from '../../components/shared/LiveRegion.vue'
 import { navigate } from '../../router/router'
+import AppLink from '../../router/AppLink.vue'
 import type { UserSafeError } from '../../state/errors'
 import { ServerMutations } from '../../state/mutations'
 import { queryKeys } from '../../state/query-keys'
@@ -132,6 +133,15 @@ function toggleSource(id: string, checked: boolean) {
       {{ mode === 'setup' ? 'First-run setup' : 'Profile and ranking' }}
     </h1>
     <p>Everything here stays with the same-origin local API. There is no account, automatic location, or demographic inference.</p>
+    <nav
+      v-if="mode==='settings'"
+      aria-label="Settings sections"
+      class="settings-navigation"
+    >
+      <a href="#preferences-title">Profile preferences</a><a href="#ranking-settings">Ranking signals</a><AppLink to="/sources">
+        Sources, credentials, and refresh
+      </AppLink>
+    </nav>
     <p
       v-if="state === 'loading'"
       role="status"
@@ -286,6 +296,7 @@ function toggleSource(id: string, checked: boolean) {
         />
       </section>
       <RankingSignalSettings
+        id="ranking-settings"
         v-model="rankingForm"
         :limits="ranking"
         :errors="fieldErrors"
@@ -325,5 +336,5 @@ function toggleSource(id: string, checked: boolean) {
 </template>
 
 <style scoped>
-.profile-workflow,.profile-workflow form,.profile-workflow section,.profile-workflow fieldset{display:grid;gap:1rem}.profile-workflow{max-width:58rem}.profile-workflow section,.profile-workflow fieldset{border:0;padding:1rem 0;border-top:1px solid #c7cbd1}.profile-workflow fieldset label{display:block}.profile-workflow input:not([type=checkbox]){box-sizing:border-box;width:100%;max-width:32rem;padding:.65rem}.notice,.error-summary{padding:1rem;border-inline-start:.3rem solid #8a4b00;background:#fff5e6}.error-summary{border-color:#a40000;background:#fff0f0}button{justify-self:start;padding:.7rem 1rem}
+.profile-workflow,.profile-workflow form,.profile-workflow section,.profile-workflow fieldset{display:grid;gap:1rem}.profile-workflow{max-width:58rem}.settings-navigation{display:flex;flex-wrap:wrap;gap:1rem}.profile-workflow section,.profile-workflow fieldset{border:0;padding:1rem 0;border-top:1px solid #c7cbd1}.profile-workflow fieldset label{display:block}.profile-workflow input:not([type=checkbox]){box-sizing:border-box;width:100%;max-width:32rem;padding:.65rem}.notice,.error-summary{padding:1rem;border-inline-start:.3rem solid #8a4b00;background:#fff5e6}.error-summary{border-color:#a40000;background:#fff0f0}button{justify-self:start;padding:.7rem 1rem}
 </style>
