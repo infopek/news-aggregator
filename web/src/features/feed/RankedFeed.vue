@@ -24,10 +24,10 @@ const actionBusy = ref<Record<string, boolean>>({}), actionMessages = ref<Record
 const source = ref(''), read = ref('all'), saved = ref('all'), text = ref(''), after = ref(''), before = ref('')
 type FilterSnapshot = { source: string; read: string; saved: string; text: string; after: string; before: string }
 const applied = ref<FilterSnapshot>({ source: '', read: 'all', saved: 'all', text: '', after: '', before: '' })
-let generation = 0, loadController: AbortController | undefined, pageController: AbortController | undefined
-const refreshing = ref(false)
+let generation = 0, loadController: AbortController | undefined, pageController: AbortController | undefined, mounted=true
+const refreshState = ref<'idle'|'running'|'uncertain'>('idle')
 const sourceNames = computed(() => Object.fromEntries(sources.value.map((item) => [item.id, item.name])))
-onMounted(() => load(false)); onBeforeUnmount(() => { loadController?.abort(); pageController?.abort() })
+onMounted(() => load(false)); onBeforeUnmount(() => { mounted=false;++generation;loadController?.abort();pageController?.abort() })
 function draft(): FilterSnapshot { return { source: source.value, read: read.value, saved: saved.value, text: text.value, after: after.value, before: before.value } }
 function query(filter: FilterSnapshot, next?: string): FeedQuery { return { cursor: next || undefined, limit: 20, sourceId: filter.source ? [filter.source] : undefined, read: filter.read === 'all' ? undefined : filter.read === 'read', saved: filter.saved === 'saved' ? true : undefined, text: filter.text.trim() || undefined, publishedAfter: filter.after ? new Date(`${filter.after}T00:00:00`).toISOString() : undefined, publishedBefore: filter.before ? new Date(`${filter.before}T23:59:59`).toISOString() : undefined } }
 async function load(applyDraft = true) {
@@ -44,6 +44,7 @@ function hide(id: string) { items.value = items.value.filter((item) => item.id !
 async function mutate(article: ArticleSummary, patch: LibraryStateWrite) {
   actionBusy.value[article.id] = true; actionMessages.value[article.id] = ''
   const result = await mutations.updateLibrary(article.id, patch)
+  if (!mounted) return
   if (result.status === 'success') {
     article.library = result.data; actionMessages.value[article.id] = 'Article state updated.'
     if (result.data.hiddenAt || (applied.value.saved==='saved'&&!result.data.savedAt)||(applied.value.read==='unread'&&result.data.readAt)||(applied.value.read==='read'&&!result.data.readAt)) hide(article.id)
@@ -51,7 +52,7 @@ async function mutate(article: ArticleSummary, patch: LibraryStateWrite) {
   actionBusy.value[article.id] = false
   await load(false)
 }
-async function refreshed(){refreshing.value=false;await load(false)}
+async function refreshed(){refreshState.value='idle';await load(false)}
 function clear(){source.value='';read.value='all';saved.value='all';text.value='';after.value='';before.value='';void load()}
 </script>
 <template>
@@ -65,16 +66,23 @@ function clear(){source.value='';read.value='all';saved.value='all';text.value='
       Ranked feed
     </h1><p>Order and explanations come from your local ranking service.</p>
     <p
-      v-if="refreshing"
+      v-if="refreshState==='running'"
       role="status"
     >
       Refresh is running. Current articles may be stale until it completes.
     </p>
+    <p
+      v-else-if="refreshState==='uncertain'"
+      role="status"
+    >
+      Refresh status is unavailable. Current articles may be stale; retry the saved status below or start a new refresh.
+    </p>
     <RefreshControl
       :server="server"
       :source-names="sourceNames"
-      @started="refreshing=true"
+      @started="refreshState='running'"
       @completed="refreshed"
+      @stopped="refreshState='uncertain'"
     />
     <form
       class="feed-filters"

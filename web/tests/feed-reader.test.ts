@@ -120,6 +120,22 @@ describe('ranked feed', () => {
     expect(wrapper.text()).toContain('Top ranked story');expect(wrapper.text()).toContain('may be stale')
     await wrapper.findAll('button').find(item=>item.text()==='Retry update')!.trigger('click');await flushPromises();expect(wrapper.text()).toContain('Second story');expect(wrapper.text()).not.toContain('may be stale');wrapper.unmount()
   })
+
+  it.each([
+    ['unavailable', new TypeError('temporary network failure')],
+    ['missing', new ApiRequestError(404,{code:'not_found',message:'Missing',correlationId:'safe',fields:[]})]
+  ])('stops claiming refresh is running when status is %s', async (_case, failure) => {
+    const api=fakeApi();vi.mocked(api.refresh).mockRejectedValueOnce(failure)
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text().includes('Refresh all'))!.trigger('click');await flushPromises()
+    expect(wrapper.text()).not.toContain('Refresh is running.');expect(wrapper.text()).toContain('Refresh status is unavailable.');expect(wrapper.text()).toContain('may be stale');wrapper.unmount()
+  })
+
+  it('does not query the feed after a pending mutation settles post-unmount', async () => {
+    const api=fakeApi();let resolveMutation!:(value:LibraryState)=>void
+    vi.mocked(api.updateLibrary).mockImplementation(async()=>new Promise(resolve=>{resolveMutation=resolve}))
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');wrapper.unmount();resolveMutation({...library,readAt:'2026-08-14T11:00:00Z'});await flushPromises()
+    expect(api.feed).toHaveBeenCalledOnce();expect(api.sources).toHaveBeenCalledOnce()
+  })
 })
 
 describe('permission-aware reader', () => {
