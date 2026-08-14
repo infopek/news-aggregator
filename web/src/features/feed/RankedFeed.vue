@@ -20,7 +20,7 @@ const server = props.serverApi ?? createServerApi(client)
 const mutations = new ServerMutations(server, new ServerStateClient())
 const items = ref<ArticleSummary[]>([]), sources = ref<Source[]>([]), cursor = ref<string|null>(null)
 const state = ref<'loading'|'ready'|'empty'|'error'>('loading'), loadingMore = ref(false), queryError = ref(''), pageError = ref('')
-const revalidating = ref(false), stale = ref(false)
+const revalidating = ref(false), stale = ref(false), paginationBlocked=ref(false)
 const actionBusy = ref<Record<string, boolean>>({}), actionMessages = ref<Record<string, string>>({})
 const source = ref(''), read = ref('all'), saved = ref('all'), text = ref(''), after = ref(''), before = ref('')
 type FilterSnapshot = { source: string; read: string; saved: string; text: string; after: string; before: string }
@@ -33,15 +33,16 @@ onMounted(() => {unsubscribeInvalidation=subscribeLibraryInvalidation(()=>{void 
 function draft(): FilterSnapshot { return { source: source.value, read: read.value, saved: saved.value, text: text.value, after: after.value, before: before.value } }
 function query(filter: FilterSnapshot, next?: string): FeedQuery { return { cursor: next || undefined, limit: 20, sourceId: filter.source ? [filter.source] : undefined, read: filter.read === 'all' ? undefined : filter.read === 'read', saved: filter.saved === 'saved' ? true : undefined, text: filter.text.trim() || undefined, publishedAfter: filter.after ? new Date(`${filter.after}T00:00:00`).toISOString() : undefined, publishedBefore: filter.before ? new Date(`${filter.before}T23:59:59`).toISOString() : undefined } }
 async function load(applyDraft = true) {
-  if (applyDraft) applied.value = draft()
+  const requested=applyDraft?draft():{...applied.value}, changed=JSON.stringify(requested)!==JSON.stringify(applied.value)
   const requestGeneration = ++generation; loadController?.abort(); pageController?.abort(); loadController = new AbortController(); loadingMore.value=false; pageError.value=''
-  const hasData = state.value === 'ready' || state.value === 'empty'
+  paginationBlocked.value=true;if(changed)cursor.value=null
+  const hasData = !changed && (state.value === 'ready' || state.value === 'empty')
   if (hasData) revalidating.value = true
   else state.value = 'loading'
   queryError.value = ''; stale.value = false
-  try { const [page, list] = await Promise.all([server.feed(query(applied.value), loadController.signal), server.sources(loadController.signal)]); if(requestGeneration!==generation)return; items.value = page.items; cursor.value = page.nextCursor; sources.value = list.items; state.value = items.value.length ? 'ready' : 'empty'; stale.value = false } catch (cause) { if(requestGeneration!==generation)return; queryError.value = toUserSafeError(cause).message; if(hasData)stale.value=true;else state.value='error' } finally { if(requestGeneration===generation)revalidating.value=false }
+  try { const [page, list] = await Promise.all([server.feed(query(requested), loadController.signal), server.sources(loadController.signal)]); if(requestGeneration!==generation)return; applied.value=requested;items.value = page.items; cursor.value = page.nextCursor; sources.value = list.items; state.value = items.value.length ? 'ready' : 'empty'; stale.value = false } catch (cause) { if(requestGeneration!==generation)return; queryError.value = toUserSafeError(cause).message; if(hasData)stale.value=true;else state.value='error' } finally { if(requestGeneration===generation){revalidating.value=false;paginationBlocked.value=false} }
 }
-async function more() { if (!cursor.value) return; const requestGeneration=generation, next=cursor.value, filter={...applied.value}; pageController?.abort(); pageController=new AbortController(); loadingMore.value = true; pageError.value=''; try { const page = await server.feed(query(filter,next),pageController.signal); if(requestGeneration!==generation)return; items.value.push(...page.items); cursor.value = page.nextCursor; pageError.value='' } catch (cause) { if(requestGeneration===generation)pageError.value = toUserSafeError(cause).message } finally { if(requestGeneration===generation)loadingMore.value = false } }
+async function more() { if (!cursor.value||paginationBlocked.value) return; const requestGeneration=generation, next=cursor.value, filter={...applied.value}; pageController?.abort(); pageController=new AbortController(); loadingMore.value = true; pageError.value=''; try { const page = await server.feed(query(filter,next),pageController.signal); if(requestGeneration!==generation||paginationBlocked.value)return; items.value.push(...page.items); cursor.value = page.nextCursor; pageError.value='' } catch (cause) { if(requestGeneration===generation)pageError.value = toUserSafeError(cause).message } finally { if(requestGeneration===generation)loadingMore.value = false } }
 function hide(id: string) { items.value = items.value.filter((item) => item.id !== id); if (!items.value.length) state.value = 'empty' }
 async function mutate(article: ArticleSummary, patch: LibraryStateWrite) {
   actionBusy.value[article.id] = true; actionMessages.value[article.id] = ''
@@ -195,7 +196,7 @@ function clear(){source.value='';read.value='all';saved.value='all';text.value='
     </p><button
       v-if="cursor"
       type="button"
-      :disabled="loadingMore"
+      :disabled="loadingMore || paginationBlocked"
       @click="more"
     >
       {{ loadingMore ? 'Loading more…' : 'Load more' }}

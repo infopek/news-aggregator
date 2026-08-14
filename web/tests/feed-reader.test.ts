@@ -66,6 +66,19 @@ describe('ranked feed', () => {
     wrapper.unmount()
   })
 
+  it('withholds the old cursor while a replacement filter query is pending', async () => {
+    const api=fakeApi();let resolveFiltered!:(page:FeedPage)=>void
+    vi.mocked(api.feed).mockResolvedValueOnce({items:[article('initial',.9)],nextCursor:'cursor-a'}).mockImplementationOnce(async()=>new Promise(resolve=>{resolveFiltered=resolve})).mockResolvedValueOnce({items:[article('page-b',.6)],nextCursor:null})
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.get('#source-filter').setValue('opaque-source');await wrapper.get('.feed-filters').trigger('submit');await flushPromises();expect(wrapper.findAll('button').some(item=>item.text()==='Load more')).toBe(false);expect(api.feed).toHaveBeenCalledTimes(2)
+    resolveFiltered({items:[article('filtered',.8)],nextCursor:'cursor-b'});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Load more')!.trigger('click');await flushPromises();expect(api.feed).toHaveBeenLastCalledWith(expect.objectContaining({cursor:'cursor-b',sourceId:['opaque-source']}),expect.any(AbortSignal));expect(wrapper.text()).toContain('page-b');wrapper.unmount()
+  })
+
+  it('does not retain an old cursor when a replacement filter query fails', async () => {
+    const api=fakeApi(),unavailable=new ApiRequestError(503,{code:'unavailable',message:'Down',correlationId:'safe',fields:[]})
+    vi.mocked(api.feed).mockResolvedValueOnce({items:[article('initial',.9)],nextCursor:'cursor-a'}).mockRejectedValueOnce(unavailable)
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.get('#source-filter').setValue('opaque-source');await wrapper.get('.feed-filters').trigger('submit');await flushPromises();expect(wrapper.findAll('button').some(item=>item.text()==='Load more')).toBe(false);expect(wrapper.text()).not.toContain('may be stale');expect(api.feed).toHaveBeenCalledTimes(2);wrapper.unmount()
+  })
+
   it.each([['saved', 'Unsave'], ['unread', 'Mark read']] as const)('removes mutations that no longer match %s filter', async (filter, action) => {
     const api = fakeApi()
     if(filter==='saved')await api.updateLibrary('article-a',{saved:true})
