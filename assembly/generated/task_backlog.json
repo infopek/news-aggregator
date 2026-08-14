@@ -2281,6 +2281,7 @@
       "web/src/features/ranking-settings/**",
       "web/src/features/sources/**",
       "web/src/router/**",
+      "web/src/components/layout/RoutePlaceholder.vue",
       "web/tests/**",
       "tests/e2e/**"
     ],

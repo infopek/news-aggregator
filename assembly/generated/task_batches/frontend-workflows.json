@@ -141,7 +141,7 @@
       "status": "ready",
       "priority": "P0",
       "milestone": "MVP",
-      "allowed_areas": ["web/src/features/library/**", "web/src/features/profile/**", "web/src/features/ranking-settings/**", "web/src/features/sources/**", "web/src/router/**", "web/tests/**", "tests/e2e/**"],
+      "allowed_areas": ["web/src/features/library/**", "web/src/features/profile/**", "web/src/features/ranking-settings/**", "web/src/features/sources/**", "web/src/router/**", "web/src/components/layout/RoutePlaceholder.vue", "web/tests/**", "tests/e2e/**"],
       "depends_on": ["FRONTEND-005", "FRONTEND-006", "FRONTEND-007", "RANK-005"],
       "inputs": ["Feed/library APIs", "Profile and ranking settings workflows", "Source workflow", "Shared filters and article components"],
       "outputs": ["Saved-items view", "Read/unread view", "Hidden-items management and restore flow", "Persistent disposable filter preferences", "Integrated settings navigation"],
