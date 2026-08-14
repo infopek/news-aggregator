@@ -24,6 +24,7 @@ try {
     let profile = emptyProfile()
     let ranking = rankingConfiguration()
     let refreshPolls = 0
+    let feedRequests = 0
     await page.addInitScript(() => {
       Object.defineProperty(navigator, 'geolocation', { configurable: true, get() { throw new Error('Browser geolocation must not be accessed') } })
       for (const storage of [localStorage, sessionStorage]) {
@@ -45,7 +46,7 @@ try {
       if (url.pathname === '/api/v1/ranking-config' && request.method() === 'PUT') { ranking = { ...request.postDataJSON(), perDemographicCap: .1, totalDemographicCap: .2, normalizationVersion: 'v1' }; return json(ranking) }
       if (url.pathname === '/api/v1/starter-sources') return json({ items: [starterSource()] })
       if (url.pathname === '/api/v1/sources' && request.method() === 'GET') return json({ items: [starterSource()] })
-      if (url.pathname === '/api/v1/feed') return json({ items: [browserArticle()], nextCursor: null })
+      if (url.pathname === '/api/v1/feed') { feedRequests += 1; return json({ items: [browserArticle()], nextCursor: null }) }
       if (url.pathname === '/api/v1/articles/browser-article') return json({ article: browserArticle(), fullContent: null })
       if (url.pathname === '/api/v1/refresh' && request.method() === 'POST') return json(refreshRun('running'))
       if (url.pathname === '/api/v1/refresh/browser-refresh') return json(refreshRun(refreshPolls++ === 0 ? 'running' : 'partial_success'))
@@ -74,7 +75,10 @@ try {
 
     await page.goto(`${baseUrl}/`)
     await page.getByRole('heading', { name: 'Ranked feed' }).waitFor()
+    await page.getByRole('button', { name: 'Refresh all enabled sources' }).click()
+    await page.getByText('Refresh completed with some source failures.').waitFor()
     await page.getByRole('heading', { name: 'Browser-ranked story' }).waitFor()
+    if (feedRequests < 2) throw new Error('Terminal refresh did not reload authoritative ranked feed')
     await page.screenshot({ path: new URL('desktop-ranked-feed.png', evidenceDirectory).pathname, fullPage: true })
     await page.getByRole('link', { name: 'Open reader' }).click()
     await page.getByRole('heading', { name: 'Browser-ranked story' }).waitFor()

@@ -9,6 +9,7 @@ import { toUserSafeError } from '../../state/errors'
 import { RefreshRecoveryPoller } from './refresh-recovery-poller'
 
 const props = defineProps<{ server: ServerApi; sourceNames?: Record<string, string> }>()
+const emit = defineEmits<{ started: []; completed: [RefreshRun] }>()
 const refresh = ref<RefreshRun>()
 const loading = ref(false)
 const error = ref('')
@@ -21,6 +22,7 @@ async function start() {
   loading.value = true; error.value = ''
   try {
     refresh.value = await props.server.startRefresh()
+    emit('started')
     localStorage.setItem(storageKey, refresh.value.id)
     await poll(refresh.value.id)
   } catch (cause) {
@@ -42,7 +44,7 @@ async function poll(id: string) {
       throw cause
     }
   })
-  if (result.refresh) refresh.value = result.refresh
+  if (result.refresh) { refresh.value = result.refresh; emit('completed', result.refresh) }
   else if (result.reason === 'missing') localStorage.removeItem(storageKey)
   else if (result.reason === 'error') error.value = toUserSafeError(result.error).message
   else if (result.reason === 'timeout') error.value = 'Refresh status timed out. Reload to check its saved status.'
