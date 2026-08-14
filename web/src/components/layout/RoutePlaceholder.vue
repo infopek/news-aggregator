@@ -4,6 +4,8 @@ import AppLink from '../../router/AppLink.vue'
 import { ProfileSettings } from '../../features/profile'
 import { FirstRunSetup } from '../../features/setup'
 import { SourceManagement } from '../../features/sources'
+import { RankedFeed } from '../../features/feed'
+import { ArticleReader } from '../../features/reader'
 
 defineProps<{ route: AppRoute; articleId?: string }>()
 </script>
@@ -12,6 +14,11 @@ defineProps<{ route: AppRoute; articleId?: string }>()
   <FirstRunSetup v-if="route.name === 'setup'" />
   <ProfileSettings v-else-if="route.name === 'settings'" />
   <SourceManagement v-else-if="route.name === 'sources'" />
+  <RankedFeed v-else-if="route.name === 'feed'" />
+  <ArticleReader
+    v-else-if="route.name === 'article'"
+    :article-id="articleId ?? ''"
+  />
   <section
     v-else
     class="route-boundary"

@@ -24,6 +24,8 @@ try {
     let profile = emptyProfile()
     let ranking = rankingConfiguration()
     let refreshPolls = 0
+    let feedRequests = 0
+    let browserReadAt = null
     await page.addInitScript(() => {
       Object.defineProperty(navigator, 'geolocation', { configurable: true, get() { throw new Error('Browser geolocation must not be accessed') } })
       for (const storage of [localStorage, sessionStorage]) {
@@ -45,6 +47,9 @@ try {
       if (url.pathname === '/api/v1/ranking-config' && request.method() === 'PUT') { ranking = { ...request.postDataJSON(), perDemographicCap: .1, totalDemographicCap: .2, normalizationVersion: 'v1' }; return json(ranking) }
       if (url.pathname === '/api/v1/starter-sources') return json({ items: [starterSource()] })
       if (url.pathname === '/api/v1/sources' && request.method() === 'GET') return json({ items: [starterSource()] })
+      if (url.pathname === '/api/v1/feed') { feedRequests += 1; return json({ items: [browserArticle(browserReadAt)], nextCursor: null }) }
+      if (url.pathname === '/api/v1/articles/browser-article') return json({ article: browserArticle(browserReadAt), fullContent: null })
+      if (url.pathname === '/api/v1/articles/browser-article/library-state' && request.method() === 'PATCH') { browserReadAt = '2026-08-14T09:00:00Z'; return json({ articleId: 'browser-article', readAt: browserReadAt, savedAt: null, hiddenAt: null }) }
       if (url.pathname === '/api/v1/refresh' && request.method() === 'POST') return json(refreshRun('running'))
       if (url.pathname === '/api/v1/refresh/browser-refresh') return json(refreshRun(refreshPolls++ === 0 ? 'running' : 'partial_success'))
       return route.fulfill({ status: 404 })
@@ -69,6 +74,23 @@ try {
     if (!await page.getByLabel('Starter feed (FEED, links to publisher)').isChecked()) throw new Error('Preferred starter source did not reload from authoritative API state')
     if (await page.getByLabel('Country code').inputValue() !== 'HU' || await page.getByLabel('Region').inputValue() !== 'Pest') throw new Error('Manual location did not reload from authoritative API state')
     if (await page.getByLabel('Age value').inputValue() !== '35' || await page.getByRole('group', { name: 'Age' }).getByRole('checkbox').isChecked()) throw new Error('Disabled demographic value did not reload from authoritative API state')
+
+    await page.goto(`${baseUrl}/`)
+    await page.getByRole('heading', { name: 'Ranked feed' }).waitFor()
+    await page.getByRole('button', { name: 'Refresh all enabled sources' }).click()
+    await page.getByText('Refresh completed with some source failures.').waitFor()
+    await page.getByRole('heading', { name: 'Browser-ranked story' }).waitFor()
+    if (feedRequests < 2) throw new Error('Terminal refresh did not reload authoritative ranked feed')
+    await page.getByRole('button', { name: 'Mark read' }).click()
+    await page.getByRole('button', { name: 'Mark unread' }).waitFor()
+    if (feedRequests < 3) throw new Error('Inline action did not reload authoritative ranked feed')
+    await page.screenshot({ path: new URL('desktop-ranked-feed.png', evidenceDirectory).pathname, fullPage: true })
+    await page.getByRole('link', { name: 'Open reader' }).click()
+    await page.getByRole('heading', { name: 'Browser-ranked story' }).waitFor()
+    await page.getByText('body is not stored or displayed').waitFor()
+    const publisherLink = page.getByRole('link', { name: 'Read the full article at the publisher' })
+    if (await publisherLink.getAttribute('href') !== 'https://example.com/story') throw new Error('Reader did not expose the canonical publisher destination')
+    await page.goto(`${baseUrl}/settings`)
 
     await page.getByLabel('Interests', { exact: true }).fill('')
     await page.getByLabel('Starter feed (FEED, links to publisher)').uncheck()
@@ -128,6 +150,10 @@ function starterSource() {
 
 function refreshRun(status) {
   return { id: 'browser-refresh', status, startedAt: '2026-08-13T10:00:00Z', finishedAt: status === 'running' ? null : '2026-08-13T10:00:01Z', outcomes: status === 'running' ? [] : [{ sourceId: 'starter-1', fetched: 3, inserted: 2, updated: 0, skipped: 0, failed: 1, errorCode: 'rate_limited', errorSummary: 'Retry later.' }] }
+}
+
+function browserArticle(browserReadAt = null) {
+  return { id: 'browser-article', sourceId: 'starter-1', canonicalUrl: 'https://example.com/story', title: 'Browser-ranked story', author: 'Fixture Reporter', publishedAt: '2026-08-14T08:00:00Z', fetchedAt: '2026-08-14T08:01:00Z', excerpt: 'A permission-aware browser fixture.', contentPermission: 'metadata_only', language: 'en', topics: ['technology'], library: { articleId: 'browser-article', readAt: browserReadAt, savedAt: null, hiddenAt: null }, ranking: { score: .9, algorithmVersion: 'v1', calculatedAt: '2026-08-14T08:02:00Z', contributions: [{ signal: 'interest', rawScore: .9, weight: .5, weightedScore: .45, reasonCode: 'interest_match', reasonValues: { interest: 'technology' } }] } }
 }
 
 const primitiveProof = spawn(process.execPath, ['tests/primitive-browser-proof.mjs'], { stdio: 'inherit' })

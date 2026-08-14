@@ -50,8 +50,7 @@ describe('application shell', () => {
     window.history.replaceState(null, '', '/articles/article%2042')
     const article = mount(ApplicationShell)
     await flushPromises()
-    expect(article.get('h1').text()).toBe('Article reader')
-    expect(article.text()).toContain('article 42')
+    expect(article.get('[role=status]').text()).toBe('Loading article…')
     article.unmount()
 
     window.history.replaceState(null, '', '/does-not-exist')

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ScoreContribution } from '../../api/generated/models'
 import { useId } from 'vue'
-defineProps<{ contributions: ScoreContribution[] }>()
+withDefaults(defineProps<{ contributions: ScoreContribution[]; headingLevel?: 'h2' | 'h3' | 'h4' }>(), { headingLevel: 'h4' })
 const titleId = `ranking-title-${useId()}`
 const reasons: Record<string, string> = {
   recent_publication: 'Published recently', interest_match: 'Matches an interest', preferred_source: 'From a preferred source',
@@ -15,9 +15,12 @@ const reasons: Record<string, string> = {
     class="ranking"
     :aria-labelledby="titleId"
   >
-    <h4 :id="titleId">
+    <component
+      :is="headingLevel"
+      :id="titleId"
+    >
       Why this was ranked here
-    </h4>
+    </component>
     <p v-if="!contributions.length">
       No ranking explanation was provided.
     </p>

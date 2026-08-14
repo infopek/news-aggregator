@@ -105,12 +105,19 @@ describe('source management and refresh', () => {
     const failed = mount(RefreshControl, { props: { server: api } })
     await flushPromises()
     expect(failed.text()).toContain('temporarily unavailable')
+    expect(failed.text()).toContain('Refresh status unavailable:')
+    expect(failed.text()).not.toContain('Refresh failed:')
     expect(localStorage.getItem('news-aggregator:last-refresh-id')).toBe('refresh-1')
     failed.unmount()
     const recovered = mount(RefreshControl, { props: { server: api } })
     await flushPromises()
     expect(recovered.text()).toContain('Refresh completed with some source failures.')
     recovered.unmount()
+  })
+
+  it('reserves failed wording for a terminal failed refresh run', async () => {
+    localStorage.clear();const api=fakeApi();vi.mocked(api.refresh).mockResolvedValueOnce({id:'refresh-1',status:'failed',startedAt:'2026-08-14T10:00:00Z',finishedAt:'2026-08-14T10:01:00Z',outcomes:[]})
+    const wrapper=mount(RefreshControl,{props:{server:api}});await wrapper.get('button').trigger('click');await flushPromises();expect(wrapper.text()).toContain('Refresh failed.');expect(wrapper.text()).not.toContain('status unavailable');wrapper.unmount()
   })
 
   it('retains the recovery ID when route disposal aborts an in-flight status request', async () => {
