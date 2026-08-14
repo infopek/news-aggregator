@@ -152,4 +152,19 @@ describe('permission-aware reader', () => {
     vi.mocked(api.article).mockResolvedValueOnce({article:article('article-a',.9),fullContent:null}).mockResolvedValueOnce({article:changed,fullContent:null})
     const wrapper=mount(ArticleReader,{props:{articleId:'article-a',serverApi:api}});await flushPromises();expect(wrapper.text()).toContain('Matches an interest');await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');await flushPromises();expect(wrapper.text()).toContain('Mark unread');expect(wrapper.text()).toContain('No ranking explanation');expect(api.article).toHaveBeenCalledTimes(2);wrapper.unmount()
   })
+
+  it('does not apply an article mutation after navigating to another article', async () => {
+    const api=fakeApi();let resolveMutation!:(value:LibraryState)=>void
+    vi.mocked(api.article).mockImplementation(async id=>({article:article(id,id==='article-a'?.9:.8),fullContent:null}))
+    vi.mocked(api.updateLibrary).mockImplementation(async()=>new Promise(resolve=>{resolveMutation=resolve}))
+    const wrapper=mount(ArticleReader,{props:{articleId:'article-a',serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');await wrapper.setProps({articleId:'article-b'});await flushPromises()
+    expect(wrapper.text()).toContain('Second story');expect(wrapper.findAll('button').find(item=>item.text()==='Mark read')!.attributes('disabled')).toBeUndefined()
+    resolveMutation({...library,articleId:'article-a',readAt:'2026-08-14T11:00:00Z'});await flushPromises();expect(wrapper.text()).toContain('Second story');expect(wrapper.text()).toContain('Mark read');expect(wrapper.text()).not.toContain('Article state updated.');expect(api.article).toHaveBeenCalledTimes(2);wrapper.unmount()
+  })
+
+  it('does not reload article detail when a mutation settles after unmount', async () => {
+    const api=fakeApi();let resolveMutation!:(value:LibraryState)=>void
+    vi.mocked(api.updateLibrary).mockImplementation(async()=>new Promise(resolve=>{resolveMutation=resolve}))
+    const wrapper=mount(ArticleReader,{props:{articleId:'article-a',serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');wrapper.unmount();resolveMutation({...library,readAt:'2026-08-14T11:00:00Z'});await flushPromises();expect(api.article).toHaveBeenCalledOnce()
+  })
 })
