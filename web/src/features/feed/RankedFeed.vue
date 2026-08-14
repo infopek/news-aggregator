@@ -3,19 +3,24 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { api as client } from '../../api/client'
 import { createServerApi, type ServerApi } from '../../api/server-api'
-import type { ArticleSummary, FeedQuery, LibraryState, Source } from '../../api/generated/models'
+import type { ArticleSummary, FeedQuery, LibraryStateWrite, Source } from '../../api/generated/models'
 import ArticleSummaryCard from '../../components/shared/ArticleSummaryCard.vue'
 import RankingExplanation from '../../components/shared/RankingExplanation.vue'
 import FilterControl from '../../components/shared/FilterControl.vue'
 import AppLink from '../../router/AppLink.vue'
 import { toUserSafeError } from '../../state/errors'
+import { ServerMutations } from '../../state/mutations'
+import { ServerStateClient } from '../../state/query-client'
 import LibraryActions from './LibraryActions.vue'
 import RefreshControl from '../refresh/RefreshControl.vue'
 
 const props = withDefaults(defineProps<{ serverApi?: ServerApi }>(), { serverApi: undefined })
 const server = props.serverApi ?? createServerApi(client)
+const mutations = new ServerMutations(server, new ServerStateClient())
 const items = ref<ArticleSummary[]>([]), sources = ref<Source[]>([]), cursor = ref<string|null>(null)
 const state = ref<'loading'|'ready'|'empty'|'error'>('loading'), loadingMore = ref(false), queryError = ref(''), pageError = ref('')
+const revalidating = ref(false), stale = ref(false)
+const actionBusy = ref<Record<string, boolean>>({}), actionMessages = ref<Record<string, string>>({})
 const source = ref(''), read = ref('all'), saved = ref('all'), text = ref(''), after = ref(''), before = ref('')
 type FilterSnapshot = { source: string; read: string; saved: string; text: string; after: string; before: string }
 const applied = ref<FilterSnapshot>({ source: '', read: 'all', saved: 'all', text: '', after: '', before: '' })
@@ -28,12 +33,24 @@ function query(filter: FilterSnapshot, next?: string): FeedQuery { return { curs
 async function load(applyDraft = true) {
   if (applyDraft) applied.value = draft()
   const requestGeneration = ++generation; loadController?.abort(); pageController?.abort(); loadController = new AbortController(); loadingMore.value=false; pageError.value=''
-  state.value = 'loading'; queryError.value = ''
-  try { const [page, list] = await Promise.all([server.feed(query(applied.value), loadController.signal), server.sources(loadController.signal)]); if(requestGeneration!==generation)return; items.value = page.items; cursor.value = page.nextCursor; sources.value = list.items; state.value = items.value.length ? 'ready' : 'empty' } catch (cause) { if(requestGeneration!==generation)return; queryError.value = toUserSafeError(cause).message; state.value = 'error' }
+  const hasData = state.value === 'ready' || state.value === 'empty'
+  if (hasData) revalidating.value = true
+  else state.value = 'loading'
+  queryError.value = ''; stale.value = false
+  try { const [page, list] = await Promise.all([server.feed(query(applied.value), loadController.signal), server.sources(loadController.signal)]); if(requestGeneration!==generation)return; items.value = page.items; cursor.value = page.nextCursor; sources.value = list.items; state.value = items.value.length ? 'ready' : 'empty'; stale.value = false } catch (cause) { if(requestGeneration!==generation)return; queryError.value = toUserSafeError(cause).message; if(hasData)stale.value=true;else state.value='error' } finally { if(requestGeneration===generation)revalidating.value=false }
 }
 async function more() { if (!cursor.value) return; const requestGeneration=generation, next=cursor.value, filter={...applied.value}; pageController?.abort(); pageController=new AbortController(); loadingMore.value = true; pageError.value=''; try { const page = await server.feed(query(filter,next),pageController.signal); if(requestGeneration!==generation)return; items.value.push(...page.items); cursor.value = page.nextCursor; pageError.value='' } catch (cause) { if(requestGeneration===generation)pageError.value = toUserSafeError(cause).message } finally { if(requestGeneration===generation)loadingMore.value = false } }
-function reconcile(article: ArticleSummary, library: LibraryState) { article.library = library; if ((applied.value.saved==='saved'&&!library.savedAt)||(applied.value.read==='unread'&&library.readAt)||(applied.value.read==='read'&&!library.readAt)) hide(article.id); void load(false) }
 function hide(id: string) { items.value = items.value.filter((item) => item.id !== id); if (!items.value.length) state.value = 'empty' }
+async function mutate(article: ArticleSummary, patch: LibraryStateWrite) {
+  actionBusy.value[article.id] = true; actionMessages.value[article.id] = ''
+  const result = await mutations.updateLibrary(article.id, patch)
+  if (result.status === 'success') {
+    article.library = result.data; actionMessages.value[article.id] = 'Article state updated.'
+    if (result.data.hiddenAt || (applied.value.saved==='saved'&&!result.data.savedAt)||(applied.value.read==='unread'&&result.data.readAt)||(applied.value.read==='read'&&!result.data.readAt)) hide(article.id)
+  } else actionMessages.value[article.id] = result.error.message
+  actionBusy.value[article.id] = false
+  await load(false)
+}
 async function refreshed(){refreshing.value=false;await load(false)}
 function clear(){source.value='';read.value='all';saved.value='all';text.value='';after.value='';before.value='';void load()}
 </script>
@@ -97,6 +114,23 @@ function clear(){source.value='';read.value='all';saved.value='all';text.value='
       </button>
     </form>
     <p
+      v-if="revalidating"
+      role="status"
+    >
+      Updating ranked articles… Current results remain visible.
+    </p>
+    <div
+      v-if="stale"
+      role="alert"
+    >
+      <p>These articles may be stale. {{ queryError }}</p><button
+        type="button"
+        @click="load(false)"
+      >
+        Retry update
+      </button>
+    </div>
+    <p
       v-if="state==='loading'"
       role="status"
     >
@@ -137,9 +171,9 @@ function clear(){source.value='';read.value='all';saved.value='all';text.value='
           Open reader
         </AppLink><LibraryActions
           :article="article"
-          :server="server"
-          @updated="reconcile(article,$event)"
-          @hidden="hide(article.id)"
+          :busy="actionBusy[article.id]"
+          :message="actionMessages[article.id]"
+          @mutate="mutate(article,$event)"
         />
       </li>
     </ol>

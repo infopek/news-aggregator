@@ -88,6 +88,8 @@ try {
     await page.getByRole('link', { name: 'Open reader' }).click()
     await page.getByRole('heading', { name: 'Browser-ranked story' }).waitFor()
     await page.getByText('body is not stored or displayed').waitFor()
+    const publisherLink = page.getByRole('link', { name: 'Read the full article at the publisher' })
+    if (await publisherLink.getAttribute('href') !== 'https://example.com/story') throw new Error('Reader did not expose the canonical publisher destination')
     await page.goto(`${baseUrl}/settings`)
 
     await page.getByLabel('Interests', { exact: true }).fill('')

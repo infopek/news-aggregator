@@ -95,6 +95,31 @@ describe('ranked feed', () => {
     const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');await flushPromises()
     expect(wrapper.findAll('.ranked-list>li')[0].text()).toContain('Second story');expect(wrapper.findAll('.ranked-list>li')[1].text()).toContain('No ranking explanation');wrapper.unmount()
   })
+
+  it('revalidates after a mutation response is lost after commit', async () => {
+    const api=fakeApi();let committed=false
+    vi.mocked(api.feed).mockImplementation(async()=>({items:[{...article('article-a',.9),library:{...library,readAt:committed?'2026-08-14T11:00:00Z':null}}],nextCursor:null}))
+    vi.mocked(api.updateLibrary).mockImplementation(async()=>{committed=true;throw new TypeError('response lost after commit')})
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');await flushPromises()
+    expect(api.feed).toHaveBeenCalledTimes(2);expect(wrapper.text()).toContain('Mark unread');wrapper.unmount()
+  })
+
+  it('reconciles both overlapping mutations after action rows are re-rendered', async () => {
+    const api=fakeApi(), committed=new Map<string,LibraryState>();let resolveA!:(value:LibraryState)=>void,resolveB!:(value:LibraryState)=>void
+    vi.mocked(api.feed).mockImplementation(async()=>({items:['article-a','article-b'].map((id,index)=>({...article(id,.9-index*.1),library:committed.get(id)??{...library,articleId:id}})),nextCursor:null}))
+    vi.mocked(api.updateLibrary).mockImplementation(async(id,patch)=>new Promise(resolve=>{const finish=()=>{const value={...library,articleId:id,readAt:patch.read?'2026-08-14T11:00:00Z':null,savedAt:patch.saved?'2026-08-14T11:00:00Z':null};committed.set(id,value);resolve(value)};if(id==='article-a')resolveA=finish;else resolveB=finish}))
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();const rows=wrapper.findAll('.ranked-list>li');await rows[0].findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');await rows[1].findAll('button').find(item=>item.text()==='Save')!.trigger('click')
+    resolveB({} as LibraryState);await flushPromises();resolveA({} as LibraryState);await flushPromises()
+    expect(wrapper.findAll('.ranked-list>li')[0].text()).toContain('Mark unread');expect(wrapper.findAll('.ranked-list>li')[1].text()).toContain('Unsave');expect(api.feed).toHaveBeenCalledTimes(3);wrapper.unmount()
+  })
+
+  it('retains prior articles as stale when revalidation fails and retries them', async () => {
+    const unavailable=new ApiRequestError(503,{code:'unavailable',message:'Down',correlationId:'safe',fields:[]}),api=fakeApi()
+    vi.mocked(api.feed).mockResolvedValueOnce({items:[article('article-a',.9)],nextCursor:null}).mockRejectedValueOnce(unavailable).mockResolvedValueOnce({items:[article('article-b',.8)],nextCursor:null})
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text().includes('Refresh all'))!.trigger('click');await flushPromises()
+    expect(wrapper.text()).toContain('Top ranked story');expect(wrapper.text()).toContain('may be stale')
+    await wrapper.findAll('button').find(item=>item.text()==='Retry update')!.trigger('click');await flushPromises();expect(wrapper.text()).toContain('Second story');expect(wrapper.text()).not.toContain('may be stale');wrapper.unmount()
+  })
 })
 
 describe('permission-aware reader', () => {
@@ -120,5 +145,11 @@ describe('permission-aware reader', () => {
     const api=fakeApi();let resolveA!:(value:ArticleDetail)=>void,resolveB!:(value:ArticleDetail)=>void;const signals:AbortSignal[]=[]
     vi.mocked(api.article).mockImplementation(async(id,signal)=>{signals.push(signal!);return new Promise(resolve=>{if(id==='article-a')resolveA=resolve;else resolveB=resolve})})
     const wrapper=mount(ArticleReader,{props:{articleId:'article-a',serverApi:api}});await flushPromises();await wrapper.setProps({articleId:'article-b'});await flushPromises();resolveB({article:article('article-b',.8),fullContent:null});await flushPromises();resolveA({article:article('article-a',.9),fullContent:null});await flushPromises();expect(wrapper.text()).toContain('Second story');expect(wrapper.text()).not.toContain('Top ranked story');expect(signals[0].aborted).toBe(true);wrapper.unmount()
+  })
+
+  it('reloads the reader ranking explanation after a library mutation', async () => {
+    const api=fakeApi(), changed={...article('article-a',.6),library:{...library,readAt:'2026-08-14T11:00:00Z'},ranking:{...article('article-a',.6).ranking,contributions:[]}}
+    vi.mocked(api.article).mockResolvedValueOnce({article:article('article-a',.9),fullContent:null}).mockResolvedValueOnce({article:changed,fullContent:null})
+    const wrapper=mount(ArticleReader,{props:{articleId:'article-a',serverApi:api}});await flushPromises();expect(wrapper.text()).toContain('Matches an interest');await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');await flushPromises();expect(wrapper.text()).toContain('Mark unread');expect(wrapper.text()).toContain('No ranking explanation');expect(api.article).toHaveBeenCalledTimes(2);wrapper.unmount()
   })
 })
