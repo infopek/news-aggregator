@@ -2,7 +2,7 @@
 import type { ArticleSummary } from '../../api/generated/models'
 import { computed } from 'vue'
 import PermissionBadge from './PermissionBadge.vue'
-const props = defineProps<{ article: ArticleSummary; sourceName?: string }>()
+const props = withDefaults(defineProps<{ article: ArticleSummary; sourceName?: string; headingLevel?: 'h2' | 'h3' }>(), { sourceName: '', headingLevel: 'h3' })
 const publisherUrl = computed(() => {
   try {
     const parsed = new globalThis.URL(props.article.canonicalUrl)
@@ -20,7 +20,7 @@ const publisherUrl = computed(() => {
         {{ sourceName }}
       </p>
     </header>
-    <h3>
+    <component :is="headingLevel">
       <a
         v-if="publisherUrl"
         :href="publisherUrl"
@@ -28,7 +28,7 @@ const publisherUrl = computed(() => {
         rel="noopener noreferrer"
       >{{ article.title }}</a>
       <span v-else>{{ article.title }}</span>
-    </h3>
+    </component>
     <p v-if="article.excerpt">
       {{ article.excerpt }}
     </p>
