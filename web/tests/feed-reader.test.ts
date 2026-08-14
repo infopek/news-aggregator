@@ -136,6 +136,14 @@ describe('ranked feed', () => {
     const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');wrapper.unmount();resolveMutation({...library,readAt:'2026-08-14T11:00:00Z'});await flushPromises()
     expect(api.feed).toHaveBeenCalledOnce();expect(api.sources).toHaveBeenCalledOnce()
   })
+
+  it('revalidates a remounted feed when an older route mutation settles', async () => {
+    const api=fakeApi();let committed=false,resolveMutation!:()=>void
+    vi.mocked(api.feed).mockImplementation(async()=>({items:[{...article('article-a',.9),library:{...library,readAt:committed?'2026-08-14T11:00:00Z':null}}],nextCursor:null}))
+    vi.mocked(api.updateLibrary).mockImplementation(async()=>new Promise(resolve=>{resolveMutation=()=>{committed=true;resolve({...library,readAt:'2026-08-14T11:00:00Z'})}}))
+    const first=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await first.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');first.unmount()
+    const current=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();expect(current.text()).toContain('Mark read');resolveMutation();await flushPromises();expect(current.text()).toContain('Mark unread');expect(api.feed).toHaveBeenCalledTimes(3);current.unmount()
+  })
 })
 
 describe('permission-aware reader', () => {
@@ -182,5 +190,12 @@ describe('permission-aware reader', () => {
     const api=fakeApi();let resolveMutation!:(value:LibraryState)=>void
     vi.mocked(api.updateLibrary).mockImplementation(async()=>new Promise(resolve=>{resolveMutation=resolve}))
     const wrapper=mount(ArticleReader,{props:{articleId:'article-a',serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');wrapper.unmount();resolveMutation({...library,readAt:'2026-08-14T11:00:00Z'});await flushPromises();expect(api.article).toHaveBeenCalledOnce()
+  })
+
+  it('revalidates the current article when an older route mutation settles', async () => {
+    const api=fakeApi();let committed=false,resolveMutation!:()=>void
+    vi.mocked(api.article).mockImplementation(async id=>({article:{...article(id,id==='article-a'?.9:.8),library:{...library,articleId:id,readAt:id==='article-a'&&committed?'2026-08-14T11:00:00Z':null}},fullContent:null}))
+    vi.mocked(api.updateLibrary).mockImplementation(async()=>new Promise(resolve=>{resolveMutation=()=>{committed=true;resolve({...library,readAt:'2026-08-14T11:00:00Z'})}}))
+    const wrapper=mount(ArticleReader,{props:{articleId:'article-a',serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');await wrapper.setProps({articleId:'article-b'});await flushPromises();await wrapper.setProps({articleId:'article-a'});await flushPromises();expect(wrapper.text()).toContain('Mark read');resolveMutation();await flushPromises();expect(wrapper.text()).toContain('Mark unread');expect(api.article).toHaveBeenCalledTimes(4);wrapper.unmount()
   })
 })

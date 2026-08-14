@@ -14,6 +14,7 @@ const emit = defineEmits<{ started: []; completed: [RefreshRun]; stopped: [Exclu
 const refresh = ref<RefreshRun>()
 const loading = ref(false)
 const error = ref('')
+const statusError = ref('')
 const pendingId = ref('')
 const poller = new RefreshRecoveryPoller()
 const storageKey = 'news-aggregator:last-refresh-id'
@@ -21,7 +22,7 @@ onMounted(recover)
 onBeforeUnmount(() => poller.dispose())
 
 async function start() {
-  loading.value = true; error.value = ''
+  loading.value = true; error.value = '';statusError.value=''
   try {
     refresh.value = await props.server.startRefresh()
     emit('started')
@@ -49,11 +50,11 @@ async function poll(id: string) {
     }
   })
   if (result.refresh) { refresh.value = result.refresh; emit('completed', result.refresh) }
-  else if (result.reason === 'missing') { refresh.value=undefined;pendingId.value='';error.value='The saved refresh status is no longer available. Start a new refresh to update the feed.';localStorage.removeItem(storageKey);emit('stopped','missing') }
-  else if (result.reason === 'error') { error.value = toUserSafeError(result.error).message;emit('stopped','error') }
-  else if (result.reason === 'timeout') { error.value = 'Refresh status timed out. Retry to check its saved status.';emit('stopped','timeout') }
+  else if (result.reason === 'missing') { refresh.value=undefined;pendingId.value='';statusError.value='The saved refresh status is no longer available. Start a new refresh to update the feed.';localStorage.removeItem(storageKey);emit('stopped','missing') }
+  else if (result.reason === 'error') { statusError.value = toUserSafeError(result.error).message;emit('stopped','error') }
+  else if (result.reason === 'timeout') { statusError.value = 'Refresh status timed out. Retry to check its saved status.';emit('stopped','timeout') }
 }
-async function retry(){if(!pendingId.value)return;loading.value=true;error.value='';try{await poll(pendingId.value)}finally{loading.value=false}}
+async function retry(){if(!pendingId.value)return;loading.value=true;statusError.value='';try{await poll(pendingId.value)}finally{loading.value=false}}
 </script>
 
 <template>
@@ -73,10 +74,11 @@ async function retry(){if(!pendingId.value)return;loading.value=true;error.value
       :refresh="refresh"
       :loading="loading"
       :error="error"
+      :status-error="statusError"
       :source-names="sourceNames"
     />
     <button
-      v-if="error && pendingId"
+      v-if="statusError && pendingId"
       type="button"
       :disabled="loading"
       @click="retry"

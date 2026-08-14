@@ -8,6 +8,7 @@ import PermissionBadge from '../../components/shared/PermissionBadge.vue'
 import RankingExplanation from '../../components/shared/RankingExplanation.vue'
 import AppLink from '../../router/AppLink.vue'
 import LibraryActions from '../feed/LibraryActions.vue'
+import { publishLibraryInvalidation, subscribeLibraryInvalidation } from '../feed/library-invalidation'
 import { toUserSafeError } from '../../state/errors'
 import { ServerMutations } from '../../state/mutations'
 import { ServerStateClient } from '../../state/query-client'
@@ -15,10 +16,11 @@ const props = withDefaults(defineProps<{ articleId: string; serverApi?: ServerAp
 const server = props.serverApi ?? createServerApi(client), detail = ref<ArticleDetail>(), state = ref<'loading'|'ready'|'error'>('loading'), error = ref('')
 const mutations = new ServerMutations(server, new ServerStateClient()), actionBusy=ref(false), actionMessage=ref('')
 let controller: AbortController | undefined, generation=0, mounted=true
+let unsubscribeInvalidation:(()=>void)|undefined
 const publisher = computed(() => { try { const url = new URL(detail.value?.article.canonicalUrl ?? ''); return ['http:','https:'].includes(url.protocol) ? url.href : null } catch { return null } })
-onMounted(load); onBeforeUnmount(()=>{mounted=false;++generation;controller?.abort()}); watch(()=>props.articleId,()=>{actionBusy.value=false;actionMessage.value='';void load()})
+onMounted(()=>{unsubscribeInvalidation=subscribeLibraryInvalidation(id=>{if(id===props.articleId)void load()});void load()}); onBeforeUnmount(()=>{mounted=false;++generation;unsubscribeInvalidation?.();controller?.abort()}); watch(()=>props.articleId,()=>{actionBusy.value=false;actionMessage.value='';void load()})
 async function load(){const current=++generation;controller?.abort();controller=new AbortController();state.value='loading';error.value='';try{const value=await server.article(props.articleId,controller.signal);if(current!==generation)return;detail.value=value;state.value='ready'}catch(cause){if(current!==generation||controller.signal.aborted)return;error.value=toUserSafeError(cause).message;state.value='error'}}
-async function mutate(patch:LibraryStateWrite){if(!detail.value)return;const id=detail.value.article.id,current=generation;actionBusy.value=true;actionMessage.value='';const result=await mutations.updateLibrary(id,patch);if(!mounted||current!==generation||props.articleId!==id||detail.value?.article.id!==id)return;if(result.status==='success'){detail.value.article.library=result.data;actionMessage.value='Article state updated.'}else actionMessage.value=result.error.message;actionBusy.value=false;await load()}
+async function mutate(patch:LibraryStateWrite){if(!detail.value)return;const id=detail.value.article.id,current=generation;actionBusy.value=true;actionMessage.value='';const result=await mutations.updateLibrary(id,patch);if(mounted&&current===generation&&props.articleId===id&&detail.value?.article.id===id){if(result.status==='success'){detail.value.article.library=result.data;actionMessage.value='Article state updated.'}else actionMessage.value=result.error.message;actionBusy.value=false}publishLibraryInvalidation(id)}
 </script>
 <template>
   <section aria-labelledby="reader-title">

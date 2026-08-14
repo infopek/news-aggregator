@@ -12,6 +12,7 @@ import { toUserSafeError } from '../../state/errors'
 import { ServerMutations } from '../../state/mutations'
 import { ServerStateClient } from '../../state/query-client'
 import LibraryActions from './LibraryActions.vue'
+import { publishLibraryInvalidation, subscribeLibraryInvalidation } from './library-invalidation'
 import RefreshControl from '../refresh/RefreshControl.vue'
 
 const props = withDefaults(defineProps<{ serverApi?: ServerApi }>(), { serverApi: undefined })
@@ -25,9 +26,10 @@ const source = ref(''), read = ref('all'), saved = ref('all'), text = ref(''), a
 type FilterSnapshot = { source: string; read: string; saved: string; text: string; after: string; before: string }
 const applied = ref<FilterSnapshot>({ source: '', read: 'all', saved: 'all', text: '', after: '', before: '' })
 let generation = 0, loadController: AbortController | undefined, pageController: AbortController | undefined, mounted=true
+let unsubscribeInvalidation: (()=>void) | undefined
 const refreshState = ref<'idle'|'running'|'uncertain'>('idle')
 const sourceNames = computed(() => Object.fromEntries(sources.value.map((item) => [item.id, item.name])))
-onMounted(() => load(false)); onBeforeUnmount(() => { mounted=false;++generation;loadController?.abort();pageController?.abort() })
+onMounted(() => {unsubscribeInvalidation=subscribeLibraryInvalidation(()=>{void load(false)});void load(false)}); onBeforeUnmount(() => { mounted=false;++generation;unsubscribeInvalidation?.();loadController?.abort();pageController?.abort() })
 function draft(): FilterSnapshot { return { source: source.value, read: read.value, saved: saved.value, text: text.value, after: after.value, before: before.value } }
 function query(filter: FilterSnapshot, next?: string): FeedQuery { return { cursor: next || undefined, limit: 20, sourceId: filter.source ? [filter.source] : undefined, read: filter.read === 'all' ? undefined : filter.read === 'read', saved: filter.saved === 'saved' ? true : undefined, text: filter.text.trim() || undefined, publishedAfter: filter.after ? new Date(`${filter.after}T00:00:00`).toISOString() : undefined, publishedBefore: filter.before ? new Date(`${filter.before}T23:59:59`).toISOString() : undefined } }
 async function load(applyDraft = true) {
@@ -44,13 +46,13 @@ function hide(id: string) { items.value = items.value.filter((item) => item.id !
 async function mutate(article: ArticleSummary, patch: LibraryStateWrite) {
   actionBusy.value[article.id] = true; actionMessages.value[article.id] = ''
   const result = await mutations.updateLibrary(article.id, patch)
+  publishLibraryInvalidation(article.id)
   if (!mounted) return
   if (result.status === 'success') {
     article.library = result.data; actionMessages.value[article.id] = 'Article state updated.'
     if (result.data.hiddenAt || (applied.value.saved==='saved'&&!result.data.savedAt)||(applied.value.read==='unread'&&result.data.readAt)||(applied.value.read==='read'&&!result.data.readAt)) hide(article.id)
   } else actionMessages.value[article.id] = result.error.message
   actionBusy.value[article.id] = false
-  await load(false)
 }
 async function refreshed(){refreshState.value='idle';await load(false)}
 function clear(){source.value='';read.value='all';saved.value='all';text.value='';after.value='';before.value='';void load()}
