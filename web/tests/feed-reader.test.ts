@@ -4,6 +4,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ArticleDetail, ArticleSummary, FeedPage, LibraryState } from '../src/api/generated/models'
 import type { ServerApi } from '../src/api/server-api'
+import { ApiRequestError } from '../src/api/client'
 import RankedFeed from '../src/features/feed/RankedFeed.vue'
 import ArticleReader from '../src/features/reader/ArticleReader.vue'
 
@@ -13,7 +14,14 @@ function article(id: string, score: number, permission: ArticleSummary['contentP
 }
 function fakeApi(detail?: ArticleDetail) {
   const pages: FeedPage[] = [{ items: [article('article-a', .9), article('article-b', .7)], nextCursor: 'next' }, { items: [article('article-c', .6)], nextCursor: null }]
-  return { feed: vi.fn(async (query) => query.cursor ? pages[1] : pages[0]), sources: vi.fn(async () => ({ items: [{ id: 'opaque-source', name: 'Science Wire', url: 'https://publisher.example/feed', kind: 'feed', enabled: true, contentPermission: 'metadata_only', adapterConfig: { format: 'rss' }, scraperPolicy: { status: 'not_applicable', termsUrl: null, robotsUrl: null, reviewedAt: null, reviewNotes: null }, credentialConfigured: false, lastSuccessAt: null, lastError: null, retryAfter: null }] })), updateLibrary: vi.fn(async (id, patch) => ({ articleId: id, readAt: patch.read ? '2026-08-14T11:00:00Z' : null, savedAt: patch.saved ? '2026-08-14T11:00:00Z' : null, hiddenAt: patch.hidden ? '2026-08-14T11:00:00Z' : null })), article: vi.fn(async () => detail ?? { article: article('article-a', .9), fullContent: null }), startRefresh: vi.fn(async () => ({ id: 'feed-refresh', status: 'running', startedAt: '2026-08-14T10:00:00Z', finishedAt: null, outcomes: [] })), refresh: vi.fn(async () => ({ id: 'feed-refresh', status: 'partial_success', startedAt: '2026-08-14T10:00:00Z', finishedAt: '2026-08-14T10:01:00Z', outcomes: [] })) } as unknown as ServerApi
+  const states = new Map<string, LibraryState>()
+  const feed = vi.fn(async (query) => {
+    if (query.cursor) return pages[1]
+    const visible = pages[0].items.map(item => ({ ...item, library: states.get(item.id) ?? item.library })).filter(item => !item.library.hiddenAt && (query.saved !== true || item.library.savedAt) && (query.read === undefined || Boolean(item.library.readAt) === query.read))
+    return { items: visible, nextCursor: 'next' }
+  })
+  const updateLibrary = vi.fn(async (id, patch) => { const previous=states.get(id)??{...library,articleId:id};const next={articleId:id,readAt:patch.read===undefined?previous.readAt:patch.read?'2026-08-14T11:00:00Z':null,savedAt:patch.saved===undefined?previous.savedAt:patch.saved?'2026-08-14T11:00:00Z':null,hiddenAt:patch.hidden===undefined?previous.hiddenAt:patch.hidden?'2026-08-14T11:00:00Z':null};states.set(id,next);return next })
+  return { feed, sources: vi.fn(async () => ({ items: [{ id: 'opaque-source', name: 'Science Wire', url: 'https://publisher.example/feed', kind: 'feed', enabled: true, contentPermission: 'metadata_only', adapterConfig: { format: 'rss' }, scraperPolicy: { status: 'not_applicable', termsUrl: null, robotsUrl: null, reviewedAt: null, reviewNotes: null }, credentialConfigured: false, lastSuccessAt: null, lastError: null, retryAfter: null }] })), updateLibrary, article: vi.fn(async () => detail ?? { article: article('article-a', .9), fullContent: null }), startRefresh: vi.fn(async () => ({ id: 'feed-refresh', status: 'running', startedAt: '2026-08-14T10:00:00Z', finishedAt: null, outcomes: [] })), refresh: vi.fn(async () => ({ id: 'feed-refresh', status: 'partial_success', startedAt: '2026-08-14T10:00:00Z', finishedAt: '2026-08-14T10:01:00Z', outcomes: [] })) } as unknown as ServerApi
 }
 
 beforeEach(() => localStorage.clear())
@@ -33,8 +41,8 @@ describe('ranked feed', () => {
   it('uses authoritative library responses and removes a hidden article', async () => {
     const api = fakeApi(), wrapper = mount(RankedFeed, { props: { serverApi: api } }); await flushPromises()
     const first = wrapper.findAll('.ranked-list>li')[0]
-    await first.findAll('button').find((item) => item.text() === 'Save')!.trigger('click'); await flushPromises(); expect(first.text()).toContain('Unsave')
-    await first.findAll('button').find((item) => item.text() === 'Hide')!.trigger('click'); await flushPromises(); expect(wrapper.text()).not.toContain('Top ranked story')
+    await first.findAll('button').find((item) => item.text() === 'Save')!.trigger('click'); await flushPromises(); expect(api.feed).toHaveBeenCalledTimes(2)
+    await wrapper.findAll('.ranked-list>li')[0].findAll('button').find((item) => item.text() === 'Hide')!.trigger('click'); await flushPromises(); expect(wrapper.text()).not.toContain('Top ranked story')
     wrapper.unmount()
   })
 
@@ -60,11 +68,32 @@ describe('ranked feed', () => {
 
   it.each([['saved', 'Unsave'], ['unread', 'Mark read']] as const)('removes mutations that no longer match %s filter', async (filter, action) => {
     const api = fakeApi()
-    vi.mocked(api.feed).mockImplementation(async (query) => ({ items: [{ ...article('article-a', .9), library: { ...library, savedAt: query.saved ? '2026-08-14T09:00:00Z' : null } }], nextCursor: null }))
+    if(filter==='saved')await api.updateLibrary('article-a',{saved:true})
     const wrapper = mount(RankedFeed, { props: { serverApi: api } }); await flushPromises()
     await wrapper.get(filter === 'saved' ? '#saved-filter' : '#read-filter').setValue(filter); await wrapper.get('.feed-filters').trigger('submit'); await flushPromises()
     await wrapper.findAll('button').find((item) => item.text() === action)!.trigger('click'); await flushPromises()
     expect(wrapper.text()).not.toContain('Top ranked story'); wrapper.unmount()
+  })
+
+  it('clears cancelled page loading and permits pagination for the new query', async () => {
+    const api=fakeApi();let release!: (page:FeedPage)=>void
+    vi.mocked(api.feed).mockImplementation(async query=>query.cursor?new Promise(resolve=>{release=resolve}):{items:[article('current',.8)],nextCursor:'new-cursor'})
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Load more')!.trigger('click');await wrapper.get('#source-filter').setValue('opaque-source');await wrapper.get('.feed-filters').trigger('submit');await flushPromises()
+    expect(wrapper.findAll('button').find(item=>item.text()==='Load more')!.attributes('disabled')).toBeUndefined();release({items:[],nextCursor:null});wrapper.unmount()
+  })
+
+  it('shows one query error and clears a pagination error after retry', async () => {
+    const unavailable=new ApiRequestError(503,{code:'unavailable',message:'Down',correlationId:'safe',fields:[]}), api=fakeApi();vi.mocked(api.feed).mockRejectedValueOnce(unavailable)
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();expect(wrapper.findAll('[role=alert]')).toHaveLength(1)
+    vi.mocked(api.feed).mockResolvedValueOnce({items:[article('current',.8)],nextCursor:'cursor'});await wrapper.findAll('button').find(item=>item.text()==='Try again')!.trigger('click');await flushPromises()
+    vi.mocked(api.feed).mockRejectedValueOnce(unavailable);await wrapper.findAll('button').find(item=>item.text()==='Load more')!.trigger('click');await flushPromises();expect(wrapper.findAll('[role=alert]')).toHaveLength(1)
+    vi.mocked(api.feed).mockResolvedValueOnce({items:[article('next-page',.7)],nextCursor:null});await wrapper.findAll('button').find(item=>item.text()==='Load more')!.trigger('click');await flushPromises();expect(wrapper.findAll('[role=alert]')).toHaveLength(0);expect(wrapper.text()).toContain('next-page');wrapper.unmount()
+  })
+
+  it('refreshes server order and explanations after an inline mutation', async () => {
+    const api=fakeApi();vi.mocked(api.feed).mockResolvedValueOnce({items:[article('article-a',.9),article('article-b',.8)],nextCursor:null}).mockResolvedValueOnce({items:[article('article-b',.8),{...article('article-a',.6),ranking:{...article('article-a',.6).ranking,contributions:[]}}],nextCursor:null})
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');await flushPromises()
+    expect(wrapper.findAll('.ranked-list>li')[0].text()).toContain('Second story');expect(wrapper.findAll('.ranked-list>li')[1].text()).toContain('No ranking explanation');wrapper.unmount()
   })
 })
 
@@ -81,5 +110,15 @@ describe('permission-aware reader', () => {
     const wrapper = mount(ArticleReader, { props: { articleId: 'article-a', serverApi: fakeApi(detail) } }); await flushPromises()
     expect(wrapper.get('.article-content').text()).toBe(malicious); expect(wrapper.find('.article-content img').exists()).toBe(false); expect(wrapper.find('.article-content script').exists()).toBe(false)
     wrapper.unmount()
+  })
+
+  it('labels empty permitted content without claiming metadata-only permission', async () => {
+    const detail: ArticleDetail={article:article('article-a',.9,'full_content_allowed'),fullContent:''};const wrapper=mount(ArticleReader,{props:{articleId:'article-a',serverApi:fakeApi(detail)}});await flushPromises();expect(wrapper.text()).toContain('No article body was provided');expect(wrapper.text()).not.toContain('permits metadata only');wrapper.unmount()
+  })
+
+  it('ignores an obsolete article request after the route changes', async () => {
+    const api=fakeApi();let resolveA!:(value:ArticleDetail)=>void,resolveB!:(value:ArticleDetail)=>void;const signals:AbortSignal[]=[]
+    vi.mocked(api.article).mockImplementation(async(id,signal)=>{signals.push(signal!);return new Promise(resolve=>{if(id==='article-a')resolveA=resolve;else resolveB=resolve})})
+    const wrapper=mount(ArticleReader,{props:{articleId:'article-a',serverApi:api}});await flushPromises();await wrapper.setProps({articleId:'article-b'});await flushPromises();resolveB({article:article('article-b',.8),fullContent:null});await flushPromises();resolveA({article:article('article-a',.9),fullContent:null});await flushPromises();expect(wrapper.text()).toContain('Second story');expect(wrapper.text()).not.toContain('Top ranked story');expect(signals[0].aborted).toBe(true);wrapper.unmount()
   })
 })

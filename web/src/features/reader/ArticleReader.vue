@@ -10,10 +10,11 @@ import AppLink from '../../router/AppLink.vue'
 import LibraryActions from '../feed/LibraryActions.vue'
 import { toUserSafeError } from '../../state/errors'
 const props = withDefaults(defineProps<{ articleId: string; serverApi?: ServerApi }>(), { serverApi: undefined })
-const server = props.serverApi ?? createServerApi(client), detail = ref<ArticleDetail>(), state = ref<'loading'|'ready'|'error'>('loading'), error = ref(''), controller = new AbortController()
+const server = props.serverApi ?? createServerApi(client), detail = ref<ArticleDetail>(), state = ref<'loading'|'ready'|'error'>('loading'), error = ref('')
+let controller: AbortController | undefined, generation=0
 const publisher = computed(() => { try { const url = new URL(detail.value?.article.canonicalUrl ?? ''); return ['http:','https:'].includes(url.protocol) ? url.href : null } catch { return null } })
-onMounted(load); onBeforeUnmount(()=>controller.abort()); watch(()=>props.articleId,load)
-async function load(){state.value='loading';try{detail.value=await server.article(props.articleId,controller.signal);state.value='ready'}catch(cause){error.value=toUserSafeError(cause).message;state.value='error'}}
+onMounted(load); onBeforeUnmount(()=>controller?.abort()); watch(()=>props.articleId,load)
+async function load(){const current=++generation;controller?.abort();controller=new AbortController();state.value='loading';error.value='';try{const value=await server.article(props.articleId,controller.signal);if(current!==generation)return;detail.value=value;state.value='ready'}catch(cause){if(current!==generation||controller.signal.aborted)return;error.value=toUserSafeError(cause).message;state.value='error'}}
 function reconcile(library:LibraryState){if(detail.value)detail.value.article.library=library}
 </script>
 <template>
@@ -49,10 +50,10 @@ function reconcile(library:LibraryState){if(detail.value)detail.value.article.li
         :server="server"
         @updated="reconcile"
       /><div
-        v-if="detail.article.contentPermission==='full_content_allowed' && detail.fullContent"
+        v-if="detail.article.contentPermission==='full_content_allowed'"
         class="article-content"
       >
-        {{ detail.fullContent }}
+        {{ detail.fullContent || 'No article body was provided by this source.' }}
       </div><div v-else>
         <p>This source permits metadata only. The article body is not stored or displayed here.</p><a
           v-if="publisher"

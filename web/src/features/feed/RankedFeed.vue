@@ -15,7 +15,7 @@ import RefreshControl from '../refresh/RefreshControl.vue'
 const props = withDefaults(defineProps<{ serverApi?: ServerApi }>(), { serverApi: undefined })
 const server = props.serverApi ?? createServerApi(client)
 const items = ref<ArticleSummary[]>([]), sources = ref<Source[]>([]), cursor = ref<string|null>(null)
-const state = ref<'loading'|'ready'|'empty'|'error'>('loading'), loadingMore = ref(false), error = ref('')
+const state = ref<'loading'|'ready'|'empty'|'error'>('loading'), loadingMore = ref(false), queryError = ref(''), pageError = ref('')
 const source = ref(''), read = ref('all'), saved = ref('all'), text = ref(''), after = ref(''), before = ref('')
 type FilterSnapshot = { source: string; read: string; saved: string; text: string; after: string; before: string }
 const applied = ref<FilterSnapshot>({ source: '', read: 'all', saved: 'all', text: '', after: '', before: '' })
@@ -27,12 +27,12 @@ function draft(): FilterSnapshot { return { source: source.value, read: read.val
 function query(filter: FilterSnapshot, next?: string): FeedQuery { return { cursor: next || undefined, limit: 20, sourceId: filter.source ? [filter.source] : undefined, read: filter.read === 'all' ? undefined : filter.read === 'read', saved: filter.saved === 'saved' ? true : undefined, text: filter.text.trim() || undefined, publishedAfter: filter.after ? new Date(`${filter.after}T00:00:00`).toISOString() : undefined, publishedBefore: filter.before ? new Date(`${filter.before}T23:59:59`).toISOString() : undefined } }
 async function load(applyDraft = true) {
   if (applyDraft) applied.value = draft()
-  const requestGeneration = ++generation; loadController?.abort(); pageController?.abort(); loadController = new AbortController()
-  state.value = 'loading'; error.value = ''
-  try { const [page, list] = await Promise.all([server.feed(query(applied.value), loadController.signal), server.sources(loadController.signal)]); if(requestGeneration!==generation)return; items.value = page.items; cursor.value = page.nextCursor; sources.value = list.items; state.value = items.value.length ? 'ready' : 'empty' } catch (cause) { if(requestGeneration!==generation)return; error.value = toUserSafeError(cause).message; state.value = 'error' }
+  const requestGeneration = ++generation; loadController?.abort(); pageController?.abort(); loadController = new AbortController(); loadingMore.value=false; pageError.value=''
+  state.value = 'loading'; queryError.value = ''
+  try { const [page, list] = await Promise.all([server.feed(query(applied.value), loadController.signal), server.sources(loadController.signal)]); if(requestGeneration!==generation)return; items.value = page.items; cursor.value = page.nextCursor; sources.value = list.items; state.value = items.value.length ? 'ready' : 'empty' } catch (cause) { if(requestGeneration!==generation)return; queryError.value = toUserSafeError(cause).message; state.value = 'error' }
 }
-async function more() { if (!cursor.value) return; const requestGeneration=generation, next=cursor.value, filter={...applied.value}; pageController?.abort(); pageController=new AbortController(); loadingMore.value = true; try { const page = await server.feed(query(filter,next),pageController.signal); if(requestGeneration!==generation)return; items.value.push(...page.items); cursor.value = page.nextCursor } catch (cause) { if(requestGeneration===generation)error.value = toUserSafeError(cause).message } finally { if(requestGeneration===generation)loadingMore.value = false } }
-function reconcile(article: ArticleSummary, library: LibraryState) { article.library = library; if ((applied.value.saved==='saved'&&!library.savedAt)||(applied.value.read==='unread'&&library.readAt)||(applied.value.read==='read'&&!library.readAt)) hide(article.id) }
+async function more() { if (!cursor.value) return; const requestGeneration=generation, next=cursor.value, filter={...applied.value}; pageController?.abort(); pageController=new AbortController(); loadingMore.value = true; pageError.value=''; try { const page = await server.feed(query(filter,next),pageController.signal); if(requestGeneration!==generation)return; items.value.push(...page.items); cursor.value = page.nextCursor; pageError.value='' } catch (cause) { if(requestGeneration===generation)pageError.value = toUserSafeError(cause).message } finally { if(requestGeneration===generation)loadingMore.value = false } }
+function reconcile(article: ArticleSummary, library: LibraryState) { article.library = library; if ((applied.value.saved==='saved'&&!library.savedAt)||(applied.value.read==='unread'&&library.readAt)||(applied.value.read==='read'&&!library.readAt)) hide(article.id); void load(false) }
 function hide(id: string) { items.value = items.value.filter((item) => item.id !== id); if (!items.value.length) state.value = 'empty' }
 async function refreshed(){refreshing.value=false;await load(false)}
 function clear(){source.value='';read.value='all';saved.value='all';text.value='';after.value='';before.value='';void load()}
@@ -105,7 +105,7 @@ function clear(){source.value='';read.value='all';saved.value='all';text.value='
       v-else-if="state==='error'"
       role="alert"
     >
-      <p>{{ error }}</p><button
+      <p>{{ queryError }}</p><button
         type="button"
         @click="load()"
       >
@@ -144,10 +144,10 @@ function clear(){source.value='';read.value='all';saved.value='all';text.value='
       </li>
     </ol>
     <p
-      v-if="error"
+      v-if="pageError"
       role="alert"
     >
-      {{ error }}
+      {{ pageError }}
     </p><button
       v-if="cursor"
       type="button"
