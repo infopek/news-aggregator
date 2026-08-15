@@ -78,8 +78,13 @@ func TestLibraryTransitionsRecomputeTargetAndSurviveRestart(t *testing.T) {
 	if state.SavedAt == nil || state.HiddenAt == nil {
 		t.Fatalf("hide then save state=%+v", state)
 	}
-	if _, err := store.Rankings().GetResult(ctx, "library-a"); err != application.ErrNotFound {
-		t.Fatalf("hidden ranking remained: %v", err)
+	if _, err := store.Rankings().GetResult(ctx, "library-a"); err != nil {
+		t.Fatalf("hidden article lost its restorable ranking: %v", err)
+	}
+	hiddenPage, err := (appfeed.Service{Articles: store.Articles(), Library: store.Libraries(), Rankings: store.Rankings()}).GetFeed(ctx, application.FeedQuery{Limit: 30, Filter: application.FeedFilter{IncludeHidden: true}})
+	must(t, err)
+	if len(hiddenPage.Articles) != 2 || hiddenPage.Articles[0].Article.ID != "library-a" || hiddenPage.Articles[0].Library.HiddenAt == nil {
+		t.Fatalf("hidden article is not available for restore: %+v", hiddenPage.Articles)
 	}
 	hidden = false
 	state, err = service.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: "library-a", Patch: domain.LibraryPatch{Hidden: &hidden}})

@@ -11,7 +11,6 @@ import (
 
 type RecomputeRepository interface {
 	SaveResults(context.Context, []domain.RankingResult) error
-	DeleteResults(context.Context, []domain.ArticleID) error
 }
 
 // Recomputer serializes calculation and persistence so an older input snapshot
@@ -124,7 +123,6 @@ func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID
 			textByID[v.ArticleID] = v.Result
 		}
 		candidates := make([]Candidate, 0, len(articles))
-		hidden := make([]domain.ArticleID, 0)
 		for _, article := range articles {
 			if targets != nil {
 				if _, ok := targets[article.ID]; !ok {
@@ -138,9 +136,6 @@ func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID
 				return e
 			}
 			behavior := BehaviorSignal(configuration.Behavior.Enabled, state)
-			if behavior.Excluded {
-				hidden = append(hidden, article.ID)
-			}
 			candidates = append(candidates, Candidate{ArticleID: article.ID, PublishedAt: article.PublishedAt, Signals: []SignalResult{
 				RecencySignal(configuration.Recency.Enabled, r.Clock.Now(), article.PublishedAt, DefaultRecencyWindow),
 				InterestSignal(configuration.Interest.Enabled, profile.Interests, article.Topics),
@@ -156,10 +151,11 @@ func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID
 			return err
 		}
 		committed, err := r.Gate.commit(version, func() error {
-			if err := r.Results.SaveResults(ctx, results); err != nil {
-				return err
-			}
-			return r.Results.DeleteResults(ctx, hidden)
+			// Hidden articles remain excluded by the feed's library-state filter.
+			// Retain their last persisted result so the explicit include-hidden
+			// library view can display and restore them; restoration recalculates
+			// the article against current inputs before it rejoins the ranked feed.
+			return r.Results.SaveResults(ctx, results)
 		})
 		if err != nil || committed {
 			return err
