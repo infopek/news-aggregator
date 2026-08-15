@@ -69,6 +69,41 @@ jobs:
           SCREENSHOT_MODE: smoke
         run: ./scripts/verify.sh
 
+  contract-and-lifecycle:
+    name: Contract, lifecycle, and enforcement checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            scripts/package-lock.json
+            web/package-lock.json
+      - name: Use repository-compatible npm
+        run: npm install --global npm@11.6.2
+      - name: Install pinned contract and frontend dependencies
+        run: |
+          npm --prefix scripts ci
+          npm --prefix web ci
+      - name: Enforce shared API and generated-client contracts
+        run: ./scripts/contract.sh
+      - name: Enforce task-batch and lifecycle consistency
+        run: ./scripts/lifecycle-contract.sh
+      - name: Require executed integration tests
+        run: ./scripts/integration-contract.sh
+      - name: Prove representative failures are rejected
+        run: ./scripts/verify-enforcement-negatives.sh
+
   windows-build:
     name: Windows amd64 build
     runs-on: ubuntu-latest
