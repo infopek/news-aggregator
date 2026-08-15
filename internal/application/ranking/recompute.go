@@ -123,6 +123,7 @@ func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID
 			textByID[v.ArticleID] = v.Result
 		}
 		candidates := make([]Candidate, 0, len(articles))
+		hiddenResults := make([]domain.RankingResult, 0)
 		for _, article := range articles {
 			if targets != nil {
 				if _, ok := targets[article.ID]; !ok {
@@ -136,6 +137,12 @@ func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID
 				return e
 			}
 			behavior := BehaviorSignal(configuration.Behavior.Enabled, state)
+			if behavior.Excluded {
+				hiddenResults = append(hiddenResults, domain.RankingResult{
+					ArticleID: article.ID, Score: 0, AlgorithmVersion: CombinedAlgorithmVersion + "+" + configuration.NormalizationVersion, CalculatedAt: r.Clock.Now(),
+					Contributions: []domain.ScoreContribution{{Signal: domain.SignalBehavior, ReasonCode: ReasonArticleHidden, ReasonValues: map[string]string{"action": "hidden"}}},
+				})
+			}
 			candidates = append(candidates, Candidate{ArticleID: article.ID, PublishedAt: article.PublishedAt, Signals: []SignalResult{
 				RecencySignal(configuration.Recency.Enabled, r.Clock.Now(), article.PublishedAt, DefaultRecencyWindow),
 				InterestSignal(configuration.Interest.Enabled, profile.Interests, article.Topics),
@@ -147,6 +154,7 @@ func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID
 		if err != nil {
 			return err
 		}
+		results = append(results, hiddenResults...)
 		if err := ctx.Err(); err != nil {
 			return err
 		}

@@ -102,7 +102,7 @@ func run() error {
 	}}
 
 	feedQueries := appfeed.Service{Articles: store.Articles(), Library: store.Libraries(), Rankings: store.Rankings()}
-	libraryActions := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: systemClock{}, Recompute: recompute, Gate: rankingGate, Status: rankingStatus}
+	libraryActions := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: systemClock{}, Recompute: recompute, Gate: rankingGate, Status: rankingStatus, Transactions: store}
 	rankingConfiguration := applibrary.Configuration{Base: configuration, Recompute: recompute, Gate: rankingGate, Status: rankingStatus}
 	api := httpapi.NewAPIHandlerWithFeed(applicationVersion, httpapi.ConfigurationAPI{Profiles: rankingConfiguration, Sources: configuration, Starters: starterSources()}, httpapi.RefreshAPI{Service: refresh}, httpapi.FeedAPI{Service: feedQueries, Library: libraryActions})
 	host := platform.Host{

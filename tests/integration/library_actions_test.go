@@ -54,7 +54,7 @@ func TestLibraryTransitionsRecomputeTargetAndSurviveRestart(t *testing.T) {
 	must(t, recompute.Full(ctx))
 	baselineB, err := store.Rankings().GetResult(ctx, "library-b")
 	must(t, err)
-	service := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: clock, Recompute: recompute, Gate: gate}
+	service := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: clock, Recompute: recompute, Gate: gate, Transactions: store}
 	clock.now = clock.now.Add(time.Hour)
 	read := true
 	first, err := service.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: "library-a", Patch: domain.LibraryPatch{Read: &read}})
@@ -83,17 +83,36 @@ func TestLibraryTransitionsRecomputeTargetAndSurviveRestart(t *testing.T) {
 	}
 	hiddenPage, err := (appfeed.Service{Articles: store.Articles(), Library: store.Libraries(), Rankings: store.Rankings()}).GetFeed(ctx, application.FeedQuery{Limit: 30, Filter: application.FeedFilter{IncludeHidden: true}})
 	must(t, err)
-	if len(hiddenPage.Articles) != 2 || hiddenPage.Articles[0].Article.ID != "library-a" || hiddenPage.Articles[0].Library.HiddenAt == nil {
+	if len(hiddenPage.Articles) != 2 || hiddenPage.Articles[1].Article.ID != "library-a" || hiddenPage.Articles[1].Library.HiddenAt == nil {
 		t.Fatalf("hidden article is not available for restore: %+v", hiddenPage.Articles)
 	}
+	hiddenResult, err := store.Rankings().GetResult(ctx, "library-a")
+	must(t, err)
+	if hiddenResult.Score != 0 || hiddenResult.Contributions[0].ReasonCode != appranking.ReasonArticleHidden {
+		t.Fatalf("hidden result is not an explicit current exclusion: %+v", hiddenResult)
+	}
+	clock.now = clock.now.Add(time.Hour)
+	configuration.NormalizationVersion = "v2"
+	must(t, store.Rankings().SaveConfiguration(ctx, configuration))
+	must(t, recompute.Full(ctx))
+	hiddenResult, err = store.Rankings().GetResult(ctx, "library-a")
+	must(t, err)
+	if hiddenResult.AlgorithmVersion != appranking.CombinedAlgorithmVersion+"+v2" || !hiddenResult.CalculatedAt.Equal(clock.now) {
+		t.Fatalf("hidden result was not refreshed with current ranking inputs: %+v", hiddenResult)
+	}
 	hidden = false
+	clock.now = clock.now.Add(time.Hour)
 	state, err = service.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: "library-a", Patch: domain.LibraryPatch{Hidden: &hidden}})
 	must(t, err)
 	if state.HiddenAt != nil || state.SavedAt == nil {
 		t.Fatalf("restore lost independent state: %+v", state)
 	}
-	if _, err := store.Rankings().GetResult(ctx, "library-a"); err != nil {
+	restoredResult, err := store.Rankings().GetResult(ctx, "library-a")
+	if err != nil {
 		t.Fatalf("restored article was not reranked: %v", err)
+	}
+	if !restoredResult.CalculatedAt.Equal(clock.now) || restoredResult.Score == 0 || restoredResult.Contributions[0].ReasonCode == appranking.ReasonArticleHidden {
+		t.Fatalf("restore exposed a stale hidden result: %+v", restoredResult)
 	}
 
 	handler := httpapi.NewFeedHandler(httpapi.FeedAPI{Service: appfeed.Service{Articles: store.Articles(), Library: store.Libraries(), Rankings: store.Rankings()}, Library: service})
@@ -165,7 +184,7 @@ func TestLibraryMutationRecomputeFailureIsIdempotentlyRetryable(t *testing.T) {
 	must(t, base.Full(ctx))
 	flaky := &flakyArticleRecompute{base: base, failures: 1}
 	status := &applibrary.RecomputeStatus{}
-	service := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: clock, Recompute: flaky, Gate: gate, Status: status}
+	service := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: clock, Recompute: flaky, Gate: gate, Status: status, Transactions: store}
 	saved := true
 	first, err := service.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: article.ID, Patch: domain.LibraryPatch{Saved: &saved}})
 	must(t, err)
@@ -195,5 +214,30 @@ func TestLibraryMutationRecomputeFailureIsIdempotentlyRetryable(t *testing.T) {
 	}
 	if !status.Failed() {
 		t.Fatal("HTTP mutation did not retain recomputation failure status")
+	}
+
+	flaky.failures = 0
+	hidden := true
+	state, err := service.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: article.ID, Patch: domain.LibraryPatch{Hidden: &hidden}})
+	must(t, err)
+	if state.HiddenAt == nil {
+		t.Fatal("hide did not persist")
+	}
+	flaky.failures = 1
+	hidden = false
+	state, err = service.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: article.ID, Patch: domain.LibraryPatch{Hidden: &hidden}})
+	must(t, err)
+	if state.HiddenAt == nil || !status.Failed() {
+		t.Fatalf("failed restore was exposed as eligible: state=%+v failed=%v", state, status.Failed())
+	}
+	persisted, err = store.Libraries().Get(ctx, article.ID)
+	must(t, err)
+	if persisted.HiddenAt == nil {
+		t.Fatal("failed restore did not roll back hidden state")
+	}
+	page, err := (appfeed.Service{Articles: store.Articles(), Library: store.Libraries(), Rankings: store.Rankings()}).GetFeed(ctx, application.FeedQuery{Limit: 30})
+	must(t, err)
+	if len(page.Articles) != 0 {
+		t.Fatalf("failed restore leaked article into normal feed: %+v", page.Articles)
 	}
 }

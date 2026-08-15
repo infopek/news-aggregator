@@ -13,12 +13,13 @@ type ArticleRecomputer interface {
 }
 
 type Service struct {
-	Articles  application.ArticleRepository
-	Library   application.LibraryRepository
-	Clock     application.Clock
-	Recompute ArticleRecomputer
-	Gate      interface{ BeginMutation() func() }
-	Status    *RecomputeStatus
+	Articles     application.ArticleRepository
+	Library      application.LibraryRepository
+	Clock        application.Clock
+	Recompute    ArticleRecomputer
+	Gate         interface{ BeginMutation() func() }
+	Status       *RecomputeStatus
+	Transactions application.TransactionManager
 }
 
 func (s Service) UpdateLibraryState(ctx context.Context, command application.UpdateLibraryStateCommand) (domain.LibraryState, error) {
@@ -41,6 +42,9 @@ func (s Service) UpdateLibraryState(ctx context.Context, command application.Upd
 		s.record(s.Recompute.Article(ctx, command.ArticleID))
 		return current, nil
 	}
+	if command.Patch.Hidden != nil && !*command.Patch.Hidden && current.HiddenAt != nil {
+		return s.restore(ctx, command, current)
+	}
 	done := s.Gate.BeginMutation()
 	updated, err := s.Library.Apply(ctx, command.ArticleID, command.Patch, s.Clock.Now())
 	done()
@@ -48,6 +52,42 @@ func (s Service) UpdateLibraryState(ctx context.Context, command application.Upd
 		return domain.LibraryState{}, err
 	}
 	s.record(s.Recompute.Article(ctx, command.ArticleID))
+	return updated, nil
+}
+
+func (s Service) restore(ctx context.Context, command application.UpdateLibraryStateCommand, current domain.LibraryState) (domain.LibraryState, error) {
+	if s.Transactions == nil {
+		return domain.LibraryState{}, application.ErrUnavailable
+	}
+	var updated domain.LibraryState
+	var recomputeFailed bool
+	done := s.Gate.BeginMutation()
+	released := false
+	err := s.Transactions.WithinTransaction(ctx, func(txctx context.Context) error {
+		var err error
+		updated, err = s.Library.Apply(txctx, command.ArticleID, command.Patch, s.Clock.Now())
+		done()
+		released = true
+		if err != nil {
+			return err
+		}
+		if err = s.Recompute.Article(txctx, command.ArticleID); err != nil {
+			recomputeFailed = true
+			return err
+		}
+		return nil
+	})
+	if !released {
+		done()
+	}
+	if recomputeFailed {
+		s.record(err)
+		return current, nil
+	}
+	if err != nil {
+		return domain.LibraryState{}, err
+	}
+	s.record(nil)
 	return updated, nil
 }
 
