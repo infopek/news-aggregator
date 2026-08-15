@@ -1,0 +1,44 @@
+{
+  "decision": "APPROVE",
+  "revision": "779196c1fe82e67144edc068bd8849eb8f661a61",
+  "generatedAt": "2026-08-15T14:09:03.728Z",
+  "processRestart": [
+    "2026-08-15T14:08:58.485Z initial launch pid=141580",
+    "2026-08-15T14:09:03.078Z stopped Go process pid=141580",
+    "2026-08-15T14:09:03.184Z restarted Go process with same SQLite database pid=142112"
+  ],
+  "accessibility": [
+    "ranked-feed: 0 serious/critical",
+    "library: 0 serious/critical",
+    "narrow-feed: 0 serious/critical"
+  ],
+  "browserStorage": {
+    "local": {
+      "news-aggregator:library-view": "saved",
+      "news-aggregator:last-refresh-id": "refresh-1786802939679208273"
+    },
+    "session": {}
+  },
+  "browserOutboundRequests": [
+    "http://127.0.0.1:42757/",
+    "http://127.0.0.1:42757/assets/index-CR0Y-Ume.js",
+    "http://127.0.0.1:42757/assets/index-ulpUncRn.css",
+    "http://127.0.0.1:42757/api/v1/feed?limit=20",
+    "http://127.0.0.1:42757/api/v1/sources",
+    "http://127.0.0.1:42757/api/v1/profile",
+    "http://127.0.0.1:42757/assets/workbox-window.prod.es5-Bd17z0YL.js",
+    "http://127.0.0.1:42757/api/v1/ranking-config",
+    "http://127.0.0.1:42757/api/v1/starter-sources",
+    "http://127.0.0.1:42757/api/v1/refresh",
+    "http://127.0.0.1:42757/api/v1/refresh/refresh-1786802939679208273",
+    "http://127.0.0.1:42757/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229",
+    "http://127.0.0.1:42757/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229/library-state",
+    "http://127.0.0.1:42757/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e/library-state",
+    "http://127.0.0.1:42757/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e",
+    "http://127.0.0.1:42757/api/v1/feed?limit=20&saved=true",
+    "http://127.0.0.1:42757/api/v1/feed?saved=true&limit=100",
+    "http://127.0.0.1:42757/api/v1/feed?includeHidden=true&limit=100",
+    "http://127.0.0.1:42757/library"
+  ],
+  "assertions": "complete daily-use workflow passed against real Go/SQLite/Vue stack"
+}
