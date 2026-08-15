@@ -96,6 +96,8 @@ jobs:
           npm --prefix scripts ci
           npm --prefix web ci
       - name: Enforce shared API and generated-client contracts
+        env:
+          SCREENSHOT_MODE: smoke
         run: ./scripts/contract.sh
       - name: Enforce task-batch and lifecycle consistency
         run: ./scripts/lifecycle-contract.sh
