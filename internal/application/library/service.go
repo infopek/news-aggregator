@@ -12,6 +12,11 @@ type ArticleRecomputer interface {
 	Article(context.Context, domain.ArticleID) error
 }
 
+type MutationArticleRecomputer interface {
+	ArticleRecomputer
+	ArticleMutation(context.Context, domain.ArticleID, application.TransactionManager, func(context.Context) error) error
+}
+
 type Service struct {
 	Articles     application.ArticleRepository
 	Library      application.LibraryRepository
@@ -60,27 +65,22 @@ func (s Service) restore(ctx context.Context, command application.UpdateLibraryS
 		return domain.LibraryState{}, application.ErrUnavailable
 	}
 	var updated domain.LibraryState
-	var recomputeFailed bool
-	done := s.Gate.BeginMutation()
-	released := false
-	err := s.Transactions.WithinTransaction(ctx, func(txctx context.Context) error {
+	atomic, ok := s.Recompute.(MutationArticleRecomputer)
+	if !ok {
+		return domain.LibraryState{}, application.ErrUnavailable
+	}
+	var mutationApplied bool
+	err := atomic.ArticleMutation(ctx, command.ArticleID, s.Transactions, func(txctx context.Context) error {
+		done := s.Gate.BeginMutation()
+		defer done()
 		var err error
 		updated, err = s.Library.Apply(txctx, command.ArticleID, command.Patch, s.Clock.Now())
-		done()
-		released = true
-		if err != nil {
-			return err
+		if err == nil {
+			mutationApplied = true
 		}
-		if err = s.Recompute.Article(txctx, command.ArticleID); err != nil {
-			recomputeFailed = true
-			return err
-		}
-		return nil
+		return err
 	})
-	if !released {
-		done()
-	}
-	if recomputeFailed {
+	if err != nil && mutationApplied {
 		s.record(err)
 		return current, nil
 	}

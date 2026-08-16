@@ -94,12 +94,38 @@ func (r *Recomputer) Article(ctx context.Context, id domain.ArticleID) error {
 	return r.recompute(ctx, map[domain.ArticleID]struct{}{id: {}})
 }
 
-func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID]struct{}) error {
-	if r == nil || r.Articles == nil || r.Library == nil || r.Profiles == nil || r.Rankings == nil || r.Results == nil || r.Clock == nil || r.Gate == nil {
+// ArticleMutation owns recomputation serialization before opening the
+// mutation transaction. This lock order lets a caller publish a mutation and
+// its targeted ranking atomically without holding SQLite while waiting for a
+// concurrent full recomputation.
+func (r *Recomputer) ArticleMutation(ctx context.Context, id domain.ArticleID, transactions application.TransactionManager, mutation func(context.Context) error) error {
+	if id == "" || transactions == nil || mutation == nil || !r.ready() {
 		return application.ErrUnavailable
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	return transactions.WithinTransaction(ctx, func(txctx context.Context) error {
+		if err := mutation(txctx); err != nil {
+			return err
+		}
+		return r.recomputeLocked(txctx, map[domain.ArticleID]struct{}{id: {}})
+	})
+}
+
+func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID]struct{}) error {
+	if !r.ready() {
+		return application.ErrUnavailable
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.recomputeLocked(ctx, targets)
+}
+
+func (r *Recomputer) ready() bool {
+	return r != nil && r.Articles != nil && r.Library != nil && r.Profiles != nil && r.Rankings != nil && r.Results != nil && r.Clock != nil && r.Gate != nil
+}
+
+func (r *Recomputer) recomputeLocked(ctx context.Context, targets map[domain.ArticleID]struct{}) error {
 	for {
 		version, err := r.Gate.stable(ctx)
 		if err != nil {

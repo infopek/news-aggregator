@@ -26,12 +26,40 @@ type flakyArticleRecompute struct {
 	failures int
 }
 
+type blockingLibraryRepository struct {
+	application.LibraryRepository
+	entered chan struct{}
+	release chan struct{}
+}
+
+func (r *blockingLibraryRepository) Apply(ctx context.Context, id domain.ArticleID, patch domain.LibraryPatch, at time.Time) (domain.LibraryState, error) {
+	state, err := r.LibraryRepository.Apply(ctx, id, patch, at)
+	if err == nil && patch.Hidden != nil && !*patch.Hidden {
+		close(r.entered)
+		<-r.release
+	}
+	return state, err
+}
+
 func (r *flakyArticleRecompute) Article(ctx context.Context, id domain.ArticleID) error {
 	if r.failures > 0 {
 		r.failures--
 		return application.ErrUnavailable
 	}
 	return r.base.Article(ctx, id)
+}
+
+func (r *flakyArticleRecompute) ArticleMutation(ctx context.Context, id domain.ArticleID, transactions application.TransactionManager, mutation func(context.Context) error) error {
+	if r.failures > 0 {
+		r.failures--
+		return transactions.WithinTransaction(ctx, func(txctx context.Context) error {
+			if err := mutation(txctx); err != nil {
+				return err
+			}
+			return application.ErrUnavailable
+		})
+	}
+	return r.base.ArticleMutation(ctx, id, transactions, mutation)
 }
 
 func TestLibraryTransitionsRecomputeTargetAndSurviveRestart(t *testing.T) {
@@ -164,6 +192,58 @@ func TestCancelledRecomputePreservesPriorResult(t *testing.T) {
 	must(t, err)
 	if !after.CalculatedAt.Equal(before.CalculatedAt) || after.Score != before.Score {
 		t.Fatalf("cancelled recompute overwrote result: before=%+v after=%+v", before, after)
+	}
+}
+
+func TestRestoreDoesNotDeadlockWithConcurrentFullRecompute(t *testing.T) {
+	store, _ := openStore(t)
+	defer store.Close()
+	ctx := context.Background()
+	clock := &rankClock{now: time.Now().UTC()}
+	must(t, store.Profiles().Save(ctx, domain.UserProfile{ID: domain.LocalProfileID, UpdatedAt: clock.now}))
+	must(t, store.Rankings().SaveConfiguration(ctx, domain.RankingConfiguration{Recency: domain.SignalWeight{Enabled: true, Weight: 1}, PerDemographicCap: .1, TotalDemographicCap: .2, NormalizationVersion: "v1"}))
+	source := serviceFeed("concurrent-restore-source", "https://example.com/concurrent-restore")
+	must(t, store.Sources().Save(ctx, source))
+	article := domain.Article{ID: "concurrent-restore", Fingerprint: "concurrent-restore-fp", SourceID: source.ID, CanonicalURL: "https://example.com/concurrent-restore/article", Title: "Concurrent restore", PublishedAt: &clock.now, FetchedAt: clock.now, ContentPermission: domain.ContentMetadataOnly}
+	_, err := store.Articles().Upsert(ctx, article)
+	must(t, err)
+	gate := &appranking.VersionGate{}
+	blockedLibrary := &blockingLibraryRepository{LibraryRepository: store.Libraries(), entered: make(chan struct{}), release: make(chan struct{})}
+	recompute := &appranking.Recomputer{Articles: store.Articles(), Library: blockedLibrary, Profiles: store.Profiles(), Rankings: store.Rankings(), Results: store.Rankings(), Clock: clock, Gate: gate}
+	must(t, recompute.Full(ctx))
+	service := applibrary.Service{Articles: store.Articles(), Library: blockedLibrary, Clock: clock, Recompute: recompute, Gate: gate, Transactions: store}
+	hidden := true
+	_, err = service.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: article.ID, Patch: domain.LibraryPatch{Hidden: &hidden}})
+	must(t, err)
+
+	restoreDone := make(chan error, 1)
+	hidden = false
+	go func() {
+		_, restoreErr := service.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: article.ID, Patch: domain.LibraryPatch{Hidden: &hidden}})
+		restoreDone <- restoreErr
+	}()
+	select {
+	case <-blockedLibrary.entered:
+	case <-time.After(2 * time.Second):
+		t.Fatal("restore did not reach its transaction")
+	}
+	fullDone := make(chan error, 1)
+	go func() { fullDone <- recompute.Full(context.WithoutCancel(ctx)) }()
+	close(blockedLibrary.release)
+	for name, result := range map[string]<-chan error{"restore": restoreDone, "full recompute": fullDone} {
+		select {
+		case err := <-result:
+			must(t, err)
+		case <-time.After(2 * time.Second):
+			t.Fatalf("%s deadlocked", name)
+		}
+	}
+	state, err := store.Libraries().Get(ctx, article.ID)
+	must(t, err)
+	result, rankErr := store.Rankings().GetResult(ctx, article.ID)
+	must(t, rankErr)
+	if state.HiddenAt != nil || result.Score == 0 || result.Contributions[0].ReasonCode == appranking.ReasonArticleHidden {
+		t.Fatalf("restore did not publish fresh eligible ranking: state=%+v result=%+v", state, result)
 	}
 }
 
