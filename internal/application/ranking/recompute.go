@@ -108,7 +108,7 @@ func (r *Recomputer) ArticleMutation(ctx context.Context, id domain.ArticleID, t
 		if err := mutation(txctx); err != nil {
 			return err
 		}
-		return r.recomputeLocked(txctx, map[domain.ArticleID]struct{}{id: {}})
+		return r.recomputeLocked(txctx, map[domain.ArticleID]struct{}{id: {}}, true)
 	})
 }
 
@@ -118,18 +118,22 @@ func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	return r.recomputeLocked(ctx, targets)
+	return r.recomputeLocked(ctx, targets, false)
 }
 
 func (r *Recomputer) ready() bool {
 	return r != nil && r.Articles != nil && r.Library != nil && r.Profiles != nil && r.Rankings != nil && r.Results != nil && r.Clock != nil && r.Gate != nil
 }
 
-func (r *Recomputer) recomputeLocked(ctx context.Context, targets map[domain.ArticleID]struct{}) error {
+func (r *Recomputer) recomputeLocked(ctx context.Context, targets map[domain.ArticleID]struct{}, transactionOwned bool) error {
 	for {
-		version, err := r.Gate.stable(ctx)
-		if err != nil {
-			return err
+		version := r.Gate.current()
+		if !transactionOwned {
+			var err error
+			version, err = r.Gate.stable(ctx)
+			if err != nil {
+				return err
+			}
 		}
 		articles, err := r.Articles.ListForRanking(ctx)
 		if err != nil {
@@ -184,13 +188,22 @@ func (r *Recomputer) recomputeLocked(ctx context.Context, targets map[domain.Art
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		committed, err := r.Gate.commit(version, func() error {
+		save := func() error {
 			// Hidden articles remain excluded by the feed's library-state filter.
 			// Retain their last persisted result so the explicit include-hidden
 			// library view can display and restore them; restoration recalculates
 			// the article against current inputs before it rejoins the ranked feed.
 			return r.Results.SaveResults(ctx, results)
-		})
+		}
+		if transactionOwned {
+			// The caller owns the write transaction and recomputation mutex.
+			// Other gate participants cannot publish SQLite changes until this
+			// transaction releases, so waiting for them here would invert the
+			// database/gate lock order. Their completion changes the generation
+			// and schedules the recomputation for their subsequently committed state.
+			return save()
+		}
+		committed, err := r.Gate.commit(version, save)
 		if err != nil || committed {
 			return err
 		}

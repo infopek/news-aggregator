@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
 
@@ -30,6 +31,27 @@ type blockingLibraryRepository struct {
 	application.LibraryRepository
 	entered chan struct{}
 	release chan struct{}
+}
+
+type firstMutationGate struct {
+	base    *appranking.VersionGate
+	entered chan struct{}
+	release chan struct{}
+	mu      sync.Mutex
+	blocked bool
+}
+
+func (g *firstMutationGate) BeginMutation() func() {
+	done := g.base.BeginMutation()
+	g.mu.Lock()
+	first := !g.blocked
+	g.blocked = true
+	g.mu.Unlock()
+	if first {
+		close(g.entered)
+		<-g.release
+	}
+	return done
 }
 
 func (r *blockingLibraryRepository) Apply(ctx context.Context, id domain.ArticleID, patch domain.LibraryPatch, at time.Time) (domain.LibraryState, error) {
@@ -244,6 +266,69 @@ func TestRestoreDoesNotDeadlockWithConcurrentFullRecompute(t *testing.T) {
 	must(t, rankErr)
 	if state.HiddenAt != nil || result.Score == 0 || result.Contributions[0].ReasonCode == appranking.ReasonArticleHidden {
 		t.Fatalf("restore did not publish fresh eligible ranking: state=%+v result=%+v", state, result)
+	}
+}
+
+func TestRestoreDoesNotWaitForMutationBlockedByItsTransaction(t *testing.T) {
+	store, _ := openStore(t)
+	defer store.Close()
+	ctx := context.Background()
+	clock := &rankClock{now: time.Now().UTC()}
+	must(t, store.Profiles().Save(ctx, domain.UserProfile{ID: domain.LocalProfileID, UpdatedAt: clock.now}))
+	must(t, store.Rankings().SaveConfiguration(ctx, domain.RankingConfiguration{Recency: domain.SignalWeight{Enabled: true, Weight: .5}, Behavior: domain.SignalWeight{Enabled: true, Weight: .5}, PerDemographicCap: .1, TotalDemographicCap: .2, NormalizationVersion: "v1"}))
+	source := serviceFeed("mutation-overlap-source", "https://example.com/mutation-overlap")
+	must(t, store.Sources().Save(ctx, source))
+	for _, id := range []domain.ArticleID{"restore-target", "save-target"} {
+		article := domain.Article{ID: id, Fingerprint: "fp-" + string(id), SourceID: source.ID, CanonicalURL: "https://example.com/" + string(id), Title: string(id), PublishedAt: &clock.now, FetchedAt: clock.now, ContentPermission: domain.ContentMetadataOnly}
+		_, err := store.Articles().Upsert(ctx, article)
+		must(t, err)
+	}
+	gate := &appranking.VersionGate{}
+	recompute := &appranking.Recomputer{Articles: store.Articles(), Library: store.Libraries(), Profiles: store.Profiles(), Rankings: store.Rankings(), Results: store.Rankings(), Clock: clock, Gate: gate}
+	must(t, recompute.Full(ctx))
+	baseService := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: clock, Recompute: recompute, Gate: gate, Transactions: store}
+	hidden := true
+	_, err := baseService.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: "restore-target", Patch: domain.LibraryPatch{Hidden: &hidden}})
+	must(t, err)
+
+	blockedGate := &firstMutationGate{base: gate, entered: make(chan struct{}), release: make(chan struct{})}
+	service := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: clock, Recompute: recompute, Gate: blockedGate, Transactions: store}
+	saveDone := make(chan error, 1)
+	saved := true
+	go func() {
+		_, saveErr := service.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: "save-target", Patch: domain.LibraryPatch{Saved: &saved}})
+		saveDone <- saveErr
+	}()
+	select {
+	case <-blockedGate.entered:
+	case <-time.After(2 * time.Second):
+		t.Fatal("ordinary mutation did not enter the version gate")
+	}
+	restoreDone := make(chan error, 1)
+	hidden = false
+	go func() {
+		_, restoreErr := service.UpdateLibraryState(ctx, application.UpdateLibraryStateCommand{ArticleID: "restore-target", Patch: domain.LibraryPatch{Hidden: &hidden}})
+		restoreDone <- restoreErr
+	}()
+	select {
+	case err := <-restoreDone:
+		must(t, err)
+	case <-time.After(2 * time.Second):
+		t.Fatal("restore waited on a gate participant that could not reach SQLite")
+	}
+	close(blockedGate.release)
+	select {
+	case err := <-saveDone:
+		must(t, err)
+	case <-time.After(2 * time.Second):
+		t.Fatal("ordinary mutation did not finish after restore released SQLite")
+	}
+	restored, err := store.Libraries().Get(ctx, "restore-target")
+	must(t, err)
+	savedState, err := store.Libraries().Get(ctx, "save-target")
+	must(t, err)
+	if restored.HiddenAt != nil || savedState.SavedAt == nil {
+		t.Fatalf("overlapping mutations lost authoritative state: restored=%+v saved=%+v", restored, savedState)
 	}
 }
 
