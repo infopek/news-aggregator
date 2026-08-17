@@ -1,0 +1,3 @@
+2026-08-17T15:07:32.191Z initial launch pid=2877869
+2026-08-17T15:07:37.809Z stopped Go process pid=2877869
+2026-08-17T15:07:37.914Z restarted Go process with same SQLite database pid=2878555

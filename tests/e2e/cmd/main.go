@@ -105,7 +105,7 @@ func run() error {
 		domain.SourceKindScraper: applibrary.Runner{Base: newRunner(scraper.Adapter{Fetcher: fetcher}), Recompute: recompute, Gate: gate, Status: status},
 	}}
 	queries := appfeed.Service{Articles: store.Articles(), Library: store.Libraries(), Rankings: store.Rankings()}
-	actions := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: clock{}, Recompute: recompute, Gate: gate, Status: status}
+	actions := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: clock{}, Recompute: recompute, Gate: gate, Status: status, Transactions: store}
 	rankingConfiguration := applibrary.Configuration{Base: configuration, Recompute: recompute, Gate: gate, Status: status}
 	ids, nextID := []string{"starter-failure", "metadata-source", "full-source"}, 0
 	newSourceID := func() string { id := ids[nextID]; nextID++; return id }

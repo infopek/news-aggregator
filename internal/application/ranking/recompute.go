@@ -11,7 +11,6 @@ import (
 
 type RecomputeRepository interface {
 	SaveResults(context.Context, []domain.RankingResult) error
-	DeleteResults(context.Context, []domain.ArticleID) error
 }
 
 // Recomputer serializes calculation and persistence so an older input snapshot
@@ -95,16 +94,46 @@ func (r *Recomputer) Article(ctx context.Context, id domain.ArticleID) error {
 	return r.recompute(ctx, map[domain.ArticleID]struct{}{id: {}})
 }
 
-func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID]struct{}) error {
-	if r == nil || r.Articles == nil || r.Library == nil || r.Profiles == nil || r.Rankings == nil || r.Results == nil || r.Clock == nil || r.Gate == nil {
+// ArticleMutation owns recomputation serialization before opening the
+// mutation transaction. This lock order lets a caller publish a mutation and
+// its targeted ranking atomically without holding SQLite while waiting for a
+// concurrent full recomputation.
+func (r *Recomputer) ArticleMutation(ctx context.Context, id domain.ArticleID, transactions application.TransactionManager, mutation func(context.Context) error) error {
+	if id == "" || transactions == nil || mutation == nil || !r.ready() {
 		return application.ErrUnavailable
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	for {
-		version, err := r.Gate.stable(ctx)
-		if err != nil {
+	return transactions.WithinTransaction(ctx, func(txctx context.Context) error {
+		if err := mutation(txctx); err != nil {
 			return err
+		}
+		return r.recomputeLocked(txctx, map[domain.ArticleID]struct{}{id: {}}, true)
+	})
+}
+
+func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID]struct{}) error {
+	if !r.ready() {
+		return application.ErrUnavailable
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.recomputeLocked(ctx, targets, false)
+}
+
+func (r *Recomputer) ready() bool {
+	return r != nil && r.Articles != nil && r.Library != nil && r.Profiles != nil && r.Rankings != nil && r.Results != nil && r.Clock != nil && r.Gate != nil
+}
+
+func (r *Recomputer) recomputeLocked(ctx context.Context, targets map[domain.ArticleID]struct{}, transactionOwned bool) error {
+	for {
+		version := r.Gate.current()
+		if !transactionOwned {
+			var err error
+			version, err = r.Gate.stable(ctx)
+			if err != nil {
+				return err
+			}
 		}
 		articles, err := r.Articles.ListForRanking(ctx)
 		if err != nil {
@@ -124,7 +153,7 @@ func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID
 			textByID[v.ArticleID] = v.Result
 		}
 		candidates := make([]Candidate, 0, len(articles))
-		hidden := make([]domain.ArticleID, 0)
+		hiddenResults := make([]domain.RankingResult, 0)
 		for _, article := range articles {
 			if targets != nil {
 				if _, ok := targets[article.ID]; !ok {
@@ -139,7 +168,10 @@ func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID
 			}
 			behavior := BehaviorSignal(configuration.Behavior.Enabled, state)
 			if behavior.Excluded {
-				hidden = append(hidden, article.ID)
+				hiddenResults = append(hiddenResults, domain.RankingResult{
+					ArticleID: article.ID, Score: 0, AlgorithmVersion: CombinedAlgorithmVersion + "+" + configuration.NormalizationVersion, CalculatedAt: r.Clock.Now(),
+					Contributions: []domain.ScoreContribution{{Signal: domain.SignalBehavior, ReasonCode: ReasonArticleHidden, ReasonValues: map[string]string{"action": "hidden"}}},
+				})
 			}
 			candidates = append(candidates, Candidate{ArticleID: article.ID, PublishedAt: article.PublishedAt, Signals: []SignalResult{
 				RecencySignal(configuration.Recency.Enabled, r.Clock.Now(), article.PublishedAt, DefaultRecencyWindow),
@@ -152,15 +184,26 @@ func (r *Recomputer) recompute(ctx context.Context, targets map[domain.ArticleID
 		if err != nil {
 			return err
 		}
+		results = append(results, hiddenResults...)
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		committed, err := r.Gate.commit(version, func() error {
-			if err := r.Results.SaveResults(ctx, results); err != nil {
-				return err
-			}
-			return r.Results.DeleteResults(ctx, hidden)
-		})
+		save := func() error {
+			// Hidden articles remain excluded by the feed's library-state filter.
+			// Retain their last persisted result so the explicit include-hidden
+			// library view can display and restore them; restoration recalculates
+			// the article against current inputs before it rejoins the ranked feed.
+			return r.Results.SaveResults(ctx, results)
+		}
+		if transactionOwned {
+			// The caller owns the write transaction and recomputation mutex.
+			// Other gate participants cannot publish SQLite changes until this
+			// transaction releases, so waiting for them here would invert the
+			// database/gate lock order. Their completion changes the generation
+			// and schedules the recomputation for their subsequently committed state.
+			return save()
+		}
+		committed, err := r.Gate.commit(version, save)
 		if err != nil || committed {
 			return err
 		}

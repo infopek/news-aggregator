@@ -1,0 +1,44 @@
+{
+  "decision": "APPROVE",
+  "revision": "1fe180be7eae8f13c3120c66bdff38c8f02ece1d",
+  "generatedAt": "2026-08-17T15:21:00.597Z",
+  "processRestart": [
+    "2026-08-17T15:20:55.031Z initial launch pid=2948027",
+    "2026-08-17T15:20:59.835Z stopped Go process pid=2948027",
+    "2026-08-17T15:21:00.009Z restarted Go process with same SQLite database pid=2948616"
+  ],
+  "accessibility": [
+    "ranked-feed: 0 serious/critical",
+    "library: 0 serious/critical",
+    "narrow-feed: 0 serious/critical"
+  ],
+  "browserStorage": {
+    "local": {
+      "news-aggregator:library-view": "saved",
+      "news-aggregator:last-refresh-id": "refresh-1786980056344155317"
+    },
+    "session": {}
+  },
+  "browserOutboundRequests": [
+    "http://127.0.0.1:45373/",
+    "http://127.0.0.1:45373/assets/index-CR0Y-Ume.js",
+    "http://127.0.0.1:45373/assets/index-ulpUncRn.css",
+    "http://127.0.0.1:45373/api/v1/feed?limit=20",
+    "http://127.0.0.1:45373/api/v1/sources",
+    "http://127.0.0.1:45373/api/v1/profile",
+    "http://127.0.0.1:45373/assets/workbox-window.prod.es5-Bd17z0YL.js",
+    "http://127.0.0.1:45373/api/v1/ranking-config",
+    "http://127.0.0.1:45373/api/v1/starter-sources",
+    "http://127.0.0.1:45373/api/v1/refresh",
+    "http://127.0.0.1:45373/api/v1/refresh/refresh-1786980056344155317",
+    "http://127.0.0.1:45373/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229",
+    "http://127.0.0.1:45373/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229/library-state",
+    "http://127.0.0.1:45373/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e/library-state",
+    "http://127.0.0.1:45373/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e",
+    "http://127.0.0.1:45373/api/v1/feed?limit=20&saved=true",
+    "http://127.0.0.1:45373/api/v1/feed?saved=true&limit=100",
+    "http://127.0.0.1:45373/api/v1/feed?includeHidden=true&limit=100",
+    "http://127.0.0.1:45373/library"
+  ],
+  "assertions": "complete daily-use workflow passed against real Go/SQLite/Vue stack, including empty feed, keyboard-only hide/restore navigation, and API interruption recovery"
+}
