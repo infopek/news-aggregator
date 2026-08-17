@@ -1,12 +1,14 @@
 param(
   [string]$OutputRoot = (Join-Path $env:RUNNER_TEMP "News Aggregator Native Smoke"),
   [string]$Revision,
+  [string]$CredentialSentinel,
   [switch]$Restricted
 )
 
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 $PSNativeCommandUseErrorActionPreference = $true
+$CredentialSentinel = if ($CredentialSentinel) { $CredentialSentinel } else { "VERIFY003-$([guid]::NewGuid().ToString('N'))" }
 
 if (-not $Restricted) {
   New-Item -ItemType Directory -Force -Path $OutputRoot | Out-Null
@@ -18,26 +20,35 @@ if (-not $Restricted) {
   $Revision = (& git -C $repoRoot rev-parse HEAD).Trim()
   $childOut = Join-Path $OutputRoot "restricted-stdout.log"
   $childError = Join-Path $OutputRoot "restricted-stderr.log"
+  $toolRoot = Join-Path $env:RUNNER_TEMP "News Aggregator Native Tool Cache-$([guid]::NewGuid().ToString('N'))"
   try {
     New-LocalUser -Name $account -Password $password -PasswordNeverExpires -UserMayNotChangePassword | Out-Null
     & icacls.exe $repoRoot /grant "${account}:(OI)(CI)M" /T /Q | Out-Null
     & icacls.exe $OutputRoot /grant "${account}:(OI)(CI)M" /T /Q | Out-Null
-    $env:GOCACHE = Join-Path $OutputRoot "Go Cache"
-    $env:GOPATH = Join-Path $OutputRoot "Go Path"
-    $env:npm_config_cache = Join-Path $OutputRoot "Npm Cache"
+    $env:GOCACHE = Join-Path $toolRoot "Go Cache"
+    $env:GOPATH = Join-Path $toolRoot "Go Path"
+    $env:npm_config_cache = Join-Path $toolRoot "Npm Cache"
     New-Item -ItemType Directory -Force -Path $env:GOCACHE,$env:GOPATH,$env:npm_config_cache | Out-Null
-    & icacls.exe $OutputRoot /grant "${account}:(OI)(CI)M" /T /Q | Out-Null
+    & icacls.exe $toolRoot /grant "${account}:(OI)(CI)M" /T /Q | Out-Null
     Write-Host "Launching native smoke as temporary standard user $account"
-    $arguments = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$PSCommandPath`" -OutputRoot `"$OutputRoot`" -Revision `"$Revision`" -Restricted"
+    $arguments = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$PSCommandPath`" -OutputRoot `"$OutputRoot`" -Revision `"$Revision`" -CredentialSentinel `"$CredentialSentinel`" -Restricted"
     $launcher = Start-Process -FilePath (Get-Process -Id $PID).Path -Credential $credential -LoadUserProfile -ArgumentList $arguments -RedirectStandardOutput $childOut -RedirectStandardError $childError -PassThru -Wait
     if ($launcher.ExitCode -ne 0) {
       if (Test-Path $childOut) { Get-Content $childOut | Write-Host }
       if (Test-Path $childError) { Get-Content $childError | Write-Error }
       throw "standard-user native smoke exited with code $($launcher.ExitCode)"
     }
+    foreach ($launcherLog in @($childOut, $childError)) {
+      if ((Get-Content $launcherLog -Raw).Contains($CredentialSentinel)) {
+        throw "credential sentinel leaked into $launcherLog"
+      }
+    }
   } finally {
     if (Get-LocalUser -Name $account -ErrorAction SilentlyContinue) {
       Remove-LocalUser -Name $account
+    }
+    if (Test-Path $toolRoot) {
+      Remove-Item -Recurse -Force $toolRoot
     }
   }
   exit 0
@@ -57,7 +68,6 @@ $browserLog = Join-Path $logs "browser-launch.log"
 $runtimeLog = Join-Path $logs "runtime.log"
 $runtimeError = Join-Path $logs "runtime-error.log"
 $smokeLog = Join-Path $logs "native-smoke.log"
-$sentinel = "VERIFY003-$([guid]::NewGuid().ToString('N'))"
 $app,$restart = $null,$null
 $originalAppData,$originalPort,$originalPath = $env:APPDATA,$env:NEWS_AGGREGATOR_PORT,$env:PATH
 
@@ -168,15 +178,16 @@ try {
 
   Record "running native migration and Credential Manager checks"
   go test ./tests/integration -run 'TestMigrationCompatibilityMatrix/newer_schema_rejected' -count=1 -v | Out-File -Append -FilePath $smokeLog
-  $env:NEWS_AGGREGATOR_CREDENTIAL_SENTINEL = $sentinel
+  $env:NEWS_AGGREGATOR_CREDENTIAL_SENTINEL = $CredentialSentinel
   go test ./tests/integration -run TestWindowsCredentialLifecycle -count=1 -v | Out-File -Append -FilePath $smokeLog
   $env:NEWS_AGGREGATOR_CREDENTIAL_SENTINEL = $null
 
-  $scanFiles = Get-ChildItem -Path $OutputRoot -Recurse -File | Where-Object { $_.FullName -ne $smokeLog }
+  $openLauncherLogs = @((Join-Path $OutputRoot "restricted-stdout.log"), (Join-Path $OutputRoot "restricted-stderr.log"))
+  $scanFiles = Get-ChildItem -Path $OutputRoot -Recurse -File | Where-Object { $_.FullName -ne $smokeLog -and $_.FullName -notin $openLauncherLogs }
   foreach ($file in $scanFiles) {
     $bytes = [System.IO.File]::ReadAllBytes($file.FullName)
     $text = [System.Text.Encoding]::UTF8.GetString($bytes)
-    if ($text.Contains($sentinel)) { throw "credential sentinel leaked into $($file.FullName)" }
+    if ($text.Contains($CredentialSentinel)) { throw "credential sentinel leaked into $($file.FullName)" }
   }
   Record "credential sentinel absent from database, logs, executable, and artifacts"
   Record "decision=APPROVE"
