@@ -1,9 +1,22 @@
 param(
-  [string]$OutputRoot = (Join-Path $env:RUNNER_TEMP "News Aggregator Native Smoke")
+  [string]$OutputRoot = (Join-Path $env:RUNNER_TEMP "News Aggregator Native Smoke"),
+  [switch]$Restricted
 )
 
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
+
+if (-not $Restricted) {
+  New-Item -ItemType Directory -Force -Path $OutputRoot | Out-Null
+  $command = "powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$PSCommandPath`" -OutputRoot `"$OutputRoot`" -Restricted"
+  Write-Host "Launching native smoke under a restricted standard-user token"
+  $launcher = Start-Process -FilePath "$env:SystemRoot\System32\runas.exe" -ArgumentList "/env", "/trustlevel:0x20000", "`"$command`"" -PassThru -Wait
+  if ($launcher.ExitCode -ne 0) {
+    throw "restricted native smoke exited with code $($launcher.ExitCode)"
+  }
+  exit 0
+}
+
 $repo = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $build = Join-Path $OutputRoot "Build With Spaces"
 $data = Join-Path $OutputRoot "User Data"
@@ -56,6 +69,17 @@ function Stop-App([System.Diagnostics.Process]$Process) {
 
 Push-Location $repo
 try {
+  $tokenGroups = Join-Path $logs "process-token-groups.txt"
+  whoami /groups | Out-File $tokenGroups
+  $principal = [Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())
+  $isAdministrator = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+  $groupsText = Get-Content $tokenGroups -Raw
+  if ($isAdministrator -or $groupsText -match 'High Mandatory Level|System Mandatory Level') {
+    throw "native smoke must run with a non-admin, non-elevated token"
+  }
+  Record "token=non-admin non-elevated"
+  Record "revision=$(git rev-parse HEAD)"
+
   Record "building frontend"
   npm --prefix web ci | Out-File -Append -FilePath $smokeLog
   npm --prefix web run build | Out-File -Append -FilePath $smokeLog
@@ -66,7 +90,6 @@ try {
   "${hash}  news-aggregator.exe" | Set-Content (Join-Path $logs "news-aggregator.exe.sha256")
   Record "sha256=$hash"
 
-  whoami /groups | Out-File (Join-Path $logs "process-token-groups.txt")
   $port = Free-Port
   $env:APPDATA = $data
   $env:NEWS_AGGREGATOR_PORT = [string]$port
