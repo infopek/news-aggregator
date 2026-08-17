@@ -6,6 +6,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
+$PSNativeCommandUseErrorActionPreference = $true
 
 if (-not $Restricted) {
   New-Item -ItemType Directory -Force -Path $OutputRoot | Out-Null
@@ -48,6 +49,8 @@ $data = Join-Path $OutputRoot "User Data"
 $logs = Join-Path $OutputRoot "Evidence"
 $probe = Join-Path $OutputRoot "Browser Probe"
 $emptyPath = Join-Path $OutputRoot "Empty Path"
+$temp = Join-Path $OutputRoot "Temp"
+$localData = Join-Path $OutputRoot "Local Data"
 $exe = Join-Path $build "news-aggregator.exe"
 $probeExe = Join-Path $probe "rundll32.exe"
 $browserLog = Join-Path $logs "browser-launch.log"
@@ -58,7 +61,12 @@ $sentinel = "VERIFY003-$([guid]::NewGuid().ToString('N'))"
 $app,$restart = $null,$null
 $originalAppData,$originalPort,$originalPath = $env:APPDATA,$env:NEWS_AGGREGATOR_PORT,$env:PATH
 
-New-Item -ItemType Directory -Force -Path $build,$data,$logs,$probe,$emptyPath | Out-Null
+New-Item -ItemType Directory -Force -Path $build,$data,$logs,$probe,$emptyPath,$temp,$localData | Out-Null
+$env:APPDATA = $data
+$env:LOCALAPPDATA = $localData
+$env:TEMP = $temp
+$env:TMP = $temp
+$env:GOTMPDIR = $temp
 Set-Content -Path $smokeLog -Value "VERIFY-003 native Windows smoke`nstarted=$([DateTime]::UtcNow.ToString('o'))`nrepo=$repo`noutput=$OutputRoot"
 
 function Record([string]$Message) {
