@@ -1,5 +1,6 @@
 param(
   [string]$OutputRoot = (Join-Path $env:RUNNER_TEMP "News Aggregator Native Smoke"),
+  [string]$Revision,
   [switch]$Restricted
 )
 
@@ -8,11 +9,35 @@ $ProgressPreference = "SilentlyContinue"
 
 if (-not $Restricted) {
   New-Item -ItemType Directory -Force -Path $OutputRoot | Out-Null
-  $command = "powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$PSCommandPath`" -OutputRoot `"$OutputRoot`" -Restricted"
-  Write-Host "Launching native smoke under a restricted standard-user token"
-  $launcher = Start-Process -FilePath "$env:SystemRoot\System32\runas.exe" -ArgumentList "/env", "/trustlevel:0x20000", "`"$command`"" -PassThru -Wait
-  if ($launcher.ExitCode -ne 0) {
-    throw "restricted native smoke exited with code $($launcher.ExitCode)"
+  $account = "Verify003$([guid]::NewGuid().ToString('N').Substring(0,8))"
+  $passwordText = "N3ws!$([guid]::NewGuid().ToString('N'))"
+  $password = ConvertTo-SecureString $passwordText -AsPlainText -Force
+  $credential = [PSCredential]::new(".\$account", $password)
+  $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+  $Revision = (& git -C $repoRoot rev-parse HEAD).Trim()
+  $childOut = Join-Path $OutputRoot "restricted-stdout.log"
+  $childError = Join-Path $OutputRoot "restricted-stderr.log"
+  try {
+    New-LocalUser -Name $account -Password $password -PasswordNeverExpires -UserMayNotChangePassword | Out-Null
+    & icacls.exe $repoRoot /grant "${account}:(OI)(CI)M" /T /Q | Out-Null
+    & icacls.exe $OutputRoot /grant "${account}:(OI)(CI)M" /T /Q | Out-Null
+    $env:GOCACHE = Join-Path $OutputRoot "Go Cache"
+    $env:GOPATH = Join-Path $OutputRoot "Go Path"
+    $env:npm_config_cache = Join-Path $OutputRoot "Npm Cache"
+    New-Item -ItemType Directory -Force -Path $env:GOCACHE,$env:GOPATH,$env:npm_config_cache | Out-Null
+    & icacls.exe $OutputRoot /grant "${account}:(OI)(CI)M" /T /Q | Out-Null
+    Write-Host "Launching native smoke as temporary standard user $account"
+    $arguments = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$PSCommandPath`" -OutputRoot `"$OutputRoot`" -Revision `"$Revision`" -Restricted"
+    $launcher = Start-Process -FilePath (Get-Process -Id $PID).Path -Credential $credential -LoadUserProfile -ArgumentList $arguments -RedirectStandardOutput $childOut -RedirectStandardError $childError -PassThru -Wait
+    if ($launcher.ExitCode -ne 0) {
+      if (Test-Path $childOut) { Get-Content $childOut | Write-Host }
+      if (Test-Path $childError) { Get-Content $childError | Write-Error }
+      throw "standard-user native smoke exited with code $($launcher.ExitCode)"
+    }
+  } finally {
+    if (Get-LocalUser -Name $account -ErrorAction SilentlyContinue) {
+      Remove-LocalUser -Name $account
+    }
   }
   exit 0
 }
@@ -78,7 +103,7 @@ try {
     throw "native smoke must run with a non-admin, non-elevated token"
   }
   Record "token=non-admin non-elevated"
-  Record "revision=$(git rev-parse HEAD)"
+  Record "revision=$Revision"
 
   Record "building frontend"
   npm --prefix web ci | Out-File -Append -FilePath $smokeLog
