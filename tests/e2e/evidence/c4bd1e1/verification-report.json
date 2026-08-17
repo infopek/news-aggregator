@@ -1,0 +1,44 @@
+{
+  "decision": "APPROVE",
+  "revision": "c4bd1e138e83dd50ff371cb224aa4e81fd4204b7",
+  "generatedAt": "2026-08-17T15:07:38.450Z",
+  "processRestart": [
+    "2026-08-17T15:07:32.191Z initial launch pid=2877869",
+    "2026-08-17T15:07:37.809Z stopped Go process pid=2877869",
+    "2026-08-17T15:07:37.914Z restarted Go process with same SQLite database pid=2878555"
+  ],
+  "accessibility": [
+    "ranked-feed: 0 serious/critical",
+    "library: 0 serious/critical",
+    "narrow-feed: 0 serious/critical"
+  ],
+  "browserStorage": {
+    "local": {
+      "news-aggregator:library-view": "saved",
+      "news-aggregator:last-refresh-id": "refresh-1786979253360247234"
+    },
+    "session": {}
+  },
+  "browserOutboundRequests": [
+    "http://127.0.0.1:37279/",
+    "http://127.0.0.1:37279/assets/index-CR0Y-Ume.js",
+    "http://127.0.0.1:37279/assets/index-ulpUncRn.css",
+    "http://127.0.0.1:37279/api/v1/feed?limit=20",
+    "http://127.0.0.1:37279/api/v1/sources",
+    "http://127.0.0.1:37279/api/v1/profile",
+    "http://127.0.0.1:37279/assets/workbox-window.prod.es5-Bd17z0YL.js",
+    "http://127.0.0.1:37279/api/v1/ranking-config",
+    "http://127.0.0.1:37279/api/v1/starter-sources",
+    "http://127.0.0.1:37279/api/v1/refresh",
+    "http://127.0.0.1:37279/api/v1/refresh/refresh-1786979253360247234",
+    "http://127.0.0.1:37279/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229",
+    "http://127.0.0.1:37279/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229/library-state",
+    "http://127.0.0.1:37279/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e/library-state",
+    "http://127.0.0.1:37279/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e",
+    "http://127.0.0.1:37279/api/v1/feed?limit=20&saved=true",
+    "http://127.0.0.1:37279/api/v1/feed?saved=true&limit=100",
+    "http://127.0.0.1:37279/api/v1/feed?includeHidden=true&limit=100",
+    "http://127.0.0.1:37279/library"
+  ],
+  "assertions": "complete daily-use workflow passed against real Go/SQLite/Vue stack"
+}
