@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -20,7 +21,11 @@ func TestWindowsCredentialLifecycle(t *testing.T) {
 	// registered before writes so interrupted assertions do not leave entries.
 	id := credentials.ReferenceForSource(domain.SourceID("integration-" + fmt.Sprint(time.Now().UnixNano())))
 	t.Cleanup(func() { _ = store.Delete(context.Background(), id) })
-	first, replacement := []byte("windows-test-first"), []byte("windows-test-replacement")
+	sentinel := os.Getenv("NEWS_AGGREGATOR_CREDENTIAL_SENTINEL")
+	if sentinel == "" {
+		sentinel = "windows-test"
+	}
+	first, replacement := []byte(sentinel+"-first"), []byte(sentinel+"-replacement")
 	if err := store.Store(ctx, id, first); err != nil {
 		t.Fatal(err)
 	}
