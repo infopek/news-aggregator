@@ -126,14 +126,30 @@ try {
   Record "token=non-admin non-elevated"
   Record "revision=$Revision"
 
+  $nodeVersion = (node --version).Trim()
+  if ($LASTEXITCODE -ne 0 -or $nodeVersion -notmatch '^v22\.') {
+    throw "native smoke requires Node.js 22; detected $nodeVersion"
+  }
+  $npmVersion = (npm --version).Trim()
+  if ($LASTEXITCODE -ne 0 -or $npmVersion -ne '11.6.2') {
+    throw "native smoke requires npm 11.6.2; detected $npmVersion"
+  }
+  Record "toolchain node=$nodeVersion npm=$npmVersion"
+
   Record "building frontend"
   npm --prefix web ci | Out-File -Append -FilePath $smokeLog
+  if ($LASTEXITCODE -ne 0) { throw "npm ci failed with exit code $LASTEXITCODE" }
   npm --prefix web run build | Out-File -Append -FilePath $smokeLog
+  if ($LASTEXITCODE -ne 0) { throw "frontend build failed with exit code $LASTEXITCODE" }
   Record "building executable and browser probe from path containing spaces"
   go build -trimpath -o $exe ./cmd/news-aggregator
+  if ($LASTEXITCODE -ne 0) { throw "application build failed with exit code $LASTEXITCODE" }
   go build -trimpath -o $probeExe ./packaging/windows/browser-probe
+  if ($LASTEXITCODE -ne 0) { throw "browser probe build failed with exit code $LASTEXITCODE" }
   go build -trimpath -o $controlExe ./packaging/windows/process-control
+  if ($LASTEXITCODE -ne 0) { throw "process-control build failed with exit code $LASTEXITCODE" }
   go build -trimpath -o $fixtureExe ./packaging/windows/shutdown-fixture
+  if ($LASTEXITCODE -ne 0) { throw "shutdown fixture build failed with exit code $LASTEXITCODE" }
   $hash = (Get-FileHash -Algorithm SHA256 $exe).Hash.ToLowerInvariant()
   "${hash}  news-aggregator.exe" | Set-Content (Join-Path $logs "news-aggregator.exe.sha256")
   Record "sha256=$hash"
@@ -211,8 +227,10 @@ try {
 
   Record "running native migration and Credential Manager checks"
   go test ./tests/integration -run 'TestMigrationCompatibilityMatrix/(empty_and_current|interrupted_migration_is_atomic_and_retryable|newer_schema_rejected)' -count=1 -v | Out-File -Append -FilePath $smokeLog
+  if ($LASTEXITCODE -ne 0) { throw "native migration checks failed with exit code $LASTEXITCODE" }
   $env:NEWS_AGGREGATOR_CREDENTIAL_SENTINEL = $CredentialSentinel
   go test ./tests/integration -run 'TestWindowsCredential(Lifecycle|AccessDeniedIsSafe)' -count=1 -v | Out-File -Append -FilePath $smokeLog
+  if ($LASTEXITCODE -ne 0) { throw "native credential checks failed with exit code $LASTEXITCODE" }
   $env:NEWS_AGGREGATOR_CREDENTIAL_SENTINEL = $null
 
   $openLauncherLogs = @((Join-Path $OutputRoot "restricted-stdout.log"), (Join-Path $OutputRoot "restricted-stderr.log"))
