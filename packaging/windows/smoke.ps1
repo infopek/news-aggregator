@@ -64,11 +64,13 @@ $temp = Join-Path $OutputRoot "Temp"
 $localData = Join-Path $OutputRoot "Local Data"
 $exe = Join-Path $build "news-aggregator.exe"
 $probeExe = Join-Path $probe "rundll32.exe"
+$controlExe = Join-Path $build "process-control.exe"
+$fixtureExe = Join-Path $build "shutdown-fixture.exe"
 $browserLog = Join-Path $logs "browser-launch.log"
 $runtimeLog = Join-Path $logs "runtime.log"
 $runtimeError = Join-Path $logs "runtime-error.log"
 $smokeLog = Join-Path $logs "native-smoke.log"
-$app,$restart = $null,$null
+$app,$restart,$fixtureProcess = $null,$null,$null
 $originalAppData,$originalPort,$originalPath = $env:APPDATA,$env:NEWS_AGGREGATOR_PORT,$env:PATH
 
 New-Item -ItemType Directory -Force -Path $build,$data,$logs,$probe,$emptyPath,$temp,$localData | Out-Null
@@ -104,10 +106,11 @@ function Wait-Ready([int]$Port, [System.Diagnostics.Process]$Process) {
   throw "application readiness timed out"
 }
 
-function Stop-App([System.Diagnostics.Process]$Process) {
+function Stop-App([System.Diagnostics.Process]$Process, [string]$StopFile) {
   if ($Process.HasExited) { return }
-  Stop-Process -Id $Process.Id
+  New-Item -ItemType File -Force -Path $StopFile | Out-Null
   if (-not $Process.WaitForExit(10000)) { throw "application did not stop within ten seconds" }
+  if ($Process.ExitCode -ne 0) { throw "application did not exit cleanly: $($Process.ExitCode)" }
 }
 
 Push-Location $repo
@@ -129,6 +132,8 @@ try {
   Record "building executable and browser probe from path containing spaces"
   go build -trimpath -o $exe ./cmd/news-aggregator
   go build -trimpath -o $probeExe ./packaging/windows/browser-probe
+  go build -trimpath -o $controlExe ./packaging/windows/process-control
+  go build -trimpath -o $fixtureExe ./packaging/windows/shutdown-fixture
   $hash = (Get-FileHash -Algorithm SHA256 $exe).Hash.ToLowerInvariant()
   "${hash}  news-aggregator.exe" | Set-Content (Join-Path $logs "news-aggregator.exe.sha256")
   Record "sha256=$hash"
@@ -138,16 +143,20 @@ try {
   $env:NEWS_AGGREGATOR_PORT = [string]$port
   $env:NEWS_AGGREGATOR_BROWSER_PROBE_LOG = $browserLog
   $env:PATH = "$probe;$originalPath"
-  $app = Start-Process -FilePath $exe -PassThru -RedirectStandardOutput $runtimeLog -RedirectStandardError $runtimeError
+  $pidFile = Join-Path $logs "application.pid"
+  $stopFile = Join-Path $logs "application.stop"
+  $app = Start-Process -FilePath $controlExe -ArgumentList "`"$pidFile`"", "`"$stopFile`"", "`"$exe`"" -PassThru -RedirectStandardOutput $runtimeLog -RedirectStandardError $runtimeError
   $env:PATH = $originalPath
   Wait-Ready $port $app
-  Record "ready pid=$($app.Id) port=$port"
+  for ($attempt=0; $attempt -lt 50 -and -not (Test-Path $pidFile); $attempt++) { Start-Sleep -Milliseconds 100 }
+  $applicationPID = [int](Get-Content $pidFile -Raw)
+  Record "ready pid=$applicationPID port=$port"
 
   $health = Invoke-RestMethod "http://127.0.0.1:$Port/api/v1/health"
   if ($health.status -ne "ready") { throw "health contract was not ready" }
   $spa = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:$Port/settings"
   if ($spa.StatusCode -ne 200 -or $spa.Content -notmatch '<div id="app">') { throw "embedded SPA route failed" }
-  $listeners = Get-NetTCPConnection -State Listen -OwningProcess $app.Id
+  $listeners = Get-NetTCPConnection -State Listen -OwningProcess $applicationPID
   $listeners | Format-Table -AutoSize | Out-String | Set-Content (Join-Path $logs "listening-sockets.txt")
   if (-not $listeners -or ($listeners | Where-Object { $_.LocalAddress -notin @("127.0.0.1","::1") })) { throw "application exposed a non-loopback listener" }
   for ($attempt=0; $attempt -lt 50 -and -not (Test-Path $browserLog); $attempt++) { Start-Sleep -Milliseconds 100 }
@@ -165,21 +174,37 @@ try {
   if ($second.ExitCode -eq 0) { throw "occupied-port launch unexpectedly succeeded" }
   Record "occupied port refused safely exit=$($second.ExitCode)"
 
-  Stop-App $app
+  $fixtureURLFile = Join-Path $logs "shutdown-fixture-url.txt"
+  $fixtureProcess = Start-Process -FilePath $fixtureExe -ArgumentList "`"$fixtureURLFile`"" -PassThru
+  for ($attempt=0; $attempt -lt 50 -and -not (Test-Path $fixtureURLFile); $attempt++) { Start-Sleep -Milliseconds 100 }
+  $fixtureURL = (Get-Content $fixtureURLFile -Raw).Trim()
+  $source = @{name="Shutdown fixture";url=$fixtureURL;kind="feed";enabled=$true;contentPermission="metadata_only";adapterConfig=@{format="rss"};scraperPolicy=@{status="not_applicable";termsUrl=$null;robotsUrl=$null;reviewedAt=$null;reviewNotes=$null}} | ConvertTo-Json -Depth 5
+  Invoke-RestMethod -Method Post -ContentType "application/json" -Body $source "http://127.0.0.1:$port/api/v1/sources" | Out-Null
+  $refreshRun = Invoke-RestMethod -Method Post "http://127.0.0.1:$port/api/v1/refresh"
+  if ($refreshRun.status -ne "running") { throw "refresh did not enter running state before shutdown" }
+  Stop-App $app $stopFile
+  Record "graceful console shutdown completed with active refresh"
+
   $env:NEWS_AGGREGATOR_PORT = [string]$port
   $env:PATH = $emptyPath
   $unavailableLog = Join-Path $logs "browser-unavailable.log"
-  $restart = Start-Process -FilePath $exe -PassThru -RedirectStandardError $unavailableLog
+  $restartPIDFile = Join-Path $logs "restart.pid"
+  $restartStopFile = Join-Path $logs "restart.stop"
+  $restart = Start-Process -FilePath $controlExe -ArgumentList "`"$restartPIDFile`"", "`"$restartStopFile`"", "`"$exe`"" -PassThru -RedirectStandardError $unavailableLog
   $env:PATH = $originalPath
   Wait-Ready $port $restart
   if ((Get-Content $unavailableLog -Raw) -notmatch "default browser unavailable") { throw "browser-unavailable boundary was not handled" }
-  Stop-App $restart
-  Record "current database restart and browser-unavailable path passed"
+  $recoveredRun = Invoke-RestMethod "http://127.0.0.1:$port/api/v1/refresh/$($refreshRun.id)"
+  if ($recoveredRun.status -ne "cancelled" -or -not $recoveredRun.finishedAt -or $recoveredRun.outcomes.Count -ne 1) {
+    throw "active refresh was not durably finalized during graceful shutdown"
+  }
+  Stop-App $restart $restartStopFile
+  Record "current database restart, finalized refresh, and browser-unavailable path passed"
 
   Record "running native migration and Credential Manager checks"
-  go test ./tests/integration -run 'TestMigrationCompatibilityMatrix/newer_schema_rejected' -count=1 -v | Out-File -Append -FilePath $smokeLog
+  go test ./tests/integration -run 'TestMigrationCompatibilityMatrix/(empty_and_current|interrupted_migration_is_atomic_and_retryable|newer_schema_rejected)' -count=1 -v | Out-File -Append -FilePath $smokeLog
   $env:NEWS_AGGREGATOR_CREDENTIAL_SENTINEL = $CredentialSentinel
-  go test ./tests/integration -run TestWindowsCredentialLifecycle -count=1 -v | Out-File -Append -FilePath $smokeLog
+  go test ./tests/integration -run 'TestWindowsCredential(Lifecycle|AccessDeniedIsSafe)' -count=1 -v | Out-File -Append -FilePath $smokeLog
   $env:NEWS_AGGREGATOR_CREDENTIAL_SENTINEL = $null
 
   $openLauncherLogs = @((Join-Path $OutputRoot "restricted-stdout.log"), (Join-Path $OutputRoot "restricted-stderr.log"))
@@ -192,8 +217,9 @@ try {
   Record "credential sentinel absent from database, logs, executable, and artifacts"
   Record "decision=APPROVE"
 } finally {
-  if ($app) { Stop-App $app }
-  if ($restart) { Stop-App $restart }
+  if ($app -and -not $app.HasExited) { Stop-Process -Id $app.Id -Force }
+  if ($restart -and -not $restart.HasExited) { Stop-Process -Id $restart.Id -Force }
+  if ($fixtureProcess -and -not $fixtureProcess.HasExited) { Stop-Process -Id $fixtureProcess.Id -Force }
   $env:APPDATA,$env:NEWS_AGGREGATOR_PORT,$env:PATH = $originalAppData,$originalPort,$originalPath
   Pop-Location
 }
