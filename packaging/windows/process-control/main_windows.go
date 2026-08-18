@@ -32,7 +32,7 @@ func main() {
 		if _, err := os.Stat(os.Args[2]); err == nil {
 			break
 		}
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(time.Millisecond)
 	}
 	if err := windows.GenerateConsoleCtrlEvent(windows.CTRL_BREAK_EVENT, uint32(command.Process.Pid)); err != nil {
 		_ = command.Process.Kill()
