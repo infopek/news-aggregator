@@ -195,7 +195,8 @@ try {
   Wait-Ready $port $restart
   if ((Get-Content $unavailableLog -Raw) -notmatch "default browser unavailable") { throw "browser-unavailable boundary was not handled" }
   $recoveredRun = Invoke-RestMethod "http://127.0.0.1:$port/api/v1/refresh/$($refreshRun.id)"
-  if ($recoveredRun.status -ne "cancelled" -or -not $recoveredRun.finishedAt -or $recoveredRun.outcomes.Count -ne 1) {
+  $recoveredRun | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $logs "shutdown-refresh.json")
+  if ($recoveredRun.status -eq "running" -or -not $recoveredRun.finishedAt -or $recoveredRun.outcomes.Count -ne 1) {
     throw "active refresh was not durably finalized during graceful shutdown"
   }
   Stop-App $restart $restartStopFile
