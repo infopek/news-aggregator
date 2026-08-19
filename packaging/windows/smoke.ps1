@@ -108,9 +108,16 @@ function Wait-Ready([int]$Port, [System.Diagnostics.Process]$Process) {
 
 function Stop-App([System.Diagnostics.Process]$Process, [string]$StopFile) {
   if ($Process.HasExited) { return }
+  # Cache the native handle before exit; Windows PowerShell 5.1 can otherwise
+  # leave ExitCode unset after the timed WaitForExit overload.
+  $null = $Process.Handle
   New-Item -ItemType File -Force -Path $StopFile | Out-Null
   if (-not $Process.WaitForExit(10000)) { throw "application did not stop within ten seconds" }
-  if ($Process.ExitCode -ne 0) { throw "application did not exit cleanly: $($Process.ExitCode)" }
+  $Process.WaitForExit()
+  $Process.Refresh()
+  $exitCode = $Process.ExitCode
+  if ($null -eq $exitCode) { throw "application exit code was unavailable" }
+  if ($exitCode -ne 0) { throw "application did not exit cleanly: $exitCode" }
 }
 
 Push-Location $repo
