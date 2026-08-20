@@ -206,11 +206,14 @@ try {
   $source = @{name="Shutdown fixture";url=$fixtureURL;kind="feed";enabled=$true;contentPermission="metadata_only";adapterConfig=@{format="rss"};scraperPolicy=@{status="not_applicable";termsUrl=$null;robotsUrl=$null;reviewedAt=$null;reviewNotes=$null}} | ConvertTo-Json -Depth 5
   Record "preparing bounded active-refresh shutdown fixture"
   Invoke-RestMethod -TimeoutSec 5 -Method Post -ContentType "application/json" -Body $source "http://127.0.0.1:$port/api/v1/sources" | Out-Null
-  $sourceCount = 64
+  # The loopback destinations are intentionally rejected very quickly by the
+  # SSRF boundary. Keep enough queued work that even fast desktop hardware
+  # still has active coordinator work when the control event arrives.
+  $sourceCount = 1024
   for ($index = 1; $index -lt $sourceCount; $index++) {
     $queuedSource = @{name="Queued shutdown fixture $index";url="http://127.0.0.1:$fixturePort/feed-$index";kind="feed";enabled=$true;contentPermission="metadata_only";adapterConfig=@{format="rss"};scraperPolicy=@{status="not_applicable";termsUrl=$null;robotsUrl=$null;reviewedAt=$null;reviewNotes=$null}} | ConvertTo-Json -Depth 5
     Invoke-RestMethod -TimeoutSec 5 -Method Post -ContentType "application/json" -Body $queuedSource "http://127.0.0.1:$port/api/v1/sources" | Out-Null
-    if ($index % 16 -eq 0) { Record "prepared $index of $sourceCount shutdown sources" }
+    if ($index % 128 -eq 0) { Record "prepared $index of $sourceCount shutdown sources" }
   }
   $refreshRun = Invoke-RestMethod -TimeoutSec 5 -Method Post "http://127.0.0.1:$port/api/v1/refresh"
   if ($refreshRun.status -ne "running") { throw "refresh did not enter running state before shutdown" }
