@@ -124,3 +124,40 @@ jobs:
           GOARCH: amd64
           CGO_ENABLED: "0"
         run: go build -o /tmp/news-aggregator.exe ./cmd/news-aggregator
+
+  windows-native:
+    name: Windows native packaging and runtime
+    runs-on: windows-2025
+    timeout-minutes: 25
+    steps:
+      - name: Check out repository into a path containing spaces
+        uses: actions/checkout@v4
+        with:
+          path: News Aggregator Source
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: News Aggregator Source/go.mod
+          cache-dependency-path: News Aggregator Source/go.sum
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: News Aggregator Source/web/package-lock.json
+      - name: Use repository-compatible npm
+        shell: pwsh
+        run: npm install --global npm@11.6.2
+      - name: Run native Windows smoke verification
+        shell: pwsh
+        working-directory: News Aggregator Source
+        run: ./packaging/windows/smoke.ps1
+      - name: Upload executable and native evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-native-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/News Aggregator Native Smoke
+          if-no-files-found: error
+          retention-days: 14
