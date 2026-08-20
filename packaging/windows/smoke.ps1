@@ -86,6 +86,14 @@ function Record([string]$Message) {
   Write-Host $Message
 }
 
+function Run-Npm([string[]]$Arguments) {
+  if ($env:NEWS_AGGREGATOR_NPM_CLI) {
+    & node $env:NEWS_AGGREGATOR_NPM_CLI @Arguments
+  } else {
+    & npm @Arguments
+  }
+}
+
 function Free-Port {
   $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)
   $listener.Start()
@@ -137,16 +145,16 @@ try {
   if ($LASTEXITCODE -ne 0 -or $nodeVersion -notmatch '^v22\.') {
     throw "native smoke requires Node.js 22; detected $nodeVersion"
   }
-  $npmVersion = (npm --version).Trim()
+  $npmVersion = (Run-Npm @("--version")).Trim()
   if ($LASTEXITCODE -ne 0 -or $npmVersion -ne '11.6.2') {
     throw "native smoke requires npm 11.6.2; detected $npmVersion"
   }
   Record "toolchain node=$nodeVersion npm=$npmVersion"
 
   Record "building frontend"
-  npm --prefix web ci | Out-File -Append -FilePath $smokeLog
+  Run-Npm @("--prefix", "web", "ci") | Out-File -Append -FilePath $smokeLog
   if ($LASTEXITCODE -ne 0) { throw "npm ci failed with exit code $LASTEXITCODE" }
-  npm --prefix web run build | Out-File -Append -FilePath $smokeLog
+  Run-Npm @("--prefix", "web", "run", "build") | Out-File -Append -FilePath $smokeLog
   if ($LASTEXITCODE -ne 0) { throw "frontend build failed with exit code $LASTEXITCODE" }
   Record "building executable and browser probe from path containing spaces"
   go build -trimpath -o $exe ./cmd/news-aggregator

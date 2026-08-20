@@ -13,6 +13,7 @@ if ($principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
 }
 
 $originalPath = $env:PATH
+$originalNpmCLI = $env:NEWS_AGGREGATOR_NPM_CLI
 $portableNode = $null
 try {
   $nodeVersion,$npmVersion = $null,$null
@@ -41,6 +42,8 @@ try {
     $portableNpm = Join-Path $nodeHome "npm.cmd"
     & $portableNpm install --global npm@11.6.2
     if ($LASTEXITCODE -ne 0) { throw "portable npm installation failed with exit code $LASTEXITCODE" }
+    $env:NEWS_AGGREGATOR_NPM_CLI = Join-Path $nodeHome "node_modules\npm\bin\npm-cli.js"
+    if (-not (Test-Path $env:NEWS_AGGREGATOR_NPM_CLI)) { throw "portable npm CLI was not installed" }
   }
 
   & (Join-Path $PSScriptRoot "smoke.ps1") -OutputRoot $OutputRoot -Revision ((git -C (Join-Path $PSScriptRoot "..\..") rev-parse HEAD).Trim()) -Restricted
@@ -56,6 +59,7 @@ try {
   Write-Host "Windows 11 acceptance evidence: $archive"
 } finally {
   $env:PATH = $originalPath
+  $env:NEWS_AGGREGATOR_NPM_CLI = $originalNpmCLI
   if ($portableNode -and (Test-Path $portableNode)) {
     Remove-Item -Recurse -Force $portableNode
   }
