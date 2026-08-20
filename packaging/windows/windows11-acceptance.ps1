@@ -15,6 +15,8 @@ if ($principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
 $originalPath = $env:PATH
 $originalNpmCLI = $env:NEWS_AGGREGATOR_NPM_CLI
 $portableNode = $null
+$repo = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+$revision = (& git -C $repo rev-parse HEAD).Trim()
 try {
   $nodeVersion,$npmVersion = $null,$null
   if (Get-Command node -ErrorAction SilentlyContinue) { $nodeVersion = (& node --version 2>$null) }
@@ -46,7 +48,7 @@ try {
     if (-not (Test-Path $env:NEWS_AGGREGATOR_NPM_CLI)) { throw "portable npm CLI was not installed" }
   }
 
-  & (Join-Path $PSScriptRoot "smoke.ps1") -OutputRoot $OutputRoot -Revision ((git -C (Join-Path $PSScriptRoot "..\..") rev-parse HEAD).Trim()) -Restricted
+  & (Join-Path $PSScriptRoot "smoke.ps1") -OutputRoot $OutputRoot -Revision $revision -Restricted
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
   $evidence = Join-Path $OutputRoot "Evidence"
 
@@ -85,17 +87,47 @@ try {
   } finally {
     if ($browserProcess -and -not $browserProcess.HasExited) { Stop-Process -Id $browserProcess.Id -Force }
     $env:APPDATA,$env:NEWS_AGGREGATOR_PORT = $savedAppData,$savedPort
+    if (Test-Path $browserData) { Remove-Item -Recurse -Force $browserData }
   }
 
   Get-CimInstance Win32_OperatingSystem | Select-Object Caption,Version,BuildNumber,OSArchitecture | Format-List | Out-File (Join-Path $evidence "windows-version.txt")
   Add-Content (Join-Path $evidence "native-smoke.log") "windows_acceptance=$caption"
   Add-Content (Join-Path $evidence "native-smoke.log") "actual_default_browser=connected process=$($client.ProcessName)"
+
+  # smoke.ps1 deliberately redirects caches and scratch state beneath the
+  # isolated output root. They are useful during execution but are not
+  # acceptance evidence and can exceed GitHub's comment-attachment limit.
+  foreach ($transientName in @("Actual Browser User Data", "Browser Probe", "Empty Path", "Local Data", "Temp")) {
+    $transientPath = Join-Path $OutputRoot $transientName
+    if (Test-Path $transientPath) { Remove-Item -Recurse -Force $transientPath }
+  }
+
   $archive = "$OutputRoot.zip"
   if (Test-Path $archive) {
     throw "Refusing to overwrite existing evidence archive $archive"
   }
   Compress-Archive -Path (Join-Path $OutputRoot "*") -DestinationPath $archive
-  Write-Host "Windows 11 acceptance evidence: $archive"
+  $archiveInfo = Get-Item $archive
+  if ($archiveInfo.Length -gt 25MB) {
+    throw "evidence archive is larger than GitHub's 25 MB comment-upload limit: $($archiveInfo.Length) bytes"
+  }
+  $archiveHash = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+  $comment = @"
+Windows 11 native acceptance evidence for exact revision ``$revision``.
+
+Executed from normal, non-admin PowerShell.
+
+ZIP SHA-256: ``$archiveHash``
+"@
+  $commentPath = "$OutputRoot-pr-comment.txt"
+  Set-Content -Path $commentPath -Value $comment
+  Write-Host ""
+  Write-Host "Windows 11 acceptance passed."
+  Write-Host "Evidence ZIP: $archive"
+  Write-Host "ZIP size: $($archiveInfo.Length) bytes"
+  Write-Host "PR comment: $commentPath"
+  Write-Host ""
+  Write-Host $comment
 } finally {
   $env:PATH = $originalPath
   $env:NEWS_AGGREGATOR_NPM_CLI = $originalNpmCLI
