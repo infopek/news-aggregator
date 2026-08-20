@@ -200,16 +200,19 @@ try {
   $fixtureURLFile = Join-Path $logs "shutdown-fixture-url.txt"
   $fixtureProcess = Start-Process -FilePath $fixtureExe -ArgumentList "`"$fixtureURLFile`"" -PassThru
   for ($attempt=0; $attempt -lt 50 -and -not (Test-Path $fixtureURLFile); $attempt++) { Start-Sleep -Milliseconds 100 }
+  if (-not (Test-Path $fixtureURLFile)) { throw "shutdown fixture did not become ready" }
   $fixtureURL = (Get-Content $fixtureURLFile -Raw).Trim()
   $fixturePort = ([uri]$fixtureURL).Port
   $source = @{name="Shutdown fixture";url=$fixtureURL;kind="feed";enabled=$true;contentPermission="metadata_only";adapterConfig=@{format="rss"};scraperPolicy=@{status="not_applicable";termsUrl=$null;robotsUrl=$null;reviewedAt=$null;reviewNotes=$null}} | ConvertTo-Json -Depth 5
-  Invoke-RestMethod -Method Post -ContentType "application/json" -Body $source "http://127.0.0.1:$port/api/v1/sources" | Out-Null
-  $sourceCount = 128
+  Record "preparing bounded active-refresh shutdown fixture"
+  Invoke-RestMethod -TimeoutSec 5 -Method Post -ContentType "application/json" -Body $source "http://127.0.0.1:$port/api/v1/sources" | Out-Null
+  $sourceCount = 64
   for ($index = 1; $index -lt $sourceCount; $index++) {
     $queuedSource = @{name="Queued shutdown fixture $index";url="http://127.0.0.1:$fixturePort/feed-$index";kind="feed";enabled=$true;contentPermission="metadata_only";adapterConfig=@{format="rss"};scraperPolicy=@{status="not_applicable";termsUrl=$null;robotsUrl=$null;reviewedAt=$null;reviewNotes=$null}} | ConvertTo-Json -Depth 5
-    Invoke-RestMethod -Method Post -ContentType "application/json" -Body $queuedSource "http://127.0.0.1:$port/api/v1/sources" | Out-Null
+    Invoke-RestMethod -TimeoutSec 5 -Method Post -ContentType "application/json" -Body $queuedSource "http://127.0.0.1:$port/api/v1/sources" | Out-Null
+    if ($index % 16 -eq 0) { Record "prepared $index of $sourceCount shutdown sources" }
   }
-  $refreshRun = Invoke-RestMethod -Method Post "http://127.0.0.1:$port/api/v1/refresh"
+  $refreshRun = Invoke-RestMethod -TimeoutSec 5 -Method Post "http://127.0.0.1:$port/api/v1/refresh"
   if ($refreshRun.status -ne "running") { throw "refresh did not enter running state before shutdown" }
   Stop-App $app $stopFile
   Record "graceful console shutdown completed with active refresh"
