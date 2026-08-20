@@ -72,15 +72,33 @@ try {
     $control = Join-Path $OutputRoot "Build With Spaces\process-control.exe"
     $application = Join-Path $OutputRoot "Build With Spaces\news-aggregator.exe"
     $browserProcess = Start-Process -FilePath $control -ArgumentList "`"$browserPIDFile`"", "`"$browserStop`"", "`"$application`"" -PassThru
+    for ($attempt = 0; $attempt -lt 100 -and -not (Test-Path $browserPIDFile); $attempt++) { Start-Sleep -Milliseconds 50 }
+    if (-not (Test-Path $browserPIDFile)) { throw "actual-browser application PID was not recorded" }
+    $applicationPID = [int](Get-Content $browserPIDFile -Raw)
+
+    # A failed browser launch must not be masked by Host.Run's own readiness
+    # request. Prove the filter rejects both application-owned and controller-
+    # owned connections before observing the live socket table.
+    $negativeConnections = @(
+      [pscustomobject]@{OwningProcess=$applicationPID},
+      [pscustomobject]@{OwningProcess=$browserProcess.Id}
+    ) | Where-Object { $_.OwningProcess -notin @($applicationPID, $browserProcess.Id) }
+    if ($negativeConnections.Count -ne 0) { throw "browser connection owner filter accepted an internal process" }
+
     $browserConnection = $null
     for ($attempt = 0; $attempt -lt 200 -and -not $browserConnection; $attempt++) {
       # The browser side owns the connection whose remote port is the app's
       # listening port; the server side has that value as its local port.
-      $browserConnection = Get-NetTCPConnection -State Established -RemotePort $browserPort -ErrorAction SilentlyContinue | Select-Object -First 1
+      $browserConnection = Get-NetTCPConnection -State Established -RemotePort $browserPort -ErrorAction SilentlyContinue |
+        Where-Object { $_.OwningProcess -notin @($applicationPID, $browserProcess.Id) } |
+        Select-Object -First 1
       Start-Sleep -Milliseconds 50
     }
     if (-not $browserConnection) { throw "actual default browser did not connect to the local application" }
     $client = Get-Process -Id $browserConnection.OwningProcess -ErrorAction Stop
+    if ($client.Id -in @($applicationPID, $browserProcess.Id) -or $client.ProcessName -in @("news-aggregator", "process-control")) {
+      throw "actual browser connection was owned by an internal application process"
+    }
     "port=$browserPort`nclientPid=$($client.Id)`nclientProcess=$($client.ProcessName)`nurl=http://127.0.0.1:$browserPort" | Set-Content $browserLog
     New-Item -ItemType File -Force -Path $browserStop | Out-Null
     if (-not $browserProcess.WaitForExit(10000)) { throw "actual-browser application did not stop" }
