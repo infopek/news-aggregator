@@ -49,8 +49,47 @@ try {
   & (Join-Path $PSScriptRoot "smoke.ps1") -OutputRoot $OutputRoot -Revision ((git -C (Join-Path $PSScriptRoot "..\..") rev-parse HEAD).Trim()) -Restricted
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
   $evidence = Join-Path $OutputRoot "Evidence"
+
+  # The portable smoke shadows rundll32 to count deterministic launch
+  # requests. Windows 11 acceptance additionally starts the built executable
+  # with the real system PATH and observes a browser-owned loopback connection.
+  $browserData = Join-Path $OutputRoot "Actual Browser User Data"
+  $browserLog = Join-Path $evidence "actual-browser.log"
+  $browserPortListener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)
+  $browserPortListener.Start()
+  $browserPort = ([System.Net.IPEndPoint]$browserPortListener.LocalEndpoint).Port
+  $browserPortListener.Stop()
+  $browserStop = Join-Path $evidence "actual-browser.stop"
+  $browserPIDFile = Join-Path $evidence "actual-browser.pid"
+  $savedAppData,$savedPort = $env:APPDATA,$env:NEWS_AGGREGATOR_PORT
+  $browserProcess = $null
+  try {
+    New-Item -ItemType Directory -Force -Path $browserData | Out-Null
+    $env:APPDATA = $browserData
+    $env:NEWS_AGGREGATOR_PORT = [string]$browserPort
+    $control = Join-Path $OutputRoot "Build With Spaces\process-control.exe"
+    $application = Join-Path $OutputRoot "Build With Spaces\news-aggregator.exe"
+    $browserProcess = Start-Process -FilePath $control -ArgumentList "`"$browserPIDFile`"", "`"$browserStop`"", "`"$application`"" -PassThru
+    $browserConnection = $null
+    for ($attempt = 0; $attempt -lt 200 -and -not $browserConnection; $attempt++) {
+      # The browser side owns the connection whose remote port is the app's
+      # listening port; the server side has that value as its local port.
+      $browserConnection = Get-NetTCPConnection -State Established -RemotePort $browserPort -ErrorAction SilentlyContinue | Select-Object -First 1
+      Start-Sleep -Milliseconds 50
+    }
+    if (-not $browserConnection) { throw "actual default browser did not connect to the local application" }
+    $client = Get-Process -Id $browserConnection.OwningProcess -ErrorAction Stop
+    "port=$browserPort`nclientPid=$($client.Id)`nclientProcess=$($client.ProcessName)`nurl=http://127.0.0.1:$browserPort" | Set-Content $browserLog
+    New-Item -ItemType File -Force -Path $browserStop | Out-Null
+    if (-not $browserProcess.WaitForExit(10000)) { throw "actual-browser application did not stop" }
+  } finally {
+    if ($browserProcess -and -not $browserProcess.HasExited) { Stop-Process -Id $browserProcess.Id -Force }
+    $env:APPDATA,$env:NEWS_AGGREGATOR_PORT = $savedAppData,$savedPort
+  }
+
   Get-CimInstance Win32_OperatingSystem | Select-Object Caption,Version,BuildNumber,OSArchitecture | Format-List | Out-File (Join-Path $evidence "windows-version.txt")
   Add-Content (Join-Path $evidence "native-smoke.log") "windows_acceptance=$caption"
+  Add-Content (Join-Path $evidence "native-smoke.log") "actual_default_browser=connected process=$($client.ProcessName)"
   $archive = "$OutputRoot.zip"
   if (Test-Path $archive) {
     throw "Refusing to overwrite existing evidence archive $archive"

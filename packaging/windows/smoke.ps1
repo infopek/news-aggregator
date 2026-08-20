@@ -128,6 +128,14 @@ function Stop-App([System.Diagnostics.Process]$Process, [string]$StopFile) {
   if ($exitCode -ne 0) { throw "application did not exit cleanly: $exitCode" }
 }
 
+function Assert-SentinelAbsent([string[]]$Paths, [string]$Sentinel) {
+  foreach ($path in $Paths) {
+    $bytes = [System.IO.File]::ReadAllBytes($path)
+    $text = [System.Text.Encoding]::UTF8.GetString($bytes)
+    if ($text.Contains($Sentinel)) { throw "credential sentinel leaked into $path" }
+  }
+}
+
 Push-Location $repo
 try {
   $tokenGroups = Join-Path $logs "process-token-groups.txt"
@@ -225,6 +233,16 @@ try {
   }
   $refreshRun = Invoke-RestMethod -TimeoutSec 5 -Method Post "http://127.0.0.1:$port/api/v1/refresh"
   if ($refreshRun.status -ne "running") { throw "refresh did not enter running state before shutdown" }
+  # StartRefresh persists `running` before its worker goroutine enumerates
+  # sources. Require the run to remain active across a bounded scheduling
+  # barrier so an early source-list failure is detected before shutdown.
+  Start-Sleep -Milliseconds 25
+  $inFlightRun = Invoke-RestMethod -TimeoutSec 5 "http://127.0.0.1:$port/api/v1/refresh/$($refreshRun.id)"
+  if ($inFlightRun.status -ne "running") {
+    $inFlightRun | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $logs "pre-shutdown-refresh.json")
+    throw "refresh terminated before the active-work shutdown barrier"
+  }
+  Record "active refresh remained in flight across the scheduling barrier"
   Stop-App $app $stopFile
   Record "graceful console shutdown completed with active refresh"
 
@@ -254,14 +272,20 @@ try {
   if ($LASTEXITCODE -ne 0) { throw "native credential checks failed with exit code $LASTEXITCODE" }
   $env:NEWS_AGGREGATOR_CREDENTIAL_SENTINEL = $null
 
+  $negativeScan = Join-Path $temp "sentinel-negative.log"
+  [System.IO.File]::WriteAllText($negativeScan, "seed=$CredentialSentinel", [System.Text.Encoding]::UTF8)
+  $negativeRejected = $false
+  try { Assert-SentinelAbsent @($negativeScan) $CredentialSentinel } catch { $negativeRejected = $true }
+  Remove-Item -Force $negativeScan
+  if (-not $negativeRejected) { throw "credential sentinel negative scan did not reject seeded log" }
+
+  # Launcher logs remain open in the parent process and are scanned there.
+  # The main smoke log is closed between each Add-Content/Out-File call and
+  # must be included because it receives the native credential-test output.
   $openLauncherLogs = @((Join-Path $OutputRoot "restricted-stdout.log"), (Join-Path $OutputRoot "restricted-stderr.log"))
-  $scanFiles = Get-ChildItem -Path $OutputRoot -Recurse -File | Where-Object { $_.FullName -ne $smokeLog -and $_.FullName -notin $openLauncherLogs }
-  foreach ($file in $scanFiles) {
-    $bytes = [System.IO.File]::ReadAllBytes($file.FullName)
-    $text = [System.Text.Encoding]::UTF8.GetString($bytes)
-    if ($text.Contains($CredentialSentinel)) { throw "credential sentinel leaked into $($file.FullName)" }
-  }
-  Record "credential sentinel absent from database, logs, executable, and artifacts"
+  $scanFiles = @(Get-ChildItem -Path $OutputRoot -Recurse -File | Where-Object { $_.FullName -notin $openLauncherLogs })
+  Assert-SentinelAbsent @($scanFiles.FullName) $CredentialSentinel
+  Record "credential sentinel negative control rejected and sentinel absent from database, all closed logs, executable, and artifacts"
   Record "decision=APPROVE"
 } finally {
   if ($app -and -not $app.HasExited) { Stop-Process -Id $app.Id -Force }
