@@ -71,7 +71,7 @@ $runtimeLog = Join-Path $logs "runtime.log"
 $runtimeError = Join-Path $logs "runtime-error.log"
 $smokeLog = Join-Path $logs "native-smoke.log"
 $app,$restart,$fixtureProcess = $null,$null,$null
-$originalAppData,$originalPort,$originalPath = $env:APPDATA,$env:NEWS_AGGREGATOR_PORT,$env:PATH
+$originalAppData,$originalLocalAppData,$originalTemp,$originalTmp,$originalGoTmp,$originalPort,$originalPath = $env:APPDATA,$env:LOCALAPPDATA,$env:TEMP,$env:TMP,$env:GOTMPDIR,$env:NEWS_AGGREGATOR_PORT,$env:PATH
 
 New-Item -ItemType Directory -Force -Path $build,$data,$logs,$probe,$emptyPath,$temp,$localData | Out-Null
 $env:APPDATA = $data
@@ -259,6 +259,6 @@ try {
   if ($app -and -not $app.HasExited) { Stop-Process -Id $app.Id -Force }
   if ($restart -and -not $restart.HasExited) { Stop-Process -Id $restart.Id -Force }
   if ($fixtureProcess -and -not $fixtureProcess.HasExited) { Stop-Process -Id $fixtureProcess.Id -Force }
-  $env:APPDATA,$env:NEWS_AGGREGATOR_PORT,$env:PATH = $originalAppData,$originalPort,$originalPath
+  $env:APPDATA,$env:LOCALAPPDATA,$env:TEMP,$env:TMP,$env:GOTMPDIR,$env:NEWS_AGGREGATOR_PORT,$env:PATH = $originalAppData,$originalLocalAppData,$originalTemp,$originalTmp,$originalGoTmp,$originalPort,$originalPath
   Pop-Location
 }

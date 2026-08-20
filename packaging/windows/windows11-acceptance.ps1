@@ -21,7 +21,9 @@ try {
   if ($nodeVersion -notmatch '^v22\.' -or $npmVersion -ne '11.6.2') {
     Write-Host "Provisioning checksum-verified portable Node.js 22 and npm 11.6.2"
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    $portableNode = Join-Path $env:TEMP ("news-aggregator-node22-" + [guid]::NewGuid().ToString("N"))
+    $userTemp = [Environment]::ExpandEnvironmentVariables([Environment]::GetEnvironmentVariable("TEMP", "User"))
+    if (-not $userTemp) { $userTemp = $env:TEMP }
+    $portableNode = Join-Path $userTemp ("news-aggregator-node22-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $portableNode | Out-Null
     $baseURL = "https://nodejs.org/dist/latest-v22.x"
     $entries = (Invoke-WebRequest "$baseURL/SHASUMS256.txt" -UseBasicParsing -TimeoutSec 30).Content -split "`n"
@@ -36,7 +38,8 @@ try {
     Expand-Archive $archivePath -DestinationPath $portableNode
     $nodeHome = Join-Path $portableNode ([IO.Path]::GetFileNameWithoutExtension($fileName))
     $env:PATH = "$nodeHome;$env:PATH"
-    & npm.cmd install --global npm@11.6.2
+    $portableNpm = Join-Path $nodeHome "npm.cmd"
+    & $portableNpm install --global npm@11.6.2
     if ($LASTEXITCODE -ne 0) { throw "portable npm installation failed with exit code $LASTEXITCODE" }
   }
 
