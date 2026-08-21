@@ -13,8 +13,8 @@
     "orientationAngle": 0,
     "orientationType": "landscape-primary"
   },
-  "timestamp": "2026-08-21T08:46:19.935Z",
-  "url": "http://127.0.0.1:43297/",
+  "timestamp": "2026-08-21T12:01:35.460Z",
+  "url": "http://127.0.0.1:45741/",
   "toolOptions": {
     "runOnly": {
       "type": "tag",
@@ -885,9 +885,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.1\">0.1</output>",
+          "html": "<output aria-label=\"Score contribution 0.03121117183966146\">0.03121117183966146</output>",
           "target": [
-            "output[aria-label=\"Score contribution 0.1\"]"
+            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -911,9 +911,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
+          "html": "<output aria-label=\"Score contribution 0.025\">0.025</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(2) > output"
+            "output[aria-label=\"Score contribution 0.025\"]"
           ]
         },
         {
@@ -937,9 +937,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
           "target": [
-            "li:nth-child(3) > output[aria-label=\"Score contribution 0.05\"]"
+            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(3) > output"
           ]
         },
         {
@@ -963,9 +963,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
           "target": [
-            "li:nth-child(4) > output[aria-label=\"Score contribution 0.05\"]"
+            "li:nth-child(4) > output"
           ]
         },
         {
@@ -989,9 +989,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
           "target": [
-            "li:nth-child(5) > output[aria-label=\"Score contribution 0.05\"]"
+            "li:nth-child(5) > output"
           ]
         },
         {
@@ -1015,7 +1015,33 @@
             }
           ],
           "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark read</button><button type=\"button\">Unsave</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
+          "target": [
+            "li:nth-child(6) > output"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-allowed-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attributes are used correctly for the defined role"
+            }
+          ],
+          "none": [
+            {
+              "id": "aria-unsupported-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute is supported"
+            }
+          ],
+          "impact": null,
+          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark unread</button><button type=\"button\">Save</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
           "target": [
             "li:nth-child(1) > .actions[aria-label=\"Article actions\"]"
           ]
@@ -1093,9 +1119,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.036053882122485115\">0.036053882122485115</output>",
+          "html": "<output aria-label=\"Score contribution 0.1\">0.1</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(1) > output"
+            "output[aria-label=\"Score contribution 0.1\"]"
           ]
         },
         {
@@ -1119,9 +1145,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.025\">0.025</output>",
+          "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
           "target": [
-            "output[aria-label=\"Score contribution 0.025\"]"
+            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(2) > output"
           ]
         },
         {
@@ -1145,9 +1171,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
+          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(3) > output"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -1171,85 +1197,7 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(4) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-allowed-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attributes are used correctly for the defined role"
-            }
-          ],
-          "none": [
-            {
-              "id": "aria-unsupported-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(5) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-allowed-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attributes are used correctly for the defined role"
-            }
-          ],
-          "none": [
-            {
-              "id": "aria-unsupported-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "li:nth-child(6) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-allowed-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attributes are used correctly for the defined role"
-            }
-          ],
-          "none": [
-            {
-              "id": "aria-unsupported-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark unread</button><button type=\"button\">Save</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
+          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark read</button><button type=\"button\">Unsave</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
           "target": [
             "li:nth-child(2) > .actions[aria-label=\"Article actions\"]"
           ]
@@ -1471,9 +1419,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.1\">0.1</output>",
+          "html": "<output aria-label=\"Score contribution 0.03121117183966146\">0.03121117183966146</output>",
           "target": [
-            "output[aria-label=\"Score contribution 0.1\"]"
+            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -1489,9 +1437,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
+          "html": "<output aria-label=\"Score contribution 0.025\">0.025</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(2) > output"
+            "output[aria-label=\"Score contribution 0.025\"]"
           ]
         },
         {
@@ -1507,9 +1455,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
           "target": [
-            "li:nth-child(3) > output[aria-label=\"Score contribution 0.05\"]"
+            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(3) > output"
           ]
         },
         {
@@ -1525,9 +1473,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
           "target": [
-            "li:nth-child(4) > output[aria-label=\"Score contribution 0.05\"]"
+            "li:nth-child(4) > output"
           ]
         },
         {
@@ -1543,9 +1491,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
           "target": [
-            "li:nth-child(5) > output[aria-label=\"Score contribution 0.05\"]"
+            "li:nth-child(5) > output"
           ]
         },
         {
@@ -1561,7 +1509,25 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark read</button><button type=\"button\">Unsave</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
+          "target": [
+            "li:nth-child(6) > output"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-conditional-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "ARIA attribute is allowed"
+            }
+          ],
+          "none": [],
+          "impact": null,
+          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark unread</button><button type=\"button\">Save</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
           "target": [
             "li:nth-child(1) > .actions[aria-label=\"Article actions\"]"
           ]
@@ -1615,9 +1581,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.036053882122485115\">0.036053882122485115</output>",
+          "html": "<output aria-label=\"Score contribution 0.1\">0.1</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(1) > output"
+            "output[aria-label=\"Score contribution 0.1\"]"
           ]
         },
         {
@@ -1633,9 +1599,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.025\">0.025</output>",
+          "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
           "target": [
-            "output[aria-label=\"Score contribution 0.025\"]"
+            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(2) > output"
           ]
         },
         {
@@ -1651,9 +1617,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
+          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(3) > output"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -1669,61 +1635,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(4) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-conditional-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(5) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-conditional-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "li:nth-child(6) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-conditional-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark unread</button><button type=\"button\">Save</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
+          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark read</button><button type=\"button\">Unsave</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
           "target": [
             "li:nth-child(2) > .actions[aria-label=\"Article actions\"]"
           ]
@@ -2039,117 +1951,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.1\">0.1</output>",
+          "html": "<output aria-label=\"Score contribution 0.03121117183966146\">0.03121117183966146</output>",
           "target": [
-            "output[aria-label=\"Score contribution 0.1\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(2) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(3) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(4) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(5) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
-          "html": "<p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(1) > .actions[aria-label=\"Article actions\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.036053882122485115\">0.036053882122485115</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(1) > output"
+            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -2185,7 +1989,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(3) > output"
+            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(3) > output"
           ]
         },
         {
@@ -2201,9 +2005,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(4) > output"
+            "li:nth-child(4) > output"
           ]
         },
         {
@@ -2219,9 +2023,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(5) > output"
+            "li:nth-child(5) > output"
           ]
         },
         {
@@ -2237,9 +2041,81 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
           "target": [
             "li:nth-child(6) > output"
+          ]
+        },
+        {
+          "any": [],
+          "all": [],
+          "none": [
+            {
+              "id": "aria-prohibited-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "ARIA attribute is allowed"
+            }
+          ],
+          "impact": null,
+          "html": "<p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
+          "target": [
+            "li:nth-child(1) > .actions[aria-label=\"Article actions\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
+          ]
+        },
+        {
+          "any": [],
+          "all": [],
+          "none": [
+            {
+              "id": "aria-prohibited-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "ARIA attribute is allowed"
+            }
+          ],
+          "impact": null,
+          "html": "<output aria-label=\"Score contribution 0.1\">0.1</output>",
+          "target": [
+            "output[aria-label=\"Score contribution 0.1\"]"
+          ]
+        },
+        {
+          "any": [],
+          "all": [],
+          "none": [
+            {
+              "id": "aria-prohibited-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "ARIA attribute is allowed"
+            }
+          ],
+          "impact": null,
+          "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
+          "target": [
+            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(2) > output"
+          ]
+        },
+        {
+          "any": [],
+          "all": [],
+          "none": [
+            {
+              "id": "aria-prohibited-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "ARIA attribute is allowed"
+            }
+          ],
+          "impact": null,
+          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "target": [
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -2773,9 +2649,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.1\">0.1</output>",
+          "html": "<output aria-label=\"Score contribution 0.03121117183966146\">0.03121117183966146</output>",
           "target": [
-            "output[aria-label=\"Score contribution 0.1\"]"
+            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -2805,9 +2681,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
+          "html": "<output aria-label=\"Score contribution 0.025\">0.025</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(2) > output"
+            "output[aria-label=\"Score contribution 0.025\"]"
           ]
         },
         {
@@ -2837,9 +2713,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
           "target": [
-            "li:nth-child(3) > output[aria-label=\"Score contribution 0.05\"]"
+            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(3) > output"
           ]
         },
         {
@@ -2869,9 +2745,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
           "target": [
-            "li:nth-child(4) > output[aria-label=\"Score contribution 0.05\"]"
+            "li:nth-child(4) > output"
           ]
         },
         {
@@ -2901,9 +2777,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
           "target": [
-            "li:nth-child(5) > output[aria-label=\"Score contribution 0.05\"]"
+            "li:nth-child(5) > output"
           ]
         },
         {
@@ -2933,7 +2809,39 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark read</button><button type=\"button\">Unsave</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
+          "target": [
+            "li:nth-child(6) > output"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-valid-attr-value",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute values are valid"
+            },
+            {
+              "id": "aria-errormessage",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
+            },
+            {
+              "id": "aria-level",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "aria-level values are valid"
+            }
+          ],
+          "none": [],
+          "impact": null,
+          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark unread</button><button type=\"button\">Save</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
           "target": [
             "li:nth-child(1) > .actions[aria-label=\"Article actions\"]"
           ]
@@ -3029,9 +2937,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.036053882122485115\">0.036053882122485115</output>",
+          "html": "<output aria-label=\"Score contribution 0.1\">0.1</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(1) > output"
+            "output[aria-label=\"Score contribution 0.1\"]"
           ]
         },
         {
@@ -3061,9 +2969,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.025\">0.025</output>",
+          "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
           "target": [
-            "output[aria-label=\"Score contribution 0.025\"]"
+            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(2) > output"
           ]
         },
         {
@@ -3093,9 +3001,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
+          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(3) > output"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -3125,103 +3033,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(4) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-valid-attr-value",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute values are valid"
-            },
-            {
-              "id": "aria-errormessage",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
-            },
-            {
-              "id": "aria-level",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-level values are valid"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(5) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-valid-attr-value",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute values are valid"
-            },
-            {
-              "id": "aria-errormessage",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
-            },
-            {
-              "id": "aria-level",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-level values are valid"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "li:nth-child(6) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-valid-attr-value",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute values are valid"
-            },
-            {
-              "id": "aria-errormessage",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
-            },
-            {
-              "id": "aria-level",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-level values are valid"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark unread</button><button type=\"button\">Save</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
+          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark read</button><button type=\"button\">Unsave</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
           "target": [
             "li:nth-child(2) > .actions[aria-label=\"Article actions\"]"
           ]
@@ -3449,9 +3261,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.1\">0.1</output>",
+          "html": "<output aria-label=\"Score contribution 0.03121117183966146\">0.03121117183966146</output>",
           "target": [
-            "output[aria-label=\"Score contribution 0.1\"]"
+            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -3467,9 +3279,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
+          "html": "<output aria-label=\"Score contribution 0.025\">0.025</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(2) > output"
+            "output[aria-label=\"Score contribution 0.025\"]"
           ]
         },
         {
@@ -3485,9 +3297,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
           "target": [
-            "li:nth-child(3) > output[aria-label=\"Score contribution 0.05\"]"
+            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(3) > output"
           ]
         },
         {
@@ -3503,9 +3315,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
           "target": [
-            "li:nth-child(4) > output[aria-label=\"Score contribution 0.05\"]"
+            "li:nth-child(4) > output"
           ]
         },
         {
@@ -3521,9 +3333,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
           "target": [
-            "li:nth-child(5) > output[aria-label=\"Score contribution 0.05\"]"
+            "li:nth-child(5) > output"
           ]
         },
         {
@@ -3539,7 +3351,25 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark read</button><button type=\"button\">Unsave</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
+          "target": [
+            "li:nth-child(6) > output"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "aria-valid-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute name is valid"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark unread</button><button type=\"button\">Save</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
           "target": [
             "li:nth-child(1) > .actions[aria-label=\"Article actions\"]"
           ]
@@ -3593,9 +3423,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.036053882122485115\">0.036053882122485115</output>",
+          "html": "<output aria-label=\"Score contribution 0.1\">0.1</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(1) > output"
+            "output[aria-label=\"Score contribution 0.1\"]"
           ]
         },
         {
@@ -3611,9 +3441,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.025\">0.025</output>",
+          "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
           "target": [
-            "output[aria-label=\"Score contribution 0.025\"]"
+            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(2) > output"
           ]
         },
         {
@@ -3629,9 +3459,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
+          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(3) > output"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -3647,61 +3477,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(4) > output"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-valid-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute name is valid"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(5) > output"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-valid-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute name is valid"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "li:nth-child(6) > output"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-valid-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute name is valid"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark unread</button><button type=\"button\">Save</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
+          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark read</button><button type=\"button\">Unsave</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
           "target": [
             "li:nth-child(2) > .actions[aria-label=\"Article actions\"]"
           ]
@@ -3812,7 +3588,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button type=\"button\">Mark read</button>",
+          "html": "<button type=\"button\">Mark unread</button>",
           "target": [
             "li:nth-child(1) > .actions[aria-label=\"Article actions\"] > button[type=\"button\"]:nth-child(1)"
           ]
@@ -3830,7 +3606,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button type=\"button\">Unsave</button>",
+          "html": "<button type=\"button\">Save</button>",
           "target": [
             "li:nth-child(1) > .actions[aria-label=\"Article actions\"] > button[type=\"button\"]:nth-child(2)"
           ]
@@ -3866,7 +3642,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button type=\"button\">Mark unread</button>",
+          "html": "<button type=\"button\">Mark read</button>",
           "target": [
             "li:nth-child(2) > .actions[aria-label=\"Article actions\"] > button[type=\"button\"]:nth-child(1)"
           ]
@@ -3884,7 +3660,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button type=\"button\">Save</button>",
+          "html": "<button type=\"button\">Unsave</button>",
           "target": [
             "li:nth-child(2) > .actions[aria-label=\"Article actions\"] > button[type=\"button\"]:nth-child(2)"
           ]
@@ -3959,7 +3735,7 @@
                   ]
                 },
                 {
-                  "html": "<h2><a href=\"http://publisher.fixture.test/metadata-climate\" target=\"_blank\" rel=\"noopener noreferrer\">Climate science briefing</a></h2>",
+                  "html": "<h2><a href=\"http://publisher.fixture.test/full-technology\" target=\"_blank\" rel=\"noopener noreferrer\">Technology advances in local science</a></h2>",
                   "target": [
                     "li:nth-child(1) > article > h2"
                   ]
@@ -3971,7 +3747,7 @@
                   ]
                 },
                 {
-                  "html": "<h2><a href=\"http://publisher.fixture.test/full-technology\" target=\"_blank\" rel=\"noopener noreferrer\">Technology advances in local science</a></h2>",
+                  "html": "<h2><a href=\"http://publisher.fixture.test/metadata-climate\" target=\"_blank\" rel=\"noopener noreferrer\">Climate science briefing</a></h2>",
                   "target": [
                     "li:nth-child(2) > article > h2"
                   ]
@@ -4848,7 +4624,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span class=\"badge\">Publisher link only</span>",
+          "html": "<span class=\"badge\">Full article available</span>",
           "target": [
             "li:nth-child(1) > article > header > .badge"
           ]
@@ -4873,7 +4649,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<p class=\"article-card__source\">Metadata News</p>",
+          "html": "<p class=\"article-card__source\">Full Content News</p>",
           "target": [
             "li:nth-child(1) > article > header > .article-card__source"
           ]
@@ -4898,7 +4674,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<a href=\"http://publisher.fixture.test/metadata-climate\" target=\"_blank\" rel=\"noopener noreferrer\">Climate science briefing</a>",
+          "html": "<a href=\"http://publisher.fixture.test/full-technology\" target=\"_blank\" rel=\"noopener noreferrer\">Technology advances in local science</a>",
           "target": [
             "li:nth-child(1) > article > h2 > a[target=\"_blank\"][rel=\"noopener noreferrer\"]"
           ]
@@ -4923,7 +4699,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<p>Local climate research and technology.</p>",
+          "html": "<p>Technology and science report.</p>",
           "target": [
             "li:nth-child(1) > article > p"
           ]
@@ -4948,7 +4724,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<a class=\"publisher-link\" href=\"http://publisher.fixture.test/metadata-climate\" target=\"_blank\" rel=\"noopener noreferrer\">Read at publisher<span class=\"sr-only\">: Climate science briefing</span></a>",
+          "html": "<a class=\"publisher-link\" href=\"http://publisher.fixture.test/full-technology\" target=\"_blank\" rel=\"noopener noreferrer\">Read at publisher<span class=\"sr-only\">: Technology advances in local science</span></a>",
           "target": [
             "li:nth-child(1) > article > .publisher-link[target=\"_blank\"][rel=\"noopener noreferrer\"]"
           ]
@@ -4973,7 +4749,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span class=\"sr-only\">: Climate science briefing</span>",
+          "html": "<span class=\"sr-only\">: Technology advances in local science</span>",
           "target": [
             "li:nth-child(1) > article > .publisher-link[target=\"_blank\"][rel=\"noopener noreferrer\"] > .sr-only"
           ]
@@ -4998,7 +4774,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<p data-v-916e3f82=\"\"> Published 8/14/2026, 10:00:00 AM</p>",
+          "html": "<p data-v-916e3f82=\"\"> Published 8/15/2026, 11:00:00 AM</p>",
           "target": [
             "li:nth-child(1) > p"
           ]
@@ -5048,7 +4824,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Published recently</span>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(1) > span"
           ]
@@ -5073,9 +4849,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.1\">0.1</output>",
+          "html": "<output aria-label=\"Score contribution 0.03121117183966146\">0.03121117183966146</output>",
           "target": [
-            "output[aria-label=\"Score contribution 0.1\"]"
+            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -5098,7 +4874,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Adjusted using your read history</span>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(2) > span"
           ]
@@ -5123,9 +4899,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
+          "html": "<output aria-label=\"Score contribution 0.025\">0.025</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(2) > output"
+            "output[aria-label=\"Score contribution 0.025\"]"
           ]
         },
         {
@@ -5148,7 +4924,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Local text is similar to selected interests</span>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(3) > span"
           ]
@@ -5173,9 +4949,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
           "target": [
-            "li:nth-child(3) > output[aria-label=\"Score contribution 0.05\"]"
+            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(3) > output"
           ]
         },
         {
@@ -5198,9 +4974,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Matches your optional location and declared article metadata</span>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(4) > span"
+            "li:nth-child(4) > span"
           ]
         },
         {
@@ -5223,9 +4999,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
           "target": [
-            "li:nth-child(4) > output[aria-label=\"Score contribution 0.05\"]"
+            "li:nth-child(4) > output"
           ]
         },
         {
@@ -5248,9 +5024,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Matches your optional age and a declared audience range</span>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(5) > span"
+            "li:nth-child(5) > span"
           ]
         },
         {
@@ -5273,9 +5049,59 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
           "target": [
-            "li:nth-child(5) > output[aria-label=\"Score contribution 0.05\"]"
+            "li:nth-child(5) > output"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#17233c",
+                "bgColor": "#ffffff",
+                "contrastRatio": 15.64,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 15.64"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<span>Matches your optional gender and a declared audience value</span>",
+          "target": [
+            "li:nth-child(6) > span"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#17233c",
+                "bgColor": "#ffffff",
+                "contrastRatio": 15.64,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 15.64"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output>",
+          "target": [
+            "li:nth-child(6) > output"
           ]
         },
         {
@@ -5323,7 +5149,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<a data-v-916e3f82=\"\" href=\"/articles/article-29026b7799232ebcd520692f4e22d42e\"> Open reader </a>",
+          "html": "<a data-v-916e3f82=\"\" href=\"/articles/article-d46345e7f47716150df4c960a9e5d229\"> Open reader </a>",
           "target": [
             "li:nth-child(1) > a"
           ]
@@ -5348,7 +5174,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button type=\"button\">Mark read</button>",
+          "html": "<button type=\"button\">Mark unread</button>",
           "target": [
             "li:nth-child(1) > .actions[aria-label=\"Article actions\"] > button[type=\"button\"]:nth-child(1)"
           ]
@@ -5373,7 +5199,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button type=\"button\">Unsave</button>",
+          "html": "<button type=\"button\">Save</button>",
           "target": [
             "li:nth-child(1) > .actions[aria-label=\"Article actions\"] > button[type=\"button\"]:nth-child(2)"
           ]
@@ -5423,7 +5249,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span class=\"badge\">Full article available</span>",
+          "html": "<span class=\"badge\">Publisher link only</span>",
           "target": [
             "li:nth-child(2) > article > header > .badge"
           ]
@@ -5448,7 +5274,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<p class=\"article-card__source\">Full Content News</p>",
+          "html": "<p class=\"article-card__source\">Metadata News</p>",
           "target": [
             "li:nth-child(2) > article > header > .article-card__source"
           ]
@@ -5473,7 +5299,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<a href=\"http://publisher.fixture.test/full-technology\" target=\"_blank\" rel=\"noopener noreferrer\">Technology advances in local science</a>",
+          "html": "<a href=\"http://publisher.fixture.test/metadata-climate\" target=\"_blank\" rel=\"noopener noreferrer\">Climate science briefing</a>",
           "target": [
             "li:nth-child(2) > article > h2 > a[target=\"_blank\"][rel=\"noopener noreferrer\"]"
           ]
@@ -5498,7 +5324,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<p>Technology and science report.</p>",
+          "html": "<p>Local climate research and technology.</p>",
           "target": [
             "li:nth-child(2) > article > p"
           ]
@@ -5523,7 +5349,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<a class=\"publisher-link\" href=\"http://publisher.fixture.test/full-technology\" target=\"_blank\" rel=\"noopener noreferrer\">Read at publisher<span class=\"sr-only\">: Technology advances in local science</span></a>",
+          "html": "<a class=\"publisher-link\" href=\"http://publisher.fixture.test/metadata-climate\" target=\"_blank\" rel=\"noopener noreferrer\">Read at publisher<span class=\"sr-only\">: Climate science briefing</span></a>",
           "target": [
             "li:nth-child(2) > article > .publisher-link[target=\"_blank\"][rel=\"noopener noreferrer\"]"
           ]
@@ -5548,7 +5374,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span class=\"sr-only\">: Technology advances in local science</span>",
+          "html": "<span class=\"sr-only\">: Climate science briefing</span>",
           "target": [
             "li:nth-child(2) > article > .publisher-link[target=\"_blank\"][rel=\"noopener noreferrer\"] > .sr-only"
           ]
@@ -5573,7 +5399,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<p data-v-916e3f82=\"\"> Published 8/15/2026, 11:00:00 AM</p>",
+          "html": "<p data-v-916e3f82=\"\"> Published 8/14/2026, 10:00:00 AM</p>",
           "target": [
             "li:nth-child(2) > p"
           ]
@@ -5623,7 +5449,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Adjusted because you saved this article</span>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(1) > span"
           ]
@@ -5648,9 +5474,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.036053882122485115\">0.036053882122485115</output>",
+          "html": "<output aria-label=\"Score contribution 0.1\">0.1</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(1) > output"
+            "output[aria-label=\"Score contribution 0.1\"]"
           ]
         },
         {
@@ -5673,7 +5499,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Local text is similar to selected interests</span>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(2) > span"
           ]
@@ -5698,9 +5524,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.025\">0.025</output>",
+          "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
           "target": [
-            "output[aria-label=\"Score contribution 0.025\"]"
+            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(2) > output"
           ]
         },
         {
@@ -5723,7 +5549,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Matches your optional location and declared article metadata</span>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(3) > span"
           ]
@@ -5748,159 +5574,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
+          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(3) > output"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(4) > span"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(4) > output"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(5) > span"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(5) > output"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
-          "target": [
-            "li:nth-child(6) > span"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output>",
-          "target": [
-            "li:nth-child(6) > output"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -5948,7 +5624,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<a data-v-916e3f82=\"\" href=\"/articles/article-d46345e7f47716150df4c960a9e5d229\"> Open reader </a>",
+          "html": "<a data-v-916e3f82=\"\" href=\"/articles/article-29026b7799232ebcd520692f4e22d42e\"> Open reader </a>",
           "target": [
             "li:nth-child(2) > a"
           ]
@@ -5973,7 +5649,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button type=\"button\">Mark unread</button>",
+          "html": "<button type=\"button\">Mark read</button>",
           "target": [
             "li:nth-child(2) > .actions[aria-label=\"Article actions\"] > button[type=\"button\"]:nth-child(1)"
           ]
@@ -5998,7 +5674,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button type=\"button\">Save</button>",
+          "html": "<button type=\"button\">Unsave</button>",
           "target": [
             "li:nth-child(2) > .actions[aria-label=\"Article actions\"] > button[type=\"button\"]:nth-child(2)"
           ]
@@ -6643,31 +6319,6 @@
               "data": null,
               "relatedNodes": [
                 {
-                  "html": "<article data-v-916e3f82=\"\" class=\"article-card\" dir=\"auto\">",
-                  "target": [
-                    "li:nth-child(1) > article"
-                  ]
-                }
-              ],
-              "impact": "serious",
-              "message": "Links can be distinguished from surrounding text by visual styling"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<a class=\"publisher-link\" href=\"http://publisher.fixture.test/metadata-climate\" target=\"_blank\" rel=\"noopener noreferrer\">Read at publisher<span class=\"sr-only\">: Climate science briefing</span></a>",
-          "target": [
-            "li:nth-child(1) > article > .publisher-link[target=\"_blank\"][rel=\"noopener noreferrer\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "link-in-text-block-style",
-              "data": null,
-              "relatedNodes": [
-                {
                   "html": "<li data-v-916e3f82=\"\">",
                   "target": [
                     "ol > li:nth-child(1)"
@@ -6681,9 +6332,34 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<a data-v-916e3f82=\"\" href=\"/articles/article-29026b7799232ebcd520692f4e22d42e\"> Open reader </a>",
+          "html": "<a data-v-916e3f82=\"\" href=\"/articles/article-d46345e7f47716150df4c960a9e5d229\"> Open reader </a>",
           "target": [
             "li:nth-child(1) > a"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "link-in-text-block-style",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<article data-v-916e3f82=\"\" class=\"article-card\" dir=\"auto\">",
+                  "target": [
+                    "li:nth-child(2) > article"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Links can be distinguished from surrounding text by visual styling"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<a class=\"publisher-link\" href=\"http://publisher.fixture.test/metadata-climate\" target=\"_blank\" rel=\"noopener noreferrer\">Read at publisher<span class=\"sr-only\">: Climate science briefing</span></a>",
+          "target": [
+            "li:nth-child(2) > article > .publisher-link[target=\"_blank\"][rel=\"noopener noreferrer\"]"
           ]
         },
         {
@@ -6706,7 +6382,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<a data-v-916e3f82=\"\" href=\"/articles/article-d46345e7f47716150df4c960a9e5d229\"> Open reader </a>",
+          "html": "<a data-v-916e3f82=\"\" href=\"/articles/article-29026b7799232ebcd520692f4e22d42e\"> Open reader </a>",
           "target": [
             "li:nth-child(2) > a"
           ]
@@ -6944,7 +6620,7 @@
             }
           ],
           "impact": null,
-          "html": "<a href=\"http://publisher.fixture.test/metadata-climate\" target=\"_blank\" rel=\"noopener noreferrer\">Climate science briefing</a>",
+          "html": "<a href=\"http://publisher.fixture.test/full-technology\" target=\"_blank\" rel=\"noopener noreferrer\">Technology advances in local science</a>",
           "target": [
             "li:nth-child(1) > article > h2 > a[target=\"_blank\"][rel=\"noopener noreferrer\"]"
           ]
@@ -6970,7 +6646,7 @@
             }
           ],
           "impact": null,
-          "html": "<a class=\"publisher-link\" href=\"http://publisher.fixture.test/metadata-climate\" target=\"_blank\" rel=\"noopener noreferrer\">Read at publisher<span class=\"sr-only\">: Climate science briefing</span></a>",
+          "html": "<a class=\"publisher-link\" href=\"http://publisher.fixture.test/full-technology\" target=\"_blank\" rel=\"noopener noreferrer\">Read at publisher<span class=\"sr-only\">: Technology advances in local science</span></a>",
           "target": [
             "li:nth-child(1) > article > .publisher-link[target=\"_blank\"][rel=\"noopener noreferrer\"]"
           ]
@@ -6996,7 +6672,7 @@
             }
           ],
           "impact": null,
-          "html": "<a data-v-916e3f82=\"\" href=\"/articles/article-29026b7799232ebcd520692f4e22d42e\"> Open reader </a>",
+          "html": "<a data-v-916e3f82=\"\" href=\"/articles/article-d46345e7f47716150df4c960a9e5d229\"> Open reader </a>",
           "target": [
             "li:nth-child(1) > a"
           ]
@@ -7022,7 +6698,7 @@
             }
           ],
           "impact": null,
-          "html": "<a href=\"http://publisher.fixture.test/full-technology\" target=\"_blank\" rel=\"noopener noreferrer\">Technology advances in local science</a>",
+          "html": "<a href=\"http://publisher.fixture.test/metadata-climate\" target=\"_blank\" rel=\"noopener noreferrer\">Climate science briefing</a>",
           "target": [
             "li:nth-child(2) > article > h2 > a[target=\"_blank\"][rel=\"noopener noreferrer\"]"
           ]
@@ -7048,7 +6724,7 @@
             }
           ],
           "impact": null,
-          "html": "<a class=\"publisher-link\" href=\"http://publisher.fixture.test/full-technology\" target=\"_blank\" rel=\"noopener noreferrer\">Read at publisher<span class=\"sr-only\">: Technology advances in local science</span></a>",
+          "html": "<a class=\"publisher-link\" href=\"http://publisher.fixture.test/metadata-climate\" target=\"_blank\" rel=\"noopener noreferrer\">Read at publisher<span class=\"sr-only\">: Climate science briefing</span></a>",
           "target": [
             "li:nth-child(2) > article > .publisher-link[target=\"_blank\"][rel=\"noopener noreferrer\"]"
           ]
@@ -7074,7 +6750,7 @@
             }
           ],
           "impact": null,
-          "html": "<a data-v-916e3f82=\"\" href=\"/articles/article-d46345e7f47716150df4c960a9e5d229\"> Open reader </a>",
+          "html": "<a data-v-916e3f82=\"\" href=\"/articles/article-29026b7799232ebcd520692f4e22d42e\"> Open reader </a>",
           "target": [
             "li:nth-child(2) > a"
           ]
@@ -7268,7 +6944,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.1\">0.1</output></li>",
+          "html": "<li><span>Published recently</span><output aria-label=\"Score contribution 0.03121117183966146\">0.03121117183966146</output></li>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(1)"
           ]
@@ -7286,7 +6962,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output></li>",
+          "html": "<li><span>Adjusted using your read history</span><output aria-label=\"Score contribution 0.025\">0.025</output></li>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(2)"
           ]
@@ -7304,7 +6980,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.05\">0.05</output></li>",
+          "html": "<li><span>Local text is similar to selected interests</span><output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output></li>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(3)"
           ]
@@ -7322,9 +6998,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.05\">0.05</output></li>",
+          "html": "<li><span>Matches your optional location and declared article metadata</span><output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output></li>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(4)"
+            "li:nth-child(4)"
           ]
         },
         {
@@ -7340,9 +7016,27 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.05\">0.05</output></li>",
+          "html": "<li><span>Matches your optional age and a declared audience range</span><output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output></li>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-26\"] > ul > li:nth-child(5)"
+            "li:nth-child(5)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "listitem",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "List item has a <ul>, <ol> or role=\"list\" parent element"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<li><span>Matches your optional gender and a declared audience value</span><output aria-label=\"Score contribution 0.03844099288538617\">0.03844099288538617</output></li>",
+          "target": [
+            "li:nth-child(6)"
           ]
         },
         {
@@ -7376,7 +7070,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.036053882122485115\">0.036053882122485115</output></li>",
+          "html": "<li><span>Adjusted because you saved this article</span><output aria-label=\"Score contribution 0.1\">0.1</output></li>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(1)"
           ]
@@ -7394,7 +7088,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.025\">0.025</output></li>",
+          "html": "<li><span>Local text is similar to selected interests</span><output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output></li>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(2)"
           ]
@@ -7412,63 +7106,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output></li>",
+          "html": "<li><span>Matches your optional location and declared article metadata</span><output aria-label=\"Score contribution 0.05\">0.05</output></li>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(3)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "listitem",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "List item has a <ul>, <ol> or role=\"list\" parent element"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output></li>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(4)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "listitem",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "List item has a <ul>, <ol> or role=\"list\" parent element"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output></li>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-27\"] > ul > li:nth-child(5)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "listitem",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "List item has a <ul>, <ol> or role=\"list\" parent element"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.040055229646327385\">0.040055229646327385</output></li>",
-          "target": [
-            "li:nth-child(6)"
           ]
         }
       ]
@@ -7753,7 +7393,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button type=\"button\">Mark read</button>",
+          "html": "<button type=\"button\">Mark unread</button>",
           "target": [
             "li:nth-child(1) > .actions[aria-label=\"Article actions\"] > button[type=\"button\"]:nth-child(1)"
           ]
@@ -7771,7 +7411,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button type=\"button\">Unsave</button>",
+          "html": "<button type=\"button\">Save</button>",
           "target": [
             "li:nth-child(1) > .actions[aria-label=\"Article actions\"] > button[type=\"button\"]:nth-child(2)"
           ]
@@ -7807,7 +7447,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button type=\"button\">Mark unread</button>",
+          "html": "<button type=\"button\">Mark read</button>",
           "target": [
             "li:nth-child(2) > .actions[aria-label=\"Article actions\"] > button[type=\"button\"]:nth-child(1)"
           ]
@@ -7825,7 +7465,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button type=\"button\">Save</button>",
+          "html": "<button type=\"button\">Unsave</button>",
           "target": [
             "li:nth-child(2) > .actions[aria-label=\"Article actions\"] > button[type=\"button\"]:nth-child(2)"
           ]
@@ -8138,7 +7778,7 @@
             }
           ],
           "impact": "serious",
-          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark read</button><button type=\"button\">Unsave</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
+          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark unread</button><button type=\"button\">Save</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
           "target": [
             "li:nth-child(1) > .actions[aria-label=\"Article actions\"]"
           ],
@@ -8190,7 +7830,7 @@
             }
           ],
           "impact": "serious",
-          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark unread</button><button type=\"button\">Save</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
+          "html": "<div data-v-916e3f82=\"\" class=\"actions\" aria-label=\"Article actions\"><button type=\"button\">Mark read</button><button type=\"button\">Unsave</button><button type=\"button\"> Hide </button><p class=\"live-region\" role=\"status\" aria-live=\"polite\"></p></div>",
           "target": [
             "li:nth-child(2) > .actions[aria-label=\"Article actions\"]"
           ],

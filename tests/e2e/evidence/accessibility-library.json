@@ -13,8 +13,8 @@
     "orientationAngle": 0,
     "orientationType": "landscape-primary"
   },
-  "timestamp": "2026-08-21T08:46:19.628Z",
-  "url": "http://127.0.0.1:43297/library",
+  "timestamp": "2026-08-21T12:01:35.168Z",
+  "url": "http://127.0.0.1:45741/library",
   "toolOptions": {
     "runOnly": {
       "type": "tag",
@@ -1093,59 +1093,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "li:nth-child(3) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-allowed-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attributes are used correctly for the defined role"
-            }
-          ],
-          "none": [
-            {
-              "id": "aria-unsupported-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(4) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-allowed-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attributes are used correctly for the defined role"
-            }
-          ],
-          "none": [
-            {
-              "id": "aria-unsupported-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(5) > output[aria-label=\"Score contribution 0.05\"]"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -1465,43 +1413,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "li:nth-child(3) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-conditional-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(4) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-conditional-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(5) > output[aria-label=\"Score contribution 0.05\"]"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -1855,43 +1767,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "li:nth-child(3) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(4) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(5) > output[aria-label=\"Score contribution 0.05\"]"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -2373,71 +2249,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "li:nth-child(3) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-valid-attr-value",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute values are valid"
-            },
-            {
-              "id": "aria-errormessage",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
-            },
-            {
-              "id": "aria-level",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-level values are valid"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(4) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-valid-attr-value",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute values are valid"
-            },
-            {
-              "id": "aria-errormessage",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
-            },
-            {
-              "id": "aria-level",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-level values are valid"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(5) > output[aria-label=\"Score contribution 0.05\"]"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -2769,43 +2581,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "li:nth-child(3) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-valid-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute name is valid"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(4) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-valid-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute name is valid"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(5) > output[aria-label=\"Score contribution 0.05\"]"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -3633,7 +3409,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Adjusted because you saved this article</span>",
           "target": [
             "li:nth-child(1) > span"
           ]
@@ -3683,7 +3459,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Local text is similar to selected interests</span>",
           "target": [
             "li:nth-child(2) > span"
           ]
@@ -3733,7 +3509,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Matches your optional location and declared article metadata</span>",
           "target": [
             "li:nth-child(3) > span"
           ]
@@ -3760,107 +3536,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "li:nth-child(3) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
-          "target": [
-            "li:nth-child(4) > span"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(4) > output[aria-label=\"Score contribution 0.05\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
-          "target": [
-            "li:nth-child(5) > span"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
-          "target": [
-            "li:nth-child(5) > output[aria-label=\"Score contribution 0.05\"]"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -4633,7 +4309,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.1\">0.1</output></li>",
+          "html": "<li><span>Adjusted because you saved this article</span><output aria-label=\"Score contribution 0.1\">0.1</output></li>",
           "target": [
             "ul > li:nth-child(1)"
           ]
@@ -4651,7 +4327,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output></li>",
+          "html": "<li><span>Local text is similar to selected interests</span><output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output></li>",
           "target": [
             "li:nth-child(2)"
           ]
@@ -4669,45 +4345,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.05\">0.05</output></li>",
+          "html": "<li><span>Matches your optional location and declared article metadata</span><output aria-label=\"Score contribution 0.05\">0.05</output></li>",
           "target": [
             "li:nth-child(3)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "listitem",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "List item has a <ul>, <ol> or role=\"list\" parent element"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.05\">0.05</output></li>",
-          "target": [
-            "li:nth-child(4)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "listitem",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "List item has a <ul>, <ol> or role=\"list\" parent element"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.05\">0.05</output></li>",
-          "target": [
-            "li:nth-child(5)"
           ]
         }
       ]

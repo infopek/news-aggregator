@@ -1,11 +1,11 @@
 {
   "decision": "APPROVE",
-  "revision": "64b32de37133a6c55e0d893cc1eeef581c39cf65",
-  "generatedAt": "2026-08-21T08:46:20.908Z",
+  "revision": "c44f5a681b28c3ebe1670a7a6df685996e565b14",
+  "generatedAt": "2026-08-21T12:01:41.205Z",
   "processRestart": [
-    "2026-08-21T08:46:14.893Z initial launch pid=2878604",
-    "2026-08-21T08:46:20.092Z stopped Go process pid=2878604",
-    "2026-08-21T08:46:20.298Z restarted Go process with same SQLite database pid=2879167"
+    "2026-08-21T12:01:30.453Z initial launch pid=3901762",
+    "2026-08-21T12:01:40.422Z stopped Go process pid=3901762",
+    "2026-08-21T12:01:40.613Z restarted Go process with same SQLite database pid=3902763"
   ],
   "accessibility": [
     "ranked-feed: 0 serious/critical",
@@ -15,32 +15,32 @@
   "browserStorage": {
     "local": {
       "news-aggregator:library-view": "saved",
-      "news-aggregator:last-refresh-id": "refresh-1787301976416652095"
+      "news-aggregator:last-refresh-id": "refresh-1787313691914629969"
     },
     "session": {}
   },
   "browserOutboundRequests": [
-    "http://127.0.0.1:43297/",
-    "http://127.0.0.1:43297/assets/index-DsA9Y_00.js",
-    "http://127.0.0.1:43297/assets/index-CchVB2cC.css",
-    "http://127.0.0.1:43297/api/v1/feed-filter",
-    "http://127.0.0.1:43297/api/v1/profile",
-    "http://127.0.0.1:43297/assets/workbox-window.prod.es5-Bd17z0YL.js",
-    "http://127.0.0.1:43297/api/v1/feed?limit=20",
-    "http://127.0.0.1:43297/api/v1/sources",
-    "http://127.0.0.1:43297/api/v1/ranking-config",
-    "http://127.0.0.1:43297/api/v1/starter-sources",
-    "http://127.0.0.1:43297/api/v1/refresh",
-    "http://127.0.0.1:43297/api/v1/refresh/refresh-1787301976416652095",
-    "http://127.0.0.1:43297/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229",
-    "http://127.0.0.1:43297/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229/library-state",
-    "http://127.0.0.1:43297/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e/library-state",
-    "http://127.0.0.1:43297/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e",
-    "http://127.0.0.1:43297/api/v1/feed?limit=20&saved=true",
-    "http://127.0.0.1:43297/api/v1/feed?saved=true&limit=100",
-    "http://127.0.0.1:43297/api/v1/feed?includeHidden=true&limit=100",
-    "http://127.0.0.1:43297/api/v1/feed?limit=20&sourceId=metadata-source&saved=true&text=climate",
-    "http://127.0.0.1:43297/library"
+    "http://127.0.0.1:45741/",
+    "http://127.0.0.1:45741/assets/index-DPLEUW3f.js",
+    "http://127.0.0.1:45741/assets/index-CchVB2cC.css",
+    "http://127.0.0.1:45741/api/v1/feed-filter",
+    "http://127.0.0.1:45741/api/v1/profile",
+    "http://127.0.0.1:45741/assets/workbox-window.prod.es5-Bd17z0YL.js",
+    "http://127.0.0.1:45741/api/v1/feed?limit=20",
+    "http://127.0.0.1:45741/api/v1/sources",
+    "http://127.0.0.1:45741/api/v1/ranking-config",
+    "http://127.0.0.1:45741/api/v1/starter-sources",
+    "http://127.0.0.1:45741/api/v1/refresh",
+    "http://127.0.0.1:45741/api/v1/refresh/refresh-1787313691914629969",
+    "http://127.0.0.1:45741/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229",
+    "http://127.0.0.1:45741/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229/library-state",
+    "http://127.0.0.1:45741/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e/library-state",
+    "http://127.0.0.1:45741/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e",
+    "http://127.0.0.1:45741/api/v1/feed?limit=20&saved=true",
+    "http://127.0.0.1:45741/api/v1/feed?saved=true&limit=100",
+    "http://127.0.0.1:45741/api/v1/feed?includeHidden=true&limit=100",
+    "http://127.0.0.1:45741/api/v1/feed?limit=20&sourceId=metadata-source&saved=true&text=climate",
+    "http://127.0.0.1:45741/library"
   ],
   "assertions": "complete daily-use workflow passed against real Go/SQLite/Vue stack, including enabled optional ranking contributions, persisted filters, empty feed, keyboard-only hide/restore navigation, and API interruption recovery"
 }

@@ -13,8 +13,8 @@
     "orientationAngle": 0,
     "orientationType": "landscape-primary"
   },
-  "timestamp": "2026-08-21T08:46:18.263Z",
-  "url": "http://127.0.0.1:43297/",
+  "timestamp": "2026-08-21T12:01:33.777Z",
+  "url": "http://127.0.0.1:45741/",
   "toolOptions": {
     "runOnly": {
       "type": "tag",
@@ -885,7 +885,7 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03605470695274926\">0.03605470695274926</output>",
+          "html": "<output aria-label=\"Score contribution 0.031211990063531758\">0.031211990063531758</output>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1) > output"
           ]
@@ -937,9 +937,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(3) > output"
+            "li:nth-child(3) > output"
           ]
         },
         {
@@ -963,9 +963,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(4) > output"
+            "li:nth-child(4) > output"
           ]
         },
         {
@@ -989,7 +989,7 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
             "li:nth-child(5) > output"
           ]
@@ -1119,61 +1119,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
+          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(2) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-allowed-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attributes are used correctly for the defined role"
-            }
-          ],
-          "none": [
-            {
-              "id": "aria-unsupported-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(3) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-allowed-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attributes are used correctly for the defined role"
-            }
-          ],
-          "none": [
-            {
-              "id": "aria-unsupported-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(4) > output"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -1419,7 +1367,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03605470695274926\">0.03605470695274926</output>",
+          "html": "<output aria-label=\"Score contribution 0.031211990063531758\">0.031211990063531758</output>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1) > output"
           ]
@@ -1455,9 +1403,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(3) > output"
+            "li:nth-child(3) > output"
           ]
         },
         {
@@ -1473,9 +1421,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(4) > output"
+            "li:nth-child(4) > output"
           ]
         },
         {
@@ -1491,7 +1439,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
             "li:nth-child(5) > output"
           ]
@@ -1581,45 +1529,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
+          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(2) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-conditional-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(3) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-conditional-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(4) > output"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -1951,7 +1863,7 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03605470695274926\">0.03605470695274926</output>",
+          "html": "<output aria-label=\"Score contribution 0.031211990063531758\">0.031211990063531758</output>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1) > output"
           ]
@@ -1987,9 +1899,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(3) > output"
+            "li:nth-child(3) > output"
           ]
         },
         {
@@ -2005,9 +1917,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(4) > output"
+            "li:nth-child(4) > output"
           ]
         },
         {
@@ -2023,7 +1935,7 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
             "li:nth-child(5) > output"
           ]
@@ -2077,45 +1989,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
+          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(2) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(3) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(4) > output"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -2649,7 +2525,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03605470695274926\">0.03605470695274926</output>",
+          "html": "<output aria-label=\"Score contribution 0.031211990063531758\">0.031211990063531758</output>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1) > output"
           ]
@@ -2713,9 +2589,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(3) > output"
+            "li:nth-child(3) > output"
           ]
         },
         {
@@ -2745,9 +2621,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(4) > output"
+            "li:nth-child(4) > output"
           ]
         },
         {
@@ -2777,7 +2653,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
             "li:nth-child(5) > output"
           ]
@@ -2937,73 +2813,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
+          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(2) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-valid-attr-value",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute values are valid"
-            },
-            {
-              "id": "aria-errormessage",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
-            },
-            {
-              "id": "aria-level",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-level values are valid"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(3) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-valid-attr-value",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute values are valid"
-            },
-            {
-              "id": "aria-errormessage",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
-            },
-            {
-              "id": "aria-level",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-level values are valid"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(4) > output"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -3261,7 +3073,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03605470695274926\">0.03605470695274926</output>",
+          "html": "<output aria-label=\"Score contribution 0.031211990063531758\">0.031211990063531758</output>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1) > output"
           ]
@@ -3297,9 +3109,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(3) > output"
+            "li:nth-child(3) > output"
           ]
         },
         {
@@ -3315,9 +3127,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(4) > output"
+            "li:nth-child(4) > output"
           ]
         },
         {
@@ -3333,7 +3145,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
             "li:nth-child(5) > output"
           ]
@@ -3423,45 +3235,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
+          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(2) > output"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-valid-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute name is valid"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(3) > output"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-valid-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute name is valid"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(4) > output"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -4824,7 +4600,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Published recently</span>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1) > span"
           ]
@@ -4849,7 +4625,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03605470695274926\">0.03605470695274926</output>",
+          "html": "<output aria-label=\"Score contribution 0.031211990063531758\">0.031211990063531758</output>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1) > output"
           ]
@@ -4874,7 +4650,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Local text is similar to selected interests</span>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(2) > span"
           ]
@@ -4924,9 +4700,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Matches your optional location and declared article metadata</span>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(3) > span"
+            "li:nth-child(3) > span"
           ]
         },
         {
@@ -4949,9 +4725,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(3) > output"
+            "li:nth-child(3) > output"
           ]
         },
         {
@@ -4974,9 +4750,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Matches your optional age and a declared audience range</span>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(4) > span"
+            "li:nth-child(4) > span"
           ]
         },
         {
@@ -4999,9 +4775,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(4) > output"
+            "li:nth-child(4) > output"
           ]
         },
         {
@@ -5024,7 +4800,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Matches your optional gender and a declared audience value</span>",
           "target": [
             "li:nth-child(5) > span"
           ]
@@ -5049,7 +4825,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output>",
+          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
           "target": [
             "li:nth-child(5) > output"
           ]
@@ -5399,7 +5175,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Local text is similar to selected interests</span>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(1) > span"
           ]
@@ -5449,7 +5225,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
+          "html": "<span>Matches your optional location and declared article metadata</span>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(2) > span"
           ]
@@ -5474,109 +5250,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
+          "html": "<output aria-label=\"Score contribution 0.05\">0.05</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(2) > output"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(3) > span"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(3) > output"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span>Another ranking signal contributed</span>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(4) > span"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(4) > output"
+            "output[aria-label=\"Score contribution 0.05\"]"
           ]
         },
         {
@@ -6944,7 +6620,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.03605470695274926\">0.03605470695274926</output></li>",
+          "html": "<li><span>Published recently</span><output aria-label=\"Score contribution 0.031211990063531758\">0.031211990063531758</output></li>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1)"
           ]
@@ -6962,7 +6638,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output></li>",
+          "html": "<li><span>Local text is similar to selected interests</span><output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output></li>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(2)"
           ]
@@ -6980,7 +6656,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output></li>",
+          "html": "<li><span>Matches your optional location and declared article metadata</span><output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output></li>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(3)"
           ]
@@ -6998,9 +6674,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output></li>",
+          "html": "<li><span>Matches your optional age and a declared audience range</span><output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output></li>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(4)"
+            "li:nth-child(4)"
           ]
         },
         {
@@ -7016,7 +6692,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.03172217125641543\">0.03172217125641543</output></li>",
+          "html": "<li><span>Matches your optional gender and a declared audience value</span><output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output></li>",
           "target": [
             "li:nth-child(5)"
           ]
@@ -7052,7 +6728,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output></li>",
+          "html": "<li><span>Local text is similar to selected interests</span><output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output></li>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(1)"
           ]
@@ -7070,45 +6746,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output></li>",
+          "html": "<li><span>Matches your optional location and declared article metadata</span><output aria-label=\"Score contribution 0.05\">0.05</output></li>",
           "target": [
             "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(2)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "listitem",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "List item has a <ul>, <ol> or role=\"list\" parent element"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output></li>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(3)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "listitem",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "List item has a <ul>, <ol> or role=\"list\" parent element"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<li><span>Another ranking signal contributed</span><output aria-label=\"Score contribution 0.021051603579915507\">0.021051603579915507</output></li>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(4)"
           ]
         }
       ]
