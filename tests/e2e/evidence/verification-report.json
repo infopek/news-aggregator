@@ -1,9 +1,46 @@
 {
-  "decision": "REJECT",
-  "revision": "14783ebf2e1e8f3ba4129c2375f19357964ca51d",
-  "generatedAt": "2026-08-15T13:39:01.685Z",
-  "failure": "Error: hidden article missing from authoritative API: {\"body\":{\"items\":[{\"id\":\"article-d46345e7f47716150df4c960a9e5d229\",\"sourceId\":\"full-source\",\"canonicalUrl\":\"http://publisher.fixture.test/full-technology\",\"title\":\"Technology advances in local science\",\"publishedAt\":\"2026-08-15T09:00:00Z\",\"fetchedAt\":\"2026-08-15T13:38:58.892Z\",\"excerpt\":\"Technology and science report.\",\"contentPermission\":\"full_content_allowed\",\"topics\":[],\"library\":{\"articleId\":\"article-d46345e7f47716150df4c960a9e5d229\",\"readAt\":\"2026-08-15T13:39:00.824Z\",\"savedAt\":null,\"hiddenAt\":null},\"ranking\":{\"score\":0.38493155177932264,\"contributions\":[{\"signal\":\"recency\",\"rawScore\":0.9723200487837087,\"weight\":0.29411764705882354,\"weightedScore\":0.28597648493638494,\"reasonCode\":\"recency_fresh\",\"reasonValues\":{\"age_seconds\":\"16740\",\"window_seconds\":\"604800\"}},{\"signal\":\"behavior\",\"rawScore\":0.25,\"weight\":0.11764705882352942,\"weightedScore\":0.029411764705882356,\"reasonCode\":\"article_read\",\"reasonValues\":{\"action\":\"read\"}},{\"signal\":\"text_similarity\",\"rawScore\":0.3940787121099803,\"weight\":0.17647058823529413,\"weightedScore\":0.06954330213705535,\"reasonCode\":\"local_text_match\",\"reasonValues\":{\"algorithm_version\":\"bm25f-local-v1\",\"matched_terms\":\"climate,science,technology\",\"tokenization_version\":\"unicode-letters-numbers-lower-v1\"}}],\"algorithmVersion\":\"weighted-signals-v1+v1\",\"calculatedAt\":\"2026-08-15T13:39:00.834Z\"}}],\"nextCursor\":null},\"text\":\"Skip to main content\\nNews Aggregator\\nLocal only\\nSetup\\nRanked feed\\nLibrary\\nSources\\nSettings\\n\\nYOUR LOCAL READING HISTORY\\n\\nPersonal library\\n\\nSaved, read, and hidden states come from the local database and remain reversible.\\n\\nSaved\\nUnread\\nRead\\nHidden\\n\\nNo hidden articles.\\n\\nReturn to the ranked feed\\n\\nInstallation is not available in this browser. You can keep using this tab.\"}\n    at assert (file:///home/infopek/workspace/news-aggregator/tests/e2e/verify-daily-workflow.mjs:146:53)\n    at file:///home/infopek/workspace/news-aggregator/tests/e2e/verify-daily-workflow.mjs:92:3",
+  "decision": "APPROVE",
+  "revision": "64b32de37133a6c55e0d893cc1eeef581c39cf65",
+  "generatedAt": "2026-08-21T08:46:20.908Z",
   "processRestart": [
-    "2026-08-15T13:38:57.724Z initial launch pid=4174592"
-  ]
+    "2026-08-21T08:46:14.893Z initial launch pid=2878604",
+    "2026-08-21T08:46:20.092Z stopped Go process pid=2878604",
+    "2026-08-21T08:46:20.298Z restarted Go process with same SQLite database pid=2879167"
+  ],
+  "accessibility": [
+    "ranked-feed: 0 serious/critical",
+    "library: 0 serious/critical",
+    "narrow-feed: 0 serious/critical"
+  ],
+  "browserStorage": {
+    "local": {
+      "news-aggregator:library-view": "saved",
+      "news-aggregator:last-refresh-id": "refresh-1787301976416652095"
+    },
+    "session": {}
+  },
+  "browserOutboundRequests": [
+    "http://127.0.0.1:43297/",
+    "http://127.0.0.1:43297/assets/index-DsA9Y_00.js",
+    "http://127.0.0.1:43297/assets/index-CchVB2cC.css",
+    "http://127.0.0.1:43297/api/v1/feed-filter",
+    "http://127.0.0.1:43297/api/v1/profile",
+    "http://127.0.0.1:43297/assets/workbox-window.prod.es5-Bd17z0YL.js",
+    "http://127.0.0.1:43297/api/v1/feed?limit=20",
+    "http://127.0.0.1:43297/api/v1/sources",
+    "http://127.0.0.1:43297/api/v1/ranking-config",
+    "http://127.0.0.1:43297/api/v1/starter-sources",
+    "http://127.0.0.1:43297/api/v1/refresh",
+    "http://127.0.0.1:43297/api/v1/refresh/refresh-1787301976416652095",
+    "http://127.0.0.1:43297/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229",
+    "http://127.0.0.1:43297/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229/library-state",
+    "http://127.0.0.1:43297/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e/library-state",
+    "http://127.0.0.1:43297/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e",
+    "http://127.0.0.1:43297/api/v1/feed?limit=20&saved=true",
+    "http://127.0.0.1:43297/api/v1/feed?saved=true&limit=100",
+    "http://127.0.0.1:43297/api/v1/feed?includeHidden=true&limit=100",
+    "http://127.0.0.1:43297/api/v1/feed?limit=20&sourceId=metadata-source&saved=true&text=climate",
+    "http://127.0.0.1:43297/library"
+  ],
+  "assertions": "complete daily-use workflow passed against real Go/SQLite/Vue stack, including enabled optional ranking contributions, persisted filters, empty feed, keyboard-only hide/restore navigation, and API interruption recovery"
 }
