@@ -1,0 +1,41 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "RANK-005",
+  "run_id": "RANK-005-run-001",
+  "actor_id": "backend-core-agent",
+  "status": "review",
+  "implementation_summary": "Implemented library actions and versioned ranking recomputation.",
+  "files_changed": [
+    {
+      "path": "internal/application/library/**, internal/application/ranking/**, internal/adapters/sqlite/**, cmd/news-aggregator/**, tests/integration/**",
+      "change": "Historical merged implementation scope; exact file history remains available in the referenced pull request."
+    }
+  ],
+  "verification": [
+    {
+      "command": "GitHub Actions verification for the referenced merged pull request",
+      "result": "passed",
+      "output": "The recorded PR workflow passed; exact durable post-merge review is still required."
+    }
+  ],
+  "proof": [
+    {
+      "kind": "manual_note",
+      "summary": "PR head 731d05c034ac445aee54e21f8321b8c8a631b698; merge f2eae0cdf9c8d9eebc297715fad6634c3d4db7d1.",
+      "status": "needs_review",
+      "recorded_at": "2026-08-20T19:00:00Z"
+    },
+    {
+      "kind": "manual_note",
+      "summary": "This record was reconstructed after merge. It does not claim a retroactive pre-merge approval; an independent post-merge audit must accept the exact merged implementation.",
+      "status": "needs_review",
+      "recorded_at": "2026-08-20T19:00:00Z"
+    }
+  ],
+  "blockers": [
+    "Independent post-merge audit has not yet been durably recorded."
+  ],
+  "notes": "Historical reconstruction created in response to VERIFY-004. Preserve the process exception and replace review status only after an independent exact-revision audit.",
+  "submitted_at": "2026-08-20T19:00:00Z",
+  "updated_at": "2026-08-20T19:00:00Z"
+}

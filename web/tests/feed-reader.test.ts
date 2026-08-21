@@ -2,7 +2,7 @@
 import axe from 'axe-core'
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ArticleDetail, ArticleSummary, FeedPage, LibraryState } from '../src/api/generated/models'
+import type { ArticleDetail, ArticleSummary, FeedFilterState, FeedPage, LibraryState } from '../src/api/generated/models'
 import type { ServerApi } from '../src/api/server-api'
 import { ApiRequestError } from '../src/api/client'
 import RankedFeed from '../src/features/feed/RankedFeed.vue'
@@ -21,12 +21,17 @@ function fakeApi(detail?: ArticleDetail) {
     return { items: visible, nextCursor: 'next' }
   })
   const updateLibrary = vi.fn(async (id, patch) => { const previous=states.get(id)??{...library,articleId:id};const next={articleId:id,readAt:patch.read===undefined?previous.readAt:patch.read?'2026-08-14T11:00:00Z':null,savedAt:patch.saved===undefined?previous.savedAt:patch.saved?'2026-08-14T11:00:00Z':null,hiddenAt:patch.hidden===undefined?previous.hiddenAt:patch.hidden?'2026-08-14T11:00:00Z':null};states.set(id,next);return next })
-  return { feed, sources: vi.fn(async () => ({ items: [{ id: 'opaque-source', name: 'Science Wire', url: 'https://publisher.example/feed', kind: 'feed', enabled: true, contentPermission: 'metadata_only', adapterConfig: { format: 'rss' }, scraperPolicy: { status: 'not_applicable', termsUrl: null, robotsUrl: null, reviewedAt: null, reviewNotes: null }, credentialConfigured: false, lastSuccessAt: null, lastError: null, retryAfter: null }] })), updateLibrary, article: vi.fn(async () => detail ?? { article: article('article-a', .9), fullContent: null }), startRefresh: vi.fn(async () => ({ id: 'feed-refresh', status: 'running', startedAt: '2026-08-14T10:00:00Z', finishedAt: null, outcomes: [] })), refresh: vi.fn(async () => ({ id: 'feed-refresh', status: 'partial_success', startedAt: '2026-08-14T10:00:00Z', finishedAt: '2026-08-14T10:01:00Z', outcomes: [] })) } as unknown as ServerApi
+  const persisted:FeedFilterState={sourceId:'',read:'all',savedOnly:false,includeHidden:false,searchQuery:'',updatedAt:'2026-08-14T10:00:00Z'}
+  return { feed, feedFilter:vi.fn(async()=>persisted),updateFeedFilter:vi.fn(async body=>Object.assign(persisted,body)), sources: vi.fn(async () => ({ items: [{ id: 'opaque-source', name: 'Science Wire', url: 'https://publisher.example/feed', kind: 'feed', enabled: true, contentPermission: 'metadata_only', adapterConfig: { format: 'rss' }, scraperPolicy: { status: 'not_applicable', termsUrl: null, robotsUrl: null, reviewedAt: null, reviewNotes: null }, credentialConfigured: false, lastSuccessAt: null, lastError: null, retryAfter: null }] })), updateLibrary, article: vi.fn(async () => detail ?? { article: article('article-a', .9), fullContent: null }), startRefresh: vi.fn(async () => ({ id: 'feed-refresh', status: 'running', startedAt: '2026-08-14T10:00:00Z', finishedAt: null, outcomes: [] })), refresh: vi.fn(async () => ({ id: 'feed-refresh', status: 'partial_success', startedAt: '2026-08-14T10:00:00Z', finishedAt: '2026-08-14T10:01:00Z', outcomes: [] })) } as unknown as ServerApi
 }
 
 beforeEach(() => localStorage.clear())
 
 describe('ranked feed', () => {
+  it('restores and persists authoritative filter state', async()=>{
+    const api=fakeApi();vi.mocked(api.feedFilter).mockResolvedValueOnce({sourceId:'opaque-source',read:'unread',savedOnly:true,includeHidden:false,searchQuery:'science',updatedAt:'2026-08-14T10:00:00Z'})
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();expect((wrapper.get('#source-filter').element as HTMLSelectElement).value).toBe('opaque-source');expect((wrapper.get('#read-filter').element as HTMLSelectElement).value).toBe('unread');expect((wrapper.get('#saved-filter').element as HTMLSelectElement).value).toBe('saved');expect((wrapper.get('input[maxlength="200"]').element as HTMLInputElement).value).toBe('science');expect(api.feed).toHaveBeenCalledWith(expect.objectContaining({sourceId:['opaque-source'],read:false,saved:true,text:'science'}),expect.any(AbortSignal));expect(api.updateFeedFilter).not.toHaveBeenCalled();wrapper.unmount()
+  })
   it('preserves server order, explanations, source metadata, filters, and pagination', async () => {
     const api = fakeApi(), wrapper = mount(RankedFeed, { props: { serverApi: api }, attachTo: document.body }); await flushPromises()
     expect(wrapper.findAll('.ranked-list>li').map((item) => item.text())).toEqual([expect.stringContaining('Top ranked story'), expect.stringContaining('Second story')])

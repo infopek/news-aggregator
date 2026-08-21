@@ -1,4 +1,4 @@
-// Generated from api/openapi.yaml (1fe1b3d388739840). Do not edit.
+// Generated from api/openapi.yaml (dd8be64ea54d6638). Do not edit.
 import type * as Models from './models'
 
 export interface ApiOperationMap {
@@ -18,6 +18,8 @@ export interface ApiOperationMap {
   startRefresh: { method: "POST"; path: "/api/v1/refresh"; request: undefined; response: Models.RefreshRun }
   getRefresh: { method: "GET"; path: "/api/v1/refresh/{refreshId}"; request: { path: Models.RefreshIDRequest }; response: Models.RefreshRun }
   getFeed: { method: "GET"; path: "/api/v1/feed"; request: { query: Models.FeedQuery }; response: Models.FeedPage }
+  getFeedFilter: { method: "GET"; path: "/api/v1/feed-filter"; request: undefined; response: Models.FeedFilterState }
+  putFeedFilter: { method: "PUT"; path: "/api/v1/feed-filter"; request: { body: Models.FeedFilterWrite }; response: Models.FeedFilterState }
   getArticle: { method: "GET"; path: "/api/v1/articles/{articleId}"; request: { path: Models.ArticleIDRequest }; response: Models.ArticleDetail }
   patchLibraryState: { method: "PATCH"; path: "/api/v1/articles/{articleId}/library-state"; request: { path: Models.ArticleIDRequest; body: Models.LibraryStateWrite }; response: Models.LibraryState }
 }
@@ -27,4 +29,4 @@ export interface ApiClient {
   request<Operation extends ApiOperation>(operation: Operation, request: ApiOperationMap[Operation]["request"]): Promise<ApiOperationMap[Operation]["response"]>
 }
 
-export const apiContract = {"getHealth":{"method":"GET","path":"/api/v1/health"},"getProfile":{"method":"GET","path":"/api/v1/profile"},"putProfile":{"method":"PUT","path":"/api/v1/profile"},"getRankingConfig":{"method":"GET","path":"/api/v1/ranking-config"},"putRankingConfig":{"method":"PUT","path":"/api/v1/ranking-config"},"listStarterSources":{"method":"GET","path":"/api/v1/starter-sources"},"listSources":{"method":"GET","path":"/api/v1/sources"},"createSource":{"method":"POST","path":"/api/v1/sources"},"getSource":{"method":"GET","path":"/api/v1/sources/{sourceId}"},"updateSource":{"method":"PATCH","path":"/api/v1/sources/{sourceId}"},"deleteSource":{"method":"DELETE","path":"/api/v1/sources/{sourceId}"},"putSourceCredential":{"method":"PUT","path":"/api/v1/sources/{sourceId}/credential"},"deleteSourceCredential":{"method":"DELETE","path":"/api/v1/sources/{sourceId}/credential"},"startRefresh":{"method":"POST","path":"/api/v1/refresh"},"getRefresh":{"method":"GET","path":"/api/v1/refresh/{refreshId}"},"getFeed":{"method":"GET","path":"/api/v1/feed"},"getArticle":{"method":"GET","path":"/api/v1/articles/{articleId}"},"patchLibraryState":{"method":"PATCH","path":"/api/v1/articles/{articleId}/library-state"}} as const
+export const apiContract = {"getHealth":{"method":"GET","path":"/api/v1/health"},"getProfile":{"method":"GET","path":"/api/v1/profile"},"putProfile":{"method":"PUT","path":"/api/v1/profile"},"getRankingConfig":{"method":"GET","path":"/api/v1/ranking-config"},"putRankingConfig":{"method":"PUT","path":"/api/v1/ranking-config"},"listStarterSources":{"method":"GET","path":"/api/v1/starter-sources"},"listSources":{"method":"GET","path":"/api/v1/sources"},"createSource":{"method":"POST","path":"/api/v1/sources"},"getSource":{"method":"GET","path":"/api/v1/sources/{sourceId}"},"updateSource":{"method":"PATCH","path":"/api/v1/sources/{sourceId}"},"deleteSource":{"method":"DELETE","path":"/api/v1/sources/{sourceId}"},"putSourceCredential":{"method":"PUT","path":"/api/v1/sources/{sourceId}/credential"},"deleteSourceCredential":{"method":"DELETE","path":"/api/v1/sources/{sourceId}/credential"},"startRefresh":{"method":"POST","path":"/api/v1/refresh"},"getRefresh":{"method":"GET","path":"/api/v1/refresh/{refreshId}"},"getFeed":{"method":"GET","path":"/api/v1/feed"},"getFeedFilter":{"method":"GET","path":"/api/v1/feed-filter"},"putFeedFilter":{"method":"PUT","path":"/api/v1/feed-filter"},"getArticle":{"method":"GET","path":"/api/v1/articles/{articleId}"},"patchLibraryState":{"method":"PATCH","path":"/api/v1/articles/{articleId}/library-state"}} as const

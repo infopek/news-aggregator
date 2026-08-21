@@ -217,6 +217,27 @@ func TestLocationUsesOnlyExplicitCoarseValues(t *testing.T) {
 	}
 }
 
+func TestExplicitDemographicAndTaggedLocationSignals(t *testing.T) {
+	age := ExplicitAgeSignal(true, domain.OptionalSignal[int]{Present: true, Enabled: true, Value: 37})
+	gender := ExplicitGenderSignal(true, domain.OptionalSignal[string]{Present: true, Enabled: true, Value: "nonbinary"})
+	if age.Score != 1 || age.ReasonCode != ReasonAgeAdjustment || gender.Score != 1 || gender.ReasonCode != ReasonGenderAdjustment {
+		t.Fatalf("explicit signals age=%+v gender=%+v", age, gender)
+	}
+	if got := ExplicitAgeSignal(false, domain.OptionalSignal[int]{Present: true, Enabled: true, Value: 37}); got.Score != 0 || got.ReasonCode != ReasonSignalDisabled {
+		t.Fatalf("disabled age=%+v", got)
+	}
+	if got := ExplicitGenderSignal(true, domain.OptionalSignal[string]{Present: false, Enabled: false}); got.Score != 0 || got.ReasonCode != ReasonSignalUnavailable {
+		t.Fatalf("missing gender=%+v", got)
+	}
+	metadata := ExplicitLocationMetadata([]string{"politics", "location:HU/Budapest/Budapest"})
+	if metadata.Country != "HU" || metadata.Region != "Budapest" || metadata.City != "Budapest" {
+		t.Fatalf("metadata=%+v", metadata)
+	}
+	if got := ExplicitLocationMetadata([]string{"Budapest", "location:invalid"}); got != (CoarseLocationMetadata{}) {
+		t.Fatalf("untagged or malformed topic inferred location: %+v", got)
+	}
+}
+
 func TestSignalsAreDeterministicAndFixtureDocumentsRanges(t *testing.T) {
 	now := time.Date(2026, 8, 3, 12, 0, 0, 0, time.UTC)
 	published := now.Add(-time.Hour)

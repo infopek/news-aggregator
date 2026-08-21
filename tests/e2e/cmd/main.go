@@ -109,7 +109,7 @@ func run() error {
 	rankingConfiguration := applibrary.Configuration{Base: configuration, Recompute: recompute, Gate: gate, Status: status}
 	ids, nextID := []string{"starter-failure", "metadata-source", "full-source"}, 0
 	newSourceID := func() string { id := ids[nextID]; nextID++; return id }
-	api := httpapi.NewAPIHandlerWithFeed("e2e", httpapi.ConfigurationAPI{Profiles: rankingConfiguration, Sources: configuration, Starters: starterSources(), NewID: newSourceID}, httpapi.RefreshAPI{Service: refresh}, httpapi.FeedAPI{Service: queries, Library: actions})
+	api := httpapi.NewAPIHandlerWithFeed("e2e", httpapi.ConfigurationAPI{Profiles: rankingConfiguration, Sources: configuration, Starters: starterSources(), NewID: newSourceID}, httpapi.RefreshAPI{Service: refresh}, httpapi.FeedAPI{Service: queries, Filters: store.FeedFilters(), Library: actions, Clock: clock{}})
 	assets, err := fs.Sub(webassets.Files, "dist")
 	if err != nil {
 		return err

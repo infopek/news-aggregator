@@ -53,6 +53,57 @@ type CoarseLocationMetadata struct {
 	City    string
 }
 
+// ExplicitAgeSignal records only that the user enabled an explicitly entered
+// valid age. It does not infer an article audience or expose the value.
+func ExplicitAgeSignal(enabled bool, profile domain.OptionalSignal[int]) SignalResult {
+	result := zeroSignal(domain.SignalAge, enabled)
+	if !enabled || !profile.Present || !profile.Enabled || profile.Value < 0 || profile.Value > 130 {
+		return result
+	}
+	result.Score = 1
+	result.ReasonCode = ReasonAgeAdjustment
+	result.ReasonValues = map[string]string{"source": "explicit_profile"}
+	return result
+}
+
+// ExplicitGenderSignal records only that the user enabled an explicitly
+// entered non-empty gender value. It never derives or predicts demographics.
+func ExplicitGenderSignal(enabled bool, profile domain.OptionalSignal[string]) SignalResult {
+	result := zeroSignal(domain.SignalGender, enabled)
+	if !enabled || !profile.Present || !profile.Enabled || normalizeLabel(profile.Value) == "" {
+		return result
+	}
+	result.Score = 1
+	result.ReasonCode = ReasonGenderAdjustment
+	result.ReasonValues = map[string]string{"source": "explicit_profile"}
+	return result
+}
+
+// ExplicitLocationMetadata accepts only an explicitly tagged topic emitted by
+// a configured source: location:country/region or location:country/region/city.
+// Ordinary text, URLs, IP addresses, and untagged topics are never interpreted
+// as physical location.
+func ExplicitLocationMetadata(topics []string) CoarseLocationMetadata {
+	for _, topic := range topics {
+		value := strings.TrimSpace(topic)
+		if len(value) < len("location:") || !strings.EqualFold(value[:len("location:")], "location:") {
+			continue
+		}
+		parts := strings.Split(strings.TrimSpace(value[len("location:"):]), "/")
+		if len(parts) < 2 || len(parts) > 3 {
+			continue
+		}
+		metadata := CoarseLocationMetadata{Country: strings.TrimSpace(parts[0]), Region: strings.TrimSpace(parts[1])}
+		if len(parts) == 3 {
+			metadata.City = strings.TrimSpace(parts[2])
+		}
+		if normalizeLabel(metadata.Country) != "" && normalizeLabel(metadata.Region) != "" {
+			return metadata
+		}
+	}
+	return CoarseLocationMetadata{}
+}
+
 // Clock is satisfied by application.Clock and kept capability-minimal here.
 type Clock interface {
 	Now() time.Time

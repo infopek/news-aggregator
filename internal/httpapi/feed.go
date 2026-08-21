@@ -22,11 +22,13 @@ type FeedReader interface {
 
 type FeedAPI struct {
 	Service FeedReader
+	Filters application.FeedFilterRepository
 	Library interface {
 		UpdateLibraryState(context.Context, application.UpdateLibraryStateCommand) (domain.LibraryState, error)
 	}
 	Logger  *slog.Logger
 	Timeout time.Duration
+	Clock   application.Clock
 }
 
 func NewFeedHandler(api FeedAPI) http.Handler {
@@ -38,6 +40,8 @@ func NewFeedHandler(api FeedAPI) http.Handler {
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/feed", api.getFeed)
+	mux.HandleFunc("GET /api/v1/feed-filter", api.getFeedFilter)
+	mux.HandleFunc("PUT /api/v1/feed-filter", api.putFeedFilter)
 	mux.HandleFunc("GET /api/v1/articles/{articleId}", api.getArticle)
 	mux.HandleFunc("PATCH /api/v1/articles/{articleId}/library-state", api.patchLibrary)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -45,6 +49,62 @@ func NewFeedHandler(api FeedAPI) http.Handler {
 		defer cancel()
 		mux.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+type feedFilterWrite struct {
+	SourceID      string            `json:"sourceId"`
+	Read          domain.ReadFilter `json:"read"`
+	SavedOnly     bool              `json:"savedOnly"`
+	IncludeHidden bool              `json:"includeHidden"`
+	SearchQuery   string            `json:"searchQuery"`
+}
+
+type feedFilterResponse struct {
+	feedFilterWrite
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+func filterResponse(state domain.FeedFilterState) feedFilterResponse {
+	return feedFilterResponse{feedFilterWrite{string(state.SourceID), state.Read, state.SavedOnly, state.IncludeHidden, state.SearchQuery}, state.UpdatedAt}
+}
+
+func (api FeedAPI) getFeedFilter(w http.ResponseWriter, r *http.Request) {
+	if api.Filters == nil || api.Clock == nil {
+		api.fail(w, r, application.ErrUnavailable)
+		return
+	}
+	state, err := api.Filters.Get(r.Context(), domain.LocalProfileID)
+	if errors.Is(err, application.ErrNotFound) {
+		state = domain.FeedFilterState{ProfileID: domain.LocalProfileID, Read: domain.ReadFilterAll, UpdatedAt: api.Clock.Now().UTC()}
+	} else if err != nil {
+		api.fail(w, r, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, filterResponse(state))
+}
+
+func (api FeedAPI) putFeedFilter(w http.ResponseWriter, r *http.Request) {
+	if api.Filters == nil || api.Clock == nil {
+		api.fail(w, r, application.ErrUnavailable)
+		return
+	}
+	var body feedFilterWrite
+	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxRequestBytes))
+	decoder.DisallowUnknownFields()
+	if decoder.Decode(&body) != nil || decoder.Decode(&struct{}{}) != io.EOF {
+		api.fail(w, r, application.ErrInvalidInput)
+		return
+	}
+	state := domain.FeedFilterState{ProfileID: domain.LocalProfileID, SourceID: domain.SourceID(body.SourceID), Read: body.Read, SavedOnly: body.SavedOnly, IncludeHidden: body.IncludeHidden, SearchQuery: strings.TrimSpace(body.SearchQuery), UpdatedAt: api.Clock.Now().UTC()}
+	if !state.Valid() || len([]rune(state.SearchQuery)) > 200 {
+		api.fail(w, r, application.ErrInvalidInput)
+		return
+	}
+	if err := api.Filters.Save(r.Context(), state); err != nil {
+		api.fail(w, r, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, filterResponse(state))
 }
 
 type libraryWrite struct {

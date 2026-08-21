@@ -27,6 +27,37 @@ type flakyArticleRecompute struct {
 	failures int
 }
 
+func TestProductionRecomputeUsesExplicitOptionalSignals(t *testing.T) {
+	store, _ := openStore(t)
+	defer store.Close()
+	ctx := context.Background()
+	now := time.Date(2026, 8, 21, 12, 0, 0, 0, time.UTC)
+	source := serviceFeed("demographic-source", "https://example.com/demographic-feed")
+	must(t, store.Sources().Save(ctx, source))
+	article := domain.Article{ID: "demographic-article", Fingerprint: "demographic-fingerprint", SourceID: source.ID, CanonicalURL: "https://example.com/demographic-article", Title: "Budapest science", FetchedAt: now, ContentPermission: domain.ContentMetadataOnly, Topics: []string{"science", "location:HU/Budapest/Budapest"}, TokenCount: 2}
+	_, err := store.Articles().Upsert(ctx, article)
+	must(t, err)
+	profile := domain.UserProfile{ID: domain.LocalProfileID, Interests: []domain.WeightedInterest{{Name: "science", Weight: 1}}, Location: domain.OptionalSignal[domain.Location]{Present: true, Enabled: true, Value: domain.Location{Country: "HU", Region: "Budapest", City: domain.OptionalSignal[string]{Present: true, Enabled: true, Value: "Budapest"}}}, Age: domain.OptionalSignal[int]{Present: true, Enabled: true, Value: 37}, Gender: domain.OptionalSignal[string]{Present: true, Enabled: true, Value: "nonbinary"}, UpdatedAt: now}
+	must(t, store.Profiles().Save(ctx, profile))
+	configuration := domain.RankingConfiguration{Interest: domain.SignalWeight{Enabled: true, Weight: .7}, Location: domain.SignalWeight{Enabled: true, Weight: .05}, Age: domain.SignalWeight{Enabled: true, Weight: .05}, Gender: domain.SignalWeight{Enabled: true, Weight: .05}, PerDemographicCap: .05, TotalDemographicCap: .2, NormalizationVersion: "v1"}
+	must(t, store.Rankings().SaveConfiguration(ctx, configuration))
+	recompute := &appranking.Recomputer{Articles: store.Articles(), Library: store.Libraries(), Profiles: store.Profiles(), Rankings: store.Rankings(), Results: store.Rankings(), Clock: &rankClock{now}, Gate: &appranking.VersionGate{}}
+	must(t, recompute.Full(ctx))
+	result, err := store.Rankings().GetResult(ctx, article.ID)
+	must(t, err)
+	want := map[domain.RankingSignal]bool{domain.SignalLocation: false, domain.SignalAge: false, domain.SignalGender: false}
+	for _, contribution := range result.Contributions {
+		if _, ok := want[contribution.Signal]; ok && contribution.WeightedScore > 0 {
+			want[contribution.Signal] = true
+		}
+	}
+	for signal, found := range want {
+		if !found {
+			t.Fatalf("production recompute omitted enabled %s contribution: %+v", signal, result.Contributions)
+		}
+	}
+}
+
 type blockingLibraryRepository struct {
 	application.LibraryRepository
 	entered chan struct{}

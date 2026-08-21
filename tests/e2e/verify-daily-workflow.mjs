@@ -41,12 +41,13 @@ try {
   await page.getByLabel('Interests', { exact: true }).fill('technology, climate, science')
   await page.getByLabel('Use location for ranking').check()
   await page.getByLabel('Country code').fill('HU'); await page.getByLabel('Region').fill('Budapest'); await page.getByLabel('City (optional)').fill('Budapest')
+  await page.getByRole('group', { name: 'Age' }).getByLabel('Use this signal').check(); await page.getByLabel('Age value').fill('37')
+  await page.getByRole('group', { name: 'Gender' }).getByLabel('Use this signal').check(); await page.getByLabel('Gender value').fill('nonbinary')
+  await page.getByLabel('Use Manual location').check(); await page.getByLabel('Use Age').check(); await page.getByLabel('Use Gender').check()
   await page.getByLabel(/Unavailable fixture/).check()
   await page.getByRole('button', { name: 'Save setup' }).click()
   await Promise.race([page.getByText('Setup saved on this computer.').waitFor(), page.locator('[role="alert"]').waitFor()])
   assert(await page.getByText('Setup saved on this computer.').count(), `setup failed: ${await page.locator('[role="alert"]').allTextContents()}`)
-  await assertUnchecked(page.getByRole('group', { name: 'Age' }).getByLabel('Use this signal'))
-  await assertUnchecked(page.getByRole('group', { name: 'Gender' }).getByLabel('Use this signal'))
   await screenshot(page, '01-first-run.png')
 
   await navigate(page, 'Ranked feed')
@@ -64,6 +65,8 @@ try {
   await navigate(page, 'Ranked feed')
   await page.getByRole('link', { name: 'Technology advances in local science', exact: true }).waitFor()
   await page.getByRole('heading', { name: /Why this was ranked here/i }).first().waitFor()
+  const ranked = await page.evaluate(async () => (await (await fetch('/api/v1/feed?limit=20')).json()).items)
+  for (const signal of ['location', 'age', 'gender']) assert(ranked.some(item => item.ranking.contributions.some(value => value.signal === signal && value.weightedScore > 0)), `enabled ${signal} contribution missing from production feed`)
   await screenshot(page, '03-ranked-feed.png')
   await auditA11y(page, 'ranked-feed')
 
@@ -83,7 +86,9 @@ try {
   await screenshot(page, '05-metadata-reader.png')
 
   await navigate(page, 'Ranked feed')
+  await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
   await page.getByLabel('Saved state').selectOption('saved'); await page.getByRole('button', { name: 'Apply filters' }).click()
+  await page.getByRole('link', { name: 'Technology advances in local science', exact: true }).waitFor({ state: 'detached' })
   await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
   assert(await page.getByRole('link', { name: 'Technology advances in local science', exact: true }).count() === 0, 'saved filter included an unsaved article')
   await page.getByRole('button', { name: 'Clear filters' }).click()
@@ -103,6 +108,7 @@ try {
   await auditA11y(page, 'library')
   await page.setViewportSize({ width: 390, height: 844 }); await navigate(page, 'Ranked feed')
   await page.getByRole('heading', { name: 'Ranked feed' }).waitFor(); await screenshot(page, '07-narrow-feed.png'); await auditA11y(page, 'narrow-feed')
+  await page.locator('#source-filter').selectOption({ label: 'Metadata News' }); await page.getByLabel('Saved state').selectOption('saved'); await page.getByLabel('Search').fill('climate'); await page.getByRole('button', { name: 'Apply filters' }).click(); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
 
   const storage = await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }))
   for (const serialized of Object.values({ ...storage.local, ...storage.session })) assert(!/technology|climate|Budapest|metadata\.fixture|full\.fixture/i.test(String(serialized)), 'authoritative profile/source data leaked into browser storage')
@@ -119,11 +125,11 @@ try {
   await page.goto(`${origin}/library`); await page.getByRole('button', { name: 'Saved' }).click(); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
   await navigate(page, 'Settings'); await page.getByLabel('Interests', { exact: true }).waitFor(); assert((await page.getByLabel('Interests', { exact: true }).inputValue()).includes('technology'), 'profile did not survive restart')
   await navigate(page, 'Sources'); await page.getByRole('heading', { name: 'Metadata News' }).waitFor()
-  await navigate(page, 'Ranked feed'); await page.getByRole('link', { name: 'Technology advances in local science', exact: true }).waitFor(); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
+  await navigate(page, 'Ranked feed'); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor();assert((await page.locator('#source-filter').inputValue())!=='','source filter did not survive restart');assert((await page.getByLabel('Saved state').inputValue())==='saved','saved filter did not survive restart');assert((await page.getByLabel('Search').inputValue())==='climate','search filter did not survive restart')
   await screenshot(page, '09-restart-persistence.png')
   await context.tracing.stop({ path: join(evidence, 'daily-workflow-trace.zip') }); traceStopped = true
 
-  const report = { decision: 'APPROVE', revision: await output('git', ['rev-parse', 'HEAD']), generatedAt: new Date().toISOString(), processRestart: transcript, accessibility: ['ranked-feed: 0 serious/critical', 'library: 0 serious/critical', 'narrow-feed: 0 serious/critical'], browserStorage: storage, browserOutboundRequests: [...new Set(browserRequests)], assertions: 'complete daily-use workflow passed against real Go/SQLite/Vue stack, including empty feed, keyboard-only hide/restore navigation, and API interruption recovery' }
+  const report = { decision: 'APPROVE', revision: await output('git', ['rev-parse', 'HEAD']), generatedAt: new Date().toISOString(), processRestart: transcript, accessibility: ['ranked-feed: 0 serious/critical', 'library: 0 serious/critical', 'narrow-feed: 0 serious/critical'], browserStorage: storage, browserOutboundRequests: [...new Set(browserRequests)], assertions: 'complete daily-use workflow passed against real Go/SQLite/Vue stack, including enabled optional ranking contributions, persisted filters, empty feed, keyboard-only hide/restore navigation, and API interruption recovery' }
   await writeFile(join(evidence, 'verification-report.json'), JSON.stringify(report, null, 2) + '\n')
   await writeFile(join(evidence, 'restart-transcript.txt'), transcript.join('\n') + '\n')
   console.log('VERIFY-002 APPROVED; evidence written to tests/e2e/evidence')

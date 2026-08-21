@@ -173,11 +173,11 @@ func (r *Recomputer) recomputeLocked(ctx context.Context, targets map[domain.Art
 					Contributions: []domain.ScoreContribution{{Signal: domain.SignalBehavior, ReasonCode: ReasonArticleHidden, ReasonValues: map[string]string{"action": "hidden"}}},
 				})
 			}
-			candidates = append(candidates, Candidate{ArticleID: article.ID, PublishedAt: article.PublishedAt, Signals: []SignalResult{
+			candidates = append(candidates, Candidate{ArticleID: article.ID, PublishedAt: article.PublishedAt, Age: ExplicitAgeSignal(configuration.Age.Enabled, profile.Age), Gender: ExplicitGenderSignal(configuration.Gender.Enabled, profile.Gender), Signals: []SignalResult{
 				RecencySignal(configuration.Recency.Enabled, r.Clock.Now(), article.PublishedAt, DefaultRecencyWindow),
 				InterestSignal(configuration.Interest.Enabled, profile.Interests, article.Topics),
 				SourcePreferenceSignal(configuration.SourcePreference.Enabled, article.SourceID, profile.PreferredSources), behavior,
-				LocationSignal(configuration.Location.Enabled, profile.Location, CoarseLocationMetadata{}), textByID[article.ID],
+				LocationSignal(configuration.Location.Enabled, profile.Location, ExplicitLocationMetadata(article.Topics)), textByID[article.ID],
 			}})
 		}
 		results, err := Aggregate(ctx, AggregateInput{Candidates: candidates, Configuration: configuration, CalculatedAt: r.Clock.Now()})

@@ -310,6 +310,51 @@
       "task_id": "INGEST-004", "assigned_to": "backend-core-agent", "assignee_type": "local_ai", "assignee_label": "Backend/Core Implementation Agent", "status": "done", "claimed_at": "2026-08-08T12:00:00Z",
       "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/INGEST-004-run-001.json", "summary": "API and approved-scraper foundations approved by the web reviewer and merged in PR #36.", "status": "accepted", "recorded_at": "2026-08-08T17:40:15Z"}],
       "notes": "Revision 42273a9 resolved markup, typed retry, and selector findings and received exact-revision web approval before merge.", "updated_at": "2026-08-08T17:40:15Z"
+    },
+    {
+      "task_id": "INGEST-005", "assigned_to": "backend-core-agent", "assignee_type": "local_ai", "assignee_label": "Backend/Core Implementation Agent", "status": "review", "claimed_at": "2026-08-09T00:00:00Z",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/INGEST-005-run-001.json", "summary": "Historical PR #38 work reconstructed after merge; independent post-merge audit pending.", "status": "needs_review", "recorded_at": "2026-08-20T19:00:00Z"}],
+      "notes": "Merged through 117f4b61bcb079c13a2c3d2d66cde7f399d4969b. This record does not claim a retroactive approval.", "updated_at": "2026-08-20T19:00:00Z"
+    },
+    {
+      "task_id": "RANK-004", "assigned_to": "backend-core-agent", "assignee_type": "local_ai", "assignee_label": "Backend/Core Implementation Agent", "status": "review", "claimed_at": "2026-08-09T00:00:00Z",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/RANK-004-run-001.json", "summary": "Historical PR #40 work reconstructed after merge; independent post-merge audit pending.", "status": "needs_review", "recorded_at": "2026-08-20T19:00:00Z"}],
+      "notes": "Merged through 1e1df839d8911bb96b984a5b72d17801d5bec211. This record does not claim a retroactive approval.", "updated_at": "2026-08-20T19:00:00Z"
+    },
+    {
+      "task_id": "RANK-005", "assigned_to": "backend-core-agent", "assignee_type": "local_ai", "assignee_label": "Backend/Core Implementation Agent", "status": "review", "claimed_at": "2026-08-10T00:00:00Z",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/RANK-005-run-001.json", "summary": "Historical PR #41 work reconstructed after merge; independent post-merge audit pending.", "status": "needs_review", "recorded_at": "2026-08-20T19:00:00Z"}],
+      "notes": "Merged through f2eae0cdf9c8d9eebc297715fad6634c3d4db7d1. This record does not claim a retroactive approval.", "updated_at": "2026-08-20T19:00:00Z"
+    },
+    {
+      "task_id": "FRONTEND-006", "assigned_to": "frontend-agent", "assignee_type": "local_ai", "assignee_label": "Frontend Implementation Agent", "status": "review", "claimed_at": "2026-08-12T00:00:00Z",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/FRONTEND-006-run-001.json", "summary": "Historical PR #42 work reconstructed after merge; independent post-merge audit pending.", "status": "needs_review", "recorded_at": "2026-08-20T19:00:00Z"}],
+      "notes": "Merged through dfaf4f2a95b0b3849e123197da35d3deefe64da7. This record does not claim a retroactive approval.", "updated_at": "2026-08-20T19:00:00Z"
+    },
+    {
+      "task_id": "FRONTEND-007", "assigned_to": "frontend-agent", "assignee_type": "local_ai", "assignee_label": "Frontend Implementation Agent", "status": "review", "claimed_at": "2026-08-13T00:00:00Z",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/FRONTEND-007-run-001.json", "summary": "Historical PR #43 work reconstructed after merge; independent post-merge audit pending.", "status": "needs_review", "recorded_at": "2026-08-20T19:00:00Z"}],
+      "notes": "Merged through cf7791a7389a312bab97214d1e9b9ed77d80c498. This record does not claim a retroactive approval.", "updated_at": "2026-08-20T19:00:00Z"
+    },
+    {
+      "task_id": "FRONTEND-008", "assigned_to": "frontend-agent", "assignee_type": "local_ai", "assignee_label": "Frontend Implementation Agent", "status": "review", "claimed_at": "2026-08-14T00:00:00Z",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/FRONTEND-008-run-001.json", "summary": "Historical PR #44 work reconstructed after merge; independent post-merge audit pending.", "status": "needs_review", "recorded_at": "2026-08-20T19:00:00Z"}],
+      "notes": "Merged through 97bb4f8367ac21c6b7f668049a59b6ba269741c7. This record does not claim a retroactive approval.", "updated_at": "2026-08-20T19:00:00Z"
+    },
+    {
+      "task_id": "VERIFY-001", "assigned_to": "reviewer-agent", "assignee_type": "web_ai", "assignee_label": "Web PR Reviewer", "status": "review", "claimed_at": "2026-08-15T00:00:00Z",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/VERIFY-001-run-001.json", "summary": "Historical PR #46 work reconstructed after merge; independent post-merge audit pending.", "status": "needs_review", "recorded_at": "2026-08-20T19:00:00Z"}],
+      "notes": "Merged through 14783ebf2e1e8f3ba4129c2375f19357964ca51d. This record does not claim a retroactive approval.", "updated_at": "2026-08-20T19:00:00Z"
+    },
+    {
+      "task_id": "VERIFY-002", "assigned_to": "reviewer-agent", "assignee_type": "web_ai", "assignee_label": "Web PR Reviewer", "status": "review", "claimed_at": "2026-08-16T00:00:00Z",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/VERIFY-002-run-001.json", "summary": "Historical PRs #47/#48 work reconstructed after merge; independent post-merge audit pending.", "status": "needs_review", "recorded_at": "2026-08-20T19:00:00Z"}],
+      "notes": "Merged through 37c3f9c2956c352a935258f89e9a23e2dc2dca75. This record does not claim a retroactive approval.", "updated_at": "2026-08-20T19:00:00Z"
+    },
+    {
+      "task_id": "VERIFY-003", "assigned_to": "reviewer-agent", "assignee_type": "web_ai", "assignee_label": "Web PR Reviewer", "status": "review", "claimed_at": "2026-08-18T00:00:00Z",
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/VERIFY-003-run-001.json", "summary": "Historical PR #49 work reconstructed after merge; independent post-merge audit pending.", "status": "needs_review", "recorded_at": "2026-08-20T19:00:00Z"}],
+      "notes": "Merged through 353434e545fb761701f8acad450a0a09d1cc8f51. This record does not claim a retroactive approval.", "updated_at": "2026-08-20T19:00:00Z"
     }
   ],
   "task_claims": [

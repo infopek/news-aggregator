@@ -626,8 +626,10 @@ func newAPIHandler(version string, configuration ConfigurationAPI, refresh Refre
 		mux.Handle("/api/v1/refresh/", NewRefreshHandler(refresh))
 	}
 	if feed.Service != nil {
-		mux.Handle("/api/v1/feed", NewFeedHandler(feed))
-		mux.Handle("/api/v1/articles/", NewFeedHandler(feed))
+		feedHandler := NewFeedHandler(feed)
+		mux.Handle("/api/v1/feed", feedHandler)
+		mux.Handle("/api/v1/feed-filter", feedHandler)
+		mux.Handle("/api/v1/articles/", feedHandler)
 	}
 	mux.Handle("/api/v1/", NewConfigurationHandler(configuration))
 	return mux

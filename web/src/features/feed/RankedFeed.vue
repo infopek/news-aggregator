@@ -29,7 +29,15 @@ let generation = 0, loadController: AbortController | undefined, pageController:
 let unsubscribeInvalidation: (()=>void) | undefined
 const refreshState = ref<'idle'|'running'|'uncertain'>('idle')
 const sourceNames = computed(() => Object.fromEntries(sources.value.map((item) => [item.id, item.name])))
-onMounted(() => {unsubscribeInvalidation=subscribeLibraryInvalidation(()=>{void load(false)});void load(false)}); onBeforeUnmount(() => { mounted=false;++generation;unsubscribeInvalidation?.();loadController?.abort();pageController?.abort() })
+onMounted(() => {unsubscribeInvalidation=subscribeLibraryInvalidation(()=>{void load(false)});void restoreAndLoad()}); onBeforeUnmount(() => { mounted=false;++generation;unsubscribeInvalidation?.();loadController?.abort();pageController?.abort() })
+async function restoreAndLoad() {
+  try {
+    const persisted = await server.feedFilter()
+    source.value=persisted.sourceId;read.value=persisted.read;saved.value=persisted.savedOnly?'saved':'all';text.value=persisted.searchQuery
+    applied.value=draft()
+  } catch { applied.value=draft() }
+  if(mounted)await load(false)
+}
 function draft(): FilterSnapshot { return { source: source.value, read: read.value, saved: saved.value, text: text.value, after: after.value, before: before.value } }
 function query(filter: FilterSnapshot, next?: string): FeedQuery { return { cursor: next || undefined, limit: 20, sourceId: filter.source ? [filter.source] : undefined, read: filter.read === 'all' ? undefined : filter.read === 'read', saved: filter.saved === 'saved' ? true : undefined, text: filter.text.trim() || undefined, publishedAfter: filter.after ? new Date(`${filter.after}T00:00:00`).toISOString() : undefined, publishedBefore: filter.before ? new Date(`${filter.before}T23:59:59`).toISOString() : undefined } }
 async function load(applyDraft = true) {
@@ -40,7 +48,7 @@ async function load(applyDraft = true) {
   if (hasData) revalidating.value = true
   else state.value = 'loading'
   queryError.value = ''; stale.value = false
-  try { const [page, list] = await Promise.all([server.feed(query(requested), loadController.signal), server.sources(loadController.signal)]); if(requestGeneration!==generation)return; applied.value=requested;items.value = page.items; cursor.value = page.nextCursor; sources.value = list.items; state.value = items.value.length ? 'ready' : 'empty'; stale.value = false } catch (cause) { if(requestGeneration!==generation)return; queryError.value = toUserSafeError(cause).message; if(hasData)stale.value=true;else state.value='error' } finally { if(requestGeneration===generation){revalidating.value=false;paginationBlocked.value=false} }
+  try { if(applyDraft)await server.updateFeedFilter({sourceId:requested.source,read:requested.read as 'all'|'read'|'unread',savedOnly:requested.saved==='saved',includeHidden:false,searchQuery:requested.text.trim()},loadController.signal);const [page,list]=await Promise.all([server.feed(query(requested),loadController.signal),server.sources(loadController.signal)]); if(requestGeneration!==generation)return; applied.value=requested;items.value = page.items; cursor.value = page.nextCursor; sources.value = list.items; state.value = items.value.length ? 'ready' : 'empty'; stale.value = false } catch (cause) { if(requestGeneration!==generation)return; queryError.value = toUserSafeError(cause).message; if(hasData)stale.value=true;else state.value='error' } finally { if(requestGeneration===generation){revalidating.value=false;paginationBlocked.value=false} }
 }
 async function more() { if (!cursor.value||paginationBlocked.value) return; const requestGeneration=generation, next=cursor.value, filter={...applied.value}; pageController?.abort(); pageController=new AbortController(); loadingMore.value = true; pageError.value=''; try { const page = await server.feed(query(filter,next),pageController.signal); if(requestGeneration!==generation||paginationBlocked.value)return; items.value.push(...page.items); cursor.value = page.nextCursor; pageError.value='' } catch (cause) { if(requestGeneration===generation)pageError.value = toUserSafeError(cause).message } finally { if(requestGeneration===generation)loadingMore.value = false } }
 function hide(id: string) { items.value = items.value.filter((item) => item.id !== id); if (!items.value.length) state.value = 'empty' }
