@@ -234,6 +234,30 @@
         }
       }
     },
+    "/api/v1/feed-filter": {
+      "get": {
+        "operationId": "getFeedFilter",
+        "tags": ["feed"],
+        "x-request-type": null,
+        "x-response-type": "FeedFilterState",
+        "responses": {
+          "200": { "description": "Authoritative persisted feed filters", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FeedFilterState" } } } },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      },
+      "put": {
+        "operationId": "putFeedFilter",
+        "tags": ["feed"],
+        "x-request-type": "FeedFilterWrite",
+        "x-response-type": "FeedFilterState",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FeedFilterWrite" } } } },
+        "responses": {
+          "200": { "description": "Persisted feed filters", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FeedFilterState" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
+    },
     "/api/v1/articles/{articleId}": {
       "get": {
         "operationId": "getArticle",
@@ -728,6 +752,31 @@
           "text": { "type": "string" },
           "publishedAfter": { "type": "string", "format": "date-time" },
           "publishedBefore": { "type": "string", "format": "date-time" }
+        }
+      },
+      "FeedFilterWrite": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sourceId", "read", "savedOnly", "includeHidden", "searchQuery"],
+        "properties": {
+          "sourceId": { "type": "string" },
+          "read": { "type": "string", "enum": ["all", "read", "unread"] },
+          "savedOnly": { "type": "boolean" },
+          "includeHidden": { "type": "boolean" },
+          "searchQuery": { "type": "string", "maxLength": 200 }
+        }
+      },
+      "FeedFilterState": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sourceId", "read", "savedOnly", "includeHidden", "searchQuery", "updatedAt"],
+        "properties": {
+          "sourceId": { "type": "string" },
+          "read": { "type": "string", "enum": ["all", "read", "unread"] },
+          "savedOnly": { "type": "boolean" },
+          "includeHidden": { "type": "boolean" },
+          "searchQuery": { "type": "string", "maxLength": 200 },
+          "updatedAt": { "type": "string", "format": "date-time", "readOnly": true }
         }
       },
       "SourceIDRequest": { "type": "object", "additionalProperties": false, "required": ["sourceId"], "properties": { "sourceId": { "type": "string" } } },

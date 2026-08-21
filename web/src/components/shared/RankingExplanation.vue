@@ -4,10 +4,11 @@ import { useId } from 'vue'
 withDefaults(defineProps<{ contributions: ScoreContribution[]; headingLevel?: 'h2' | 'h3' | 'h4' }>(), { headingLevel: 'h4' })
 const titleId = `ranking-title-${useId()}`
 const reasons: Record<string, string> = {
-  recent_publication: 'Published recently', interest_match: 'Matches an interest', preferred_source: 'From a preferred source',
-  behavior_match: 'Similar to reading activity', location_match: 'Relevant to the optional location signal',
-  age_match: 'Influenced slightly by the optional age signal', gender_match: 'Influenced slightly by the optional gender signal',
-  text_similarity: 'Text is similar to selected interests',
+  recency_fresh: 'Published recently', explicit_interest_match: 'Matches an explicit interest', explicit_source_preference: 'From an explicitly preferred source',
+  article_read: 'Adjusted using your read history', article_saved: 'Adjusted because you saved this article',
+  explicit_location_match: 'Matches your optional location and declared article metadata',
+  explicit_age_adjustment: 'Matches your optional age and a declared audience range', explicit_gender_adjustment: 'Matches your optional gender and a declared audience value',
+  local_text_match: 'Local text is similar to selected interests', neutral_default: 'No active signal changed this article’s score',
 }
 </script>
 <template>

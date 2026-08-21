@@ -68,6 +68,18 @@ describe('shared accessible primitives', () => {
     await expectAccessible(wrapper.element)
   })
 
+  it.each([
+    ['explicit_interest_match', 'Matches an explicit interest'],
+    ['explicit_location_match', 'Matches your optional location'],
+    ['explicit_age_adjustment', 'Matches your optional age'],
+    ['explicit_gender_adjustment', 'Matches your optional gender'],
+    ['local_text_match', 'Local text is similar'],
+  ])('renders production reason code %s', (reasonCode, label) => {
+    const wrapper = mount(RankingExplanation, { props: { contributions: [contribution({ reasonCode })] } })
+    expect(wrapper.text()).toContain(label)
+    expect(wrapper.text()).not.toContain('Another ranking signal contributed')
+  })
+
   it('announces loading, errors, success and mixed partial refresh outcomes', async () => {
     const wrapper = mount(RefreshStatus, { attachTo: document.body, props: { loading: true } })
     expect(wrapper.get('[role=status]').text()).toContain('Refreshing')

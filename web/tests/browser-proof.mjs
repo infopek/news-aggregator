@@ -161,7 +161,7 @@ function refreshRun(status) {
 }
 
 function browserArticle(browserReadAt = null,browserSavedAt=null,browserHiddenAt=null) {
-  return { id: 'browser-article', sourceId: 'starter-1', canonicalUrl: 'https://example.com/story', title: 'Browser-ranked story', author: 'Fixture Reporter', publishedAt: '2026-08-14T08:00:00Z', fetchedAt: '2026-08-14T08:01:00Z', excerpt: 'A permission-aware browser fixture.', contentPermission: 'metadata_only', language: 'en', topics: ['technology'], library: { articleId: 'browser-article', readAt: browserReadAt, savedAt: browserSavedAt, hiddenAt: browserHiddenAt }, ranking: { score: .9, algorithmVersion: 'v1', calculatedAt: '2026-08-14T08:02:00Z', contributions: [{ signal: 'interest', rawScore: .9, weight: .5, weightedScore: .45, reasonCode: 'interest_match', reasonValues: { interest: 'technology' } }] } }
+  return { id: 'browser-article', sourceId: 'starter-1', canonicalUrl: 'https://example.com/story', title: 'Browser-ranked story', author: 'Fixture Reporter', publishedAt: '2026-08-14T08:00:00Z', fetchedAt: '2026-08-14T08:01:00Z', excerpt: 'A permission-aware browser fixture.', contentPermission: 'metadata_only', language: 'en', topics: ['technology'], library: { articleId: 'browser-article', readAt: browserReadAt, savedAt: browserSavedAt, hiddenAt: browserHiddenAt }, ranking: { score: .9, algorithmVersion: 'v1', calculatedAt: '2026-08-14T08:02:00Z', contributions: [{ signal: 'interest', rawScore: .9, weight: .5, weightedScore: .45, reasonCode: 'explicit_interest_match', reasonValues: { matched_interests: 'technology' } }] } }
 }
 
 const primitiveProof = spawn(process.execPath, ['tests/primitive-browser-proof.mjs'], { stdio: 'inherit' })

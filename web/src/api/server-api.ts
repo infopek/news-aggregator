@@ -2,6 +2,7 @@ import type {
   CredentialStatus,
   CredentialWrite,
   FeedQuery,
+  FeedFilterWrite,
   LibraryStateWrite,
   ProfileWrite,
   RankingConfigurationWrite,
@@ -36,6 +37,8 @@ export function createServerApi(client: RequestClient) {
     startRefresh: (signal?: AbortSignal) => client.request('startRefresh', undefined, signal),
     refresh: (refreshId: string, signal?: AbortSignal) => client.request('getRefresh', { path: { refreshId } }, signal),
     feed: (query: FeedQuery, signal?: AbortSignal) => client.request('getFeed', { query }, signal),
+    feedFilter: (signal?: AbortSignal) => client.request('getFeedFilter', undefined, signal),
+    updateFeedFilter: (body: FeedFilterWrite, signal?: AbortSignal) => client.request('putFeedFilter', { body }, signal),
     article: (articleId: string, signal?: AbortSignal) => client.request('getArticle', { path: { articleId } }, signal),
     updateLibrary: (articleId: string, body: LibraryStateWrite, signal?: AbortSignal) =>
       client.request('patchLibraryState', { path: { articleId }, body }, signal)

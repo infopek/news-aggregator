@@ -104,7 +104,7 @@ func run() error {
 	feedQueries := appfeed.Service{Articles: store.Articles(), Library: store.Libraries(), Rankings: store.Rankings()}
 	libraryActions := applibrary.Service{Articles: store.Articles(), Library: store.Libraries(), Clock: systemClock{}, Recompute: recompute, Gate: rankingGate, Status: rankingStatus, Transactions: store}
 	rankingConfiguration := applibrary.Configuration{Base: configuration, Recompute: recompute, Gate: rankingGate, Status: rankingStatus}
-	api := httpapi.NewAPIHandlerWithFeed(applicationVersion, httpapi.ConfigurationAPI{Profiles: rankingConfiguration, Sources: configuration, Starters: starterSources()}, httpapi.RefreshAPI{Service: refresh}, httpapi.FeedAPI{Service: feedQueries, Library: libraryActions})
+	api := httpapi.NewAPIHandlerWithFeed(applicationVersion, httpapi.ConfigurationAPI{Profiles: rankingConfiguration, Sources: configuration, Starters: starterSources()}, httpapi.RefreshAPI{Service: refresh}, httpapi.FeedAPI{Service: feedQueries, Filters: store.FeedFilters(), Library: libraryActions, Clock: systemClock{}})
 	host := platform.Host{
 		Address: "127.0.0.1:" + strconv.Itoa(port),
 		Handler: httpapi.NewLocalHandler(api, assets),

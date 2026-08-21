@@ -27,6 +27,55 @@ type flakyArticleRecompute struct {
 	failures int
 }
 
+func TestProductionRecomputeUsesExplicitOptionalSignals(t *testing.T) {
+	store, _ := openStore(t)
+	defer store.Close()
+	ctx := context.Background()
+	now := time.Date(2026, 8, 21, 12, 0, 0, 0, time.UTC)
+	source := serviceFeed("demographic-source", "https://example.com/demographic-feed")
+	must(t, store.Sources().Save(ctx, source))
+	young := domain.Article{ID: "demographic-young", Fingerprint: "demographic-young-fingerprint", SourceID: source.ID, CanonicalURL: "https://example.com/demographic-young", Title: "Budapest science for younger readers", FetchedAt: now, ContentPermission: domain.ContentMetadataOnly, Topics: []string{"science", "location:HU/Budapest/Budapest", "audience-age:18-45", "audience-gender:nonbinary"}, TokenCount: 2}
+	older := domain.Article{ID: "demographic-older", Fingerprint: "demographic-older-fingerprint", SourceID: source.ID, CanonicalURL: "https://example.com/demographic-older", Title: "Budapest science for older readers", FetchedAt: now, ContentPermission: domain.ContentMetadataOnly, Topics: []string{"science", "location:HU/Budapest/Budapest", "audience-age:60-90", "audience-gender:woman"}, TokenCount: 2}
+	for _, article := range []domain.Article{young, older} {
+		_, err := store.Articles().Upsert(ctx, article)
+		must(t, err)
+	}
+	profile := domain.UserProfile{ID: domain.LocalProfileID, Interests: []domain.WeightedInterest{{Name: "science", Weight: 1}}, Location: domain.OptionalSignal[domain.Location]{Present: true, Enabled: true, Value: domain.Location{Country: "HU", Region: "Budapest", City: domain.OptionalSignal[string]{Present: true, Enabled: true, Value: "Budapest"}}}, Age: domain.OptionalSignal[int]{Present: true, Enabled: true, Value: 37}, Gender: domain.OptionalSignal[string]{Present: true, Enabled: true, Value: "nonbinary"}, UpdatedAt: now}
+	must(t, store.Profiles().Save(ctx, profile))
+	configuration := domain.RankingConfiguration{Interest: domain.SignalWeight{Enabled: true, Weight: .7}, Location: domain.SignalWeight{Enabled: true, Weight: .05}, Age: domain.SignalWeight{Enabled: true, Weight: .05}, Gender: domain.SignalWeight{Enabled: true, Weight: .05}, PerDemographicCap: .05, TotalDemographicCap: .2, NormalizationVersion: "v1"}
+	must(t, store.Rankings().SaveConfiguration(ctx, configuration))
+	recompute := &appranking.Recomputer{Articles: store.Articles(), Library: store.Libraries(), Profiles: store.Profiles(), Rankings: store.Rankings(), Results: store.Rankings(), Clock: &rankClock{now}, Gate: &appranking.VersionGate{}}
+	must(t, recompute.Full(ctx))
+	result, err := store.Rankings().GetResult(ctx, young.ID)
+	must(t, err)
+	want := map[domain.RankingSignal]bool{domain.SignalLocation: false, domain.SignalAge: false, domain.SignalGender: false}
+	for _, contribution := range result.Contributions {
+		if _, ok := want[contribution.Signal]; ok && contribution.WeightedScore > 0 {
+			want[contribution.Signal] = true
+		}
+	}
+	for signal, found := range want {
+		if !found {
+			t.Fatalf("production recompute omitted enabled %s contribution: %+v", signal, result.Contributions)
+		}
+	}
+	olderResult, err := store.Rankings().GetResult(ctx, older.ID)
+	must(t, err)
+	if result.Score <= olderResult.Score {
+		t.Fatalf("age 37/nonbinary profile did not prefer matching declared evidence: young=%v older=%v", result.Score, olderResult.Score)
+	}
+	profile.Age.Value, profile.Gender.Value, profile.UpdatedAt = 70, "woman", now.Add(time.Minute)
+	must(t, store.Profiles().Save(ctx, profile))
+	must(t, recompute.Full(ctx))
+	youngResult, err := store.Rankings().GetResult(ctx, young.ID)
+	must(t, err)
+	olderResult, err = store.Rankings().GetResult(ctx, older.ID)
+	must(t, err)
+	if olderResult.Score <= youngResult.Score {
+		t.Fatalf("age 70/woman profile did not prefer matching declared evidence: young=%v older=%v", youngResult.Score, olderResult.Score)
+	}
+}
+
 type blockingLibraryRepository struct {
 	application.LibraryRepository
 	entered chan struct{}

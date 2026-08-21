@@ -1,0 +1,47 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "FRONTEND-008",
+  "run_id": "FRONTEND-008-run-001",
+  "actor_id": "frontend-agent",
+  "status": "review",
+  "implementation_summary": "Implemented persistent personal-library and settings integration.",
+  "files_changed": [
+    {
+      "path": "web/src/features/library/**, web/src/features/profile/**, web/src/features/ranking-settings/**, web/src/router/**, web/tests/**, tests/e2e/**",
+      "change": "Historical merged implementation scope; exact file history remains available in the referenced pull request."
+    }
+  ],
+  "verification": [
+    {
+      "command": "GitHub Actions verification for the referenced merged pull request",
+      "result": "passed",
+      "output": "The recorded PR workflow passed; exact durable post-merge review is still required."
+    }
+  ],
+  "proof": [
+    {
+      "kind": "manual_note",
+      "summary": "PR head 4c68259d1f99f9b206f48cc596fb974b1084c883; merge 97bb4f8367ac21c6b7f668049a59b6ba269741c7.",
+      "status": "needs_review",
+      "recorded_at": "2026-08-20T19:00:00Z"
+    },
+    {
+      "kind": "manual_note",
+      "summary": "This record was reconstructed after merge. It does not claim a retroactive pre-merge approval; an independent post-merge audit must accept the exact merged implementation.",
+      "status": "needs_review",
+      "recorded_at": "2026-08-20T19:00:00Z"
+    },
+    {
+      "kind": "manual_note",
+      "summary": "Canonical VERIFY-004 found the historical merge incomplete. Closure requires an independent audit of the historical implementation together with the final corrective revision from PR #50; that exact corrective SHA must be recorded before this task can move to done.",
+      "status": "needs_review",
+      "recorded_at": "2026-08-21T09:00:00Z"
+    }
+  ],
+  "blockers": [
+    "Independent post-merge audit of the historical merge plus PR #50 final corrective SHA has not yet been durably recorded."
+  ],
+  "notes": "Historical reconstruction created in response to VERIFY-004. Preserve the process exception. The historical merge is not sufficient acceptance proof; replace review status only after an independent audit explicitly accepts the combined historical and PR #50 corrective implementation.",
+  "submitted_at": "2026-08-20T19:00:00Z",
+  "updated_at": "2026-08-20T19:00:00Z"
+}

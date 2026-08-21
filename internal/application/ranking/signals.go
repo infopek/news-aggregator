@@ -53,6 +53,89 @@ type CoarseLocationMetadata struct {
 	City    string
 }
 
+// ExplicitAgeSignal compares an explicitly entered profile age only with a
+// publisher/source-declared audience range in the form audience-age:min-max.
+// Missing tags are neutral; article audiences are never inferred from text.
+func ExplicitAgeSignal(enabled bool, profile domain.OptionalSignal[int], topics []string) SignalResult {
+	result := zeroSignal(domain.SignalAge, enabled)
+	if !enabled || !profile.Present || !profile.Enabled || profile.Value < 0 || profile.Value > 130 {
+		return result
+	}
+	for _, topic := range topics {
+		value, ok := taggedValue(topic, "audience-age:")
+		if !ok {
+			continue
+		}
+		bounds := strings.Split(value, "-")
+		if len(bounds) != 2 {
+			continue
+		}
+		minimum, minErr := strconv.Atoi(strings.TrimSpace(bounds[0]))
+		maximum, maxErr := strconv.Atoi(strings.TrimSpace(bounds[1]))
+		if minErr == nil && maxErr == nil && minimum >= 0 && maximum <= 130 && minimum <= maximum && profile.Value >= minimum && profile.Value <= maximum {
+			result.Score = 1
+			result.ReasonCode = ReasonAgeAdjustment
+			result.ReasonValues = map[string]string{"evidence": "declared_audience_range"}
+			return result
+		}
+	}
+	return result
+}
+
+// ExplicitGenderSignal compares an explicitly entered profile value only with
+// publisher/source-declared audience-gender:value tags. It never derives or
+// predicts a demographic value for a person or article.
+func ExplicitGenderSignal(enabled bool, profile domain.OptionalSignal[string], topics []string) SignalResult {
+	result := zeroSignal(domain.SignalGender, enabled)
+	wanted := normalizeLabel(profile.Value)
+	if !enabled || !profile.Present || !profile.Enabled || wanted == "" {
+		return result
+	}
+	for _, topic := range topics {
+		value, ok := taggedValue(topic, "audience-gender:")
+		if ok && normalizeLabel(value) == wanted {
+			result.Score = 1
+			result.ReasonCode = ReasonGenderAdjustment
+			result.ReasonValues = map[string]string{"evidence": "declared_audience_value"}
+			return result
+		}
+	}
+	return result
+}
+
+func taggedValue(topic, prefix string) (string, bool) {
+	value := strings.TrimSpace(topic)
+	if len(value) < len(prefix) || !strings.EqualFold(value[:len(prefix)], prefix) {
+		return "", false
+	}
+	return strings.TrimSpace(value[len(prefix):]), true
+}
+
+// ExplicitLocationMetadata accepts only an explicitly tagged topic emitted by
+// a configured source: location:country/region or location:country/region/city.
+// Ordinary text, URLs, IP addresses, and untagged topics are never interpreted
+// as physical location.
+func ExplicitLocationMetadata(topics []string) CoarseLocationMetadata {
+	for _, topic := range topics {
+		value := strings.TrimSpace(topic)
+		if len(value) < len("location:") || !strings.EqualFold(value[:len("location:")], "location:") {
+			continue
+		}
+		parts := strings.Split(strings.TrimSpace(value[len("location:"):]), "/")
+		if len(parts) < 2 || len(parts) > 3 {
+			continue
+		}
+		metadata := CoarseLocationMetadata{Country: strings.TrimSpace(parts[0]), Region: strings.TrimSpace(parts[1])}
+		if len(parts) == 3 {
+			metadata.City = strings.TrimSpace(parts[2])
+		}
+		if normalizeLabel(metadata.Country) != "" && normalizeLabel(metadata.Region) != "" {
+			return metadata
+		}
+	}
+	return CoarseLocationMetadata{}
+}
+
 // Clock is satisfied by application.Clock and kept capability-minimal here.
 type Clock interface {
 	Now() time.Time

@@ -1,4 +1,4 @@
-// Generated from api/openapi.yaml (1fe1b3d388739840). Do not edit.
+// Generated from api/openapi.yaml (dd8be64ea54d6638). Do not edit.
 export type Health = {
   "status": "ready"
   "version": string
@@ -239,6 +239,21 @@ export type FeedQuery = {
   "text"?: string
   "publishedAfter"?: string
   "publishedBefore"?: string
+}
+export type FeedFilterWrite = {
+  "sourceId": string
+  "read": "all" | "read" | "unread"
+  "savedOnly": boolean
+  "includeHidden": boolean
+  "searchQuery": string
+}
+export type FeedFilterState = {
+  "sourceId": string
+  "read": "all" | "read" | "unread"
+  "savedOnly": boolean
+  "includeHidden": boolean
+  "searchQuery": string
+  readonly "updatedAt": string
 }
 export type SourceIDRequest = {
   "sourceId": string

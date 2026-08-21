@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel><title>Metadata fixture</title><link>http://metadata.fixture.test/</link><description>Deterministic metadata news</description>
-<item><guid>metadata-climate</guid><title>Climate science briefing</title><link>http://publisher.fixture.test/metadata-climate</link><description>Local climate research and technology.</description><pubDate>Fri, 14 Aug 2026 08:00:00 GMT</pubDate></item>
+<item><guid>metadata-climate</guid><title>Climate science briefing</title><link>http://publisher.fixture.test/metadata-climate</link><description>Local climate research and technology.</description><category>location:HU/Budapest/Budapest</category><category>audience-age:60-90</category><category>audience-gender:woman</category><pubDate>Fri, 14 Aug 2026 08:00:00 GMT</pubDate></item>
 </channel></rss>
