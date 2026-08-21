@@ -10,7 +10,7 @@ import ArticleReader from '../src/features/reader/ArticleReader.vue'
 
 const library: LibraryState = { articleId: 'article-a', readAt: null, savedAt: null, hiddenAt: null }
 function article(id: string, score: number, permission: ArticleSummary['contentPermission'] = 'metadata_only'): ArticleSummary {
-  return { id, sourceId: 'opaque-source', canonicalUrl: `https://publisher.example/${id}`, title: id === 'article-a' ? 'Top ranked story' : id === 'article-b' ? 'Second story' : id, author: 'Reporter', publishedAt: '2026-08-14T10:00:00Z', fetchedAt: '2026-08-14T10:01:00Z', excerpt: 'A useful excerpt.', contentPermission: permission, language: 'en', topics: ['science'], library: { ...library, articleId: id }, ranking: { score, algorithmVersion: 'v1', calculatedAt: '2026-08-14T10:02:00Z', contributions: [{ signal: 'interest', rawScore: .8, weight: .5, weightedScore: .4, reasonCode: 'interest_match', reasonValues: { interest: 'science' } }] } }
+  return { id, sourceId: 'opaque-source', canonicalUrl: `https://publisher.example/${id}`, title: id === 'article-a' ? 'Top ranked story' : id === 'article-b' ? 'Second story' : id, author: 'Reporter', publishedAt: '2026-08-14T10:00:00Z', fetchedAt: '2026-08-14T10:01:00Z', excerpt: 'A useful excerpt.', contentPermission: permission, language: 'en', topics: ['science'], library: { ...library, articleId: id }, ranking: { score, algorithmVersion: 'v1', calculatedAt: '2026-08-14T10:02:00Z', contributions: [{ signal: 'interest', rawScore: .8, weight: .5, weightedScore: .4, reasonCode: 'explicit_interest_match', reasonValues: { interest: 'science' } }] } }
 }
 function fakeApi(detail?: ArticleDetail) {
   const pages: FeedPage[] = [{ items: [article('article-a', .9), article('article-b', .7)], nextCursor: 'next' }, { items: [article('article-c', .6)], nextCursor: null }]
@@ -35,7 +35,7 @@ describe('ranked feed', () => {
   it('preserves server order, explanations, source metadata, filters, and pagination', async () => {
     const api = fakeApi(), wrapper = mount(RankedFeed, { props: { serverApi: api }, attachTo: document.body }); await flushPromises()
     expect(wrapper.findAll('.ranked-list>li').map((item) => item.text())).toEqual([expect.stringContaining('Top ranked story'), expect.stringContaining('Second story')])
-    expect(wrapper.text()).toContain('Science Wire'); expect(wrapper.text()).toContain('Matches an interest')
+    expect(wrapper.text()).toContain('Science Wire'); expect(wrapper.text()).toContain('Matches an explicit interest')
     await wrapper.get('#source-filter').setValue('opaque-source'); await wrapper.get('#read-filter').setValue('unread'); await wrapper.get('input[type=search], input[maxlength="200"]').setValue('science')
     await wrapper.get('.feed-filters').trigger('submit'); await flushPromises()
     expect(api.feed).toHaveBeenLastCalledWith(expect.objectContaining({ sourceId: ['opaque-source'], read: false, text: 'science' }), expect.any(AbortSignal))
@@ -192,7 +192,7 @@ describe('permission-aware reader', () => {
   it('reloads the reader ranking explanation after a library mutation', async () => {
     const api=fakeApi(), changed={...article('article-a',.6),library:{...library,readAt:'2026-08-14T11:00:00Z'},ranking:{...article('article-a',.6).ranking,contributions:[]}}
     vi.mocked(api.article).mockResolvedValueOnce({article:article('article-a',.9),fullContent:null}).mockResolvedValueOnce({article:changed,fullContent:null})
-    const wrapper=mount(ArticleReader,{props:{articleId:'article-a',serverApi:api}});await flushPromises();expect(wrapper.text()).toContain('Matches an interest');await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');await flushPromises();expect(wrapper.text()).toContain('Mark unread');expect(wrapper.text()).toContain('No ranking explanation');expect(api.article).toHaveBeenCalledTimes(2);wrapper.unmount()
+    const wrapper=mount(ArticleReader,{props:{articleId:'article-a',serverApi:api}});await flushPromises();expect(wrapper.text()).toContain('Matches an explicit interest');await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');await flushPromises();expect(wrapper.text()).toContain('Mark unread');expect(wrapper.text()).toContain('No ranking explanation');expect(api.article).toHaveBeenCalledTimes(2);wrapper.unmount()
   })
 
   it('does not apply an article mutation after navigating to another article', async () => {

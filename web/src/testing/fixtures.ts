@@ -2,7 +2,7 @@ import type { ArticleSummary, RefreshRun, ScoreContribution } from '../api/gener
 
 export const contribution = (overrides: Partial<ScoreContribution> = {}): ScoreContribution => ({
   signal: 'interest', rawScore: 0.8, weight: 0.5, weightedScore: 0.4,
-  reasonCode: 'interest_match', reasonValues: {}, ...overrides,
+  reasonCode: 'explicit_interest_match', reasonValues: {}, ...overrides,
 })
 
 export const articleSummary = (overrides: Partial<ArticleSummary> = {}): ArticleSummary => ({

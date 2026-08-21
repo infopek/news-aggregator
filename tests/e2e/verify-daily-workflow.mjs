@@ -65,6 +65,7 @@ try {
   await navigate(page, 'Ranked feed')
   await page.getByRole('link', { name: 'Technology advances in local science', exact: true }).waitFor()
   await page.getByRole('heading', { name: /Why this was ranked here/i }).first().waitFor()
+  await page.getByText('Matches an explicit interest', { exact: true }).first().waitFor(); await page.getByText('Matches your optional age and a declared audience range', { exact: true }).first().waitFor()
   const ranked = await page.evaluate(async () => (await (await fetch('/api/v1/feed?limit=20')).json()).items)
   for (const signal of ['location', 'age', 'gender']) assert(ranked.some(item => item.ranking.contributions.some(value => value.signal === signal && value.weightedScore > 0)), `enabled ${signal} contribution missing from production feed`)
   await screenshot(page, '03-ranked-feed.png')
