@@ -15,7 +15,7 @@
     {
       "command": "GitHub Actions verification for the referenced merged pull request",
       "result": "passed",
-      "output": "The recorded PR workflow passed; exact durable post-merge review is still required."
+      "output": "The recorded PR workflow passed, and verify-004-review-001 completed the durable post-merge audit by accepting exact PR #50 merge revision 49de411ac1c2b924e126e70dfc48253f284a025f."
     }
   ],
   "proof": [
