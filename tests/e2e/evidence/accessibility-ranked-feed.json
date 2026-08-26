@@ -13,8 +13,8 @@
     "orientationAngle": 0,
     "orientationType": "landscape-primary"
   },
-  "timestamp": "2026-08-21T12:01:33.777Z",
-  "url": "http://127.0.0.1:45741/",
+  "timestamp": "2026-08-26T09:57:37.601Z",
+  "url": "http://127.0.0.1:44913/",
   "toolOptions": {
     "runOnly": {
       "type": "tag",
@@ -703,7 +703,7 @@
             }
           ],
           "impact": null,
-          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/setup\">Setup</a><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
+          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
           "target": [
             "nav"
           ]
@@ -807,7 +807,7 @@
             }
           ],
           "impact": null,
-          "html": "<div class=\"status\" aria-labelledby=\"refresh-title-v-8\">",
+          "html": "<div class=\"status\" aria-labelledby=\"refresh-title-v-5\">",
           "target": [
             ".status"
           ]
@@ -859,35 +859,9 @@
             }
           ],
           "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-9\">",
+          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-6\">",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-allowed-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attributes are used correctly for the defined role"
-            }
-          ],
-          "none": [
-            {
-              "id": "aria-unsupported-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.031211990063531758\">0.031211990063531758</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1) > output"
+            "div[aria-labelledby=\"ranking-title-v-6\"]"
           ]
         },
         {
@@ -913,7 +887,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(2) > output"
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -937,7 +911,33 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
+          "target": [
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(2) > output"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-allowed-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attributes are used correctly for the defined role"
+            }
+          ],
+          "none": [
+            {
+              "id": "aria-unsupported-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute is supported"
+            }
+          ],
+          "impact": null,
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
           "target": [
             "li:nth-child(3) > output"
           ]
@@ -963,35 +963,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
           "target": [
             "li:nth-child(4) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-allowed-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attributes are used correctly for the defined role"
-            }
-          ],
-          "none": [
-            {
-              "id": "aria-unsupported-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
-          "target": [
-            "li:nth-child(5) > output"
           ]
         },
         {
@@ -1067,9 +1041,9 @@
             }
           ],
           "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-10\">",
+          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-7\">",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"]"
+            "div[aria-labelledby=\"ranking-title-v-7\"]"
           ]
         },
         {
@@ -1095,7 +1069,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(1) > output"
+            "div[aria-labelledby=\"ranking-title-v-7\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -1241,7 +1215,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/setup\">Setup</a><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
+          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
           "target": [
             "nav"
           ]
@@ -1313,7 +1287,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<div class=\"status\" aria-labelledby=\"refresh-title-v-8\">",
+          "html": "<div class=\"status\" aria-labelledby=\"refresh-title-v-5\">",
           "target": [
             ".status"
           ]
@@ -1349,27 +1323,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-9\">",
+          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-6\">",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-conditional-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.031211990063531758\">0.031211990063531758</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1) > output"
+            "div[aria-labelledby=\"ranking-title-v-6\"]"
           ]
         },
         {
@@ -1387,7 +1343,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(2) > output"
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -1403,7 +1359,25 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
+          "target": [
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(2) > output"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-conditional-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "ARIA attribute is allowed"
+            }
+          ],
+          "none": [],
+          "impact": null,
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
           "target": [
             "li:nth-child(3) > output"
           ]
@@ -1421,27 +1395,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
           "target": [
             "li:nth-child(4) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-conditional-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
-          "target": [
-            "li:nth-child(5) > output"
           ]
         },
         {
@@ -1493,9 +1449,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-10\">",
+          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-7\">",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"]"
+            "div[aria-labelledby=\"ranking-title-v-7\"]"
           ]
         },
         {
@@ -1513,7 +1469,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(1) > output"
+            "div[aria-labelledby=\"ranking-title-v-7\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -1773,7 +1729,7 @@
             }
           ],
           "impact": null,
-          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/setup\">Setup</a><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
+          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
           "target": [
             "nav"
           ]
@@ -1863,27 +1819,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.031211990063531758\">0.031211990063531758</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
           "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(2) > output"
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -1899,7 +1837,25 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
+          "target": [
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(2) > output"
+          ]
+        },
+        {
+          "any": [],
+          "all": [],
+          "none": [
+            {
+              "id": "aria-prohibited-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "ARIA attribute is allowed"
+            }
+          ],
+          "impact": null,
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
           "target": [
             "li:nth-child(3) > output"
           ]
@@ -1917,27 +1873,9 @@
             }
           ],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
           "target": [
             "li:nth-child(4) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
-          "target": [
-            "li:nth-child(5) > output"
           ]
         },
         {
@@ -1973,7 +1911,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(1) > output"
+            "div[aria-labelledby=\"ranking-title-v-7\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -2301,7 +2239,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/setup\">Setup</a><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
+          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
           "target": [
             "nav"
           ]
@@ -2429,7 +2367,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<div class=\"status\" aria-labelledby=\"refresh-title-v-8\">",
+          "html": "<div class=\"status\" aria-labelledby=\"refresh-title-v-5\">",
           "target": [
             ".status"
           ]
@@ -2493,41 +2431,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-9\">",
+          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-6\">",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-valid-attr-value",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute values are valid"
-            },
-            {
-              "id": "aria-errormessage",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
-            },
-            {
-              "id": "aria-level",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-level values are valid"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.031211990063531758\">0.031211990063531758</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1) > output"
+            "div[aria-labelledby=\"ranking-title-v-6\"]"
           ]
         },
         {
@@ -2559,7 +2465,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(2) > output"
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -2589,7 +2495,39 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
+          "target": [
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(2) > output"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-valid-attr-value",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute values are valid"
+            },
+            {
+              "id": "aria-errormessage",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
+            },
+            {
+              "id": "aria-level",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "aria-level values are valid"
+            }
+          ],
+          "none": [],
+          "impact": null,
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
           "target": [
             "li:nth-child(3) > output"
           ]
@@ -2621,41 +2559,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
           "target": [
             "li:nth-child(4) > output"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-valid-attr-value",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute values are valid"
-            },
-            {
-              "id": "aria-errormessage",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
-            },
-            {
-              "id": "aria-level",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-level values are valid"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
-          "target": [
-            "li:nth-child(5) > output"
           ]
         },
         {
@@ -2749,9 +2655,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-10\">",
+          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-7\">",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"]"
+            "div[aria-labelledby=\"ranking-title-v-7\"]"
           ]
         },
         {
@@ -2783,7 +2689,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(1) > output"
+            "div[aria-labelledby=\"ranking-title-v-7\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -2947,7 +2853,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/setup\">Setup</a><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
+          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
           "target": [
             "nav"
           ]
@@ -3019,7 +2925,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<div class=\"status\" aria-labelledby=\"refresh-title-v-8\">",
+          "html": "<div class=\"status\" aria-labelledby=\"refresh-title-v-5\">",
           "target": [
             ".status"
           ]
@@ -3055,27 +2961,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-9\">",
+          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-6\">",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-valid-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute name is valid"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.031211990063531758\">0.031211990063531758</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1) > output"
+            "div[aria-labelledby=\"ranking-title-v-6\"]"
           ]
         },
         {
@@ -3093,7 +2981,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(2) > output"
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -3109,7 +2997,25 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
+          "target": [
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(2) > output"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "aria-valid-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute name is valid"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
           "target": [
             "li:nth-child(3) > output"
           ]
@@ -3127,27 +3033,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
           "target": [
             "li:nth-child(4) > output"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-valid-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute name is valid"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
-          "target": [
-            "li:nth-child(5) > output"
           ]
         },
         {
@@ -3199,9 +3087,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-10\">",
+          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-7\">",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"]"
+            "div[aria-labelledby=\"ranking-title-v-7\"]"
           ]
         },
         {
@@ -3219,7 +3107,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(1) > output"
+            "div[aria-labelledby=\"ranking-title-v-7\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -3505,9 +3393,9 @@
                   ]
                 },
                 {
-                  "html": "<h3 id=\"refresh-title-v-8\"> Source refresh </h3>",
+                  "html": "<h3 id=\"refresh-title-v-5\"> Source refresh </h3>",
                   "target": [
-                    "#refresh-title-v-8"
+                    "#refresh-title-v-5"
                   ]
                 },
                 {
@@ -3517,9 +3405,9 @@
                   ]
                 },
                 {
-                  "html": "<h3 id=\"ranking-title-v-9\"> Why this was ranked here </h3>",
+                  "html": "<h3 id=\"ranking-title-v-6\"> Why this was ranked here </h3>",
                   "target": [
-                    "#ranking-title-v-9"
+                    "#ranking-title-v-6"
                   ]
                 },
                 {
@@ -3529,9 +3417,9 @@
                   ]
                 },
                 {
-                  "html": "<h3 id=\"ranking-title-v-10\"> Why this was ranked here </h3>",
+                  "html": "<h3 id=\"ranking-title-v-7\"> Why this was ranked here </h3>",
                   "target": [
-                    "#ranking-title-v-10"
+                    "#ranking-title-v-7"
                   ]
                 }
               ],
@@ -3586,15 +3474,15 @@
               "id": "color-contrast",
               "data": {
                 "fgColor": "#ffffff",
-                "bgColor": "#172554",
-                "contrastRatio": 14.69,
-                "fontSize": "14.4pt (19.2px)",
+                "bgColor": "#0f2d57",
+                "contrastRatio": 13.69,
+                "fontSize": "15.0pt (20px)",
                 "fontWeight": "bold",
                 "expectedContrastRatio": "3:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 14.69"
+              "message": "Element has sufficient color contrast of 13.69"
             }
           ],
           "all": [],
@@ -3610,16 +3498,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#ffffff",
-                "bgColor": "#172554",
-                "contrastRatio": 14.69,
-                "fontSize": "10.2pt (13.6px)",
+                "fgColor": "#eef6ff",
+                "bgColor": "#203c63",
+                "contrastRatio": 10.2,
+                "fontSize": "9.8pt (13.12px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 14.69"
+              "message": "Element has sufficient color contrast of 10.2"
             }
           ],
           "all": [],
@@ -3635,41 +3523,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#34435e",
-                "bgColor": "#ffffff",
-                "contrastRatio": 9.95,
+                "fgColor": "#0f2d57",
+                "bgColor": "#eaf1fa",
+                "contrastRatio": 12.04,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 9.95"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<a href=\"/setup\">Setup</a>",
-          "target": [
-            "a[href$=\"setup\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#102a5e",
-                "bgColor": "#e9f0ff",
-                "contrastRatio": 12.12,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 12.12"
+              "message": "Element has sufficient color contrast of 12.04"
             }
           ],
           "all": [],
@@ -3685,16 +3548,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#34435e",
+                "fgColor": "#5d6879",
                 "bgColor": "#ffffff",
-                "contrastRatio": 9.95,
+                "contrastRatio": 5.64,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 9.95"
+              "message": "Element has sufficient color contrast of 5.64"
             }
           ],
           "all": [],
@@ -3710,16 +3573,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#34435e",
+                "fgColor": "#5d6879",
                 "bgColor": "#ffffff",
-                "contrastRatio": 9.95,
+                "contrastRatio": 5.64,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 9.95"
+              "message": "Element has sufficient color contrast of 5.64"
             }
           ],
           "all": [],
@@ -3735,16 +3598,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#34435e",
+                "fgColor": "#5d6879",
                 "bgColor": "#ffffff",
-                "contrastRatio": 9.95,
+                "contrastRatio": 5.64,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 9.95"
+              "message": "Element has sufficient color contrast of 5.64"
             }
           ],
           "all": [],
@@ -3760,16 +3623,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#315fa9",
+                "fgColor": "#163b70",
                 "bgColor": "#ffffff",
-                "contrastRatio": 6.28,
-                "fontSize": "9.4pt (12.48px)",
+                "contrastRatio": 11.08,
+                "fontSize": "9.0pt (12px)",
                 "fontWeight": "bold",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 6.28"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -3785,16 +3648,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "24.0pt (32px)",
+                "contrastRatio": 16.26,
+                "fontSize": "31.8pt (42.4px)",
                 "fontWeight": "bold",
                 "expectedContrastRatio": "3:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -3810,16 +3673,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -3835,16 +3698,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "18.0pt (24px)",
+                "contrastRatio": 16.26,
+                "fontSize": "19.8pt (26.4px)",
                 "fontWeight": "bold",
                 "expectedContrastRatio": "3:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -3860,16 +3723,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -3886,15 +3749,15 @@
               "id": "color-contrast",
               "data": {
                 "fgColor": "#ffffff",
-                "bgColor": "#174ea6",
-                "contrastRatio": 7.84,
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
                 "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
+                "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -3910,24 +3773,24 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#f4f8ff",
-                "contrastRatio": 14.69,
-                "fontSize": "14.0pt (18.72px)",
+                "contrastRatio": 15.27,
+                "fontSize": "13.0pt (17.28px)",
                 "fontWeight": "bold",
-                "expectedContrastRatio": "3:1"
+                "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 14.69"
+              "message": "Element has sufficient color contrast of 15.27"
             }
           ],
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<h3 id=\"refresh-title-v-8\"> Source refresh </h3>",
+          "html": "<h3 id=\"refresh-title-v-5\"> Source refresh </h3>",
           "target": [
-            "#refresh-title-v-8"
+            "#refresh-title-v-5"
           ]
         },
         {
@@ -3935,16 +3798,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#f4f8ff",
-                "contrastRatio": 14.69,
+                "contrastRatio": 15.27,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 14.69"
+              "message": "Element has sufficient color contrast of 15.27"
             }
           ],
           "all": [],
@@ -3960,16 +3823,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#f4f8ff",
-                "contrastRatio": 14.69,
+                "contrastRatio": 15.27,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 14.69"
+              "message": "Element has sufficient color contrast of 15.27"
             }
           ],
           "all": [],
@@ -3985,16 +3848,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#f4f8ff",
-                "contrastRatio": 14.69,
+                "contrastRatio": 15.27,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 14.69"
+              "message": "Element has sufficient color contrast of 15.27"
             }
           ],
           "all": [],
@@ -4010,16 +3873,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#f4f8ff",
-                "contrastRatio": 14.69,
+                "contrastRatio": 15.27,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 14.69"
+              "message": "Element has sufficient color contrast of 15.27"
             }
           ],
           "all": [],
@@ -4035,16 +3898,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
+                "fontWeight": "bold",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -4060,16 +3923,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#000000",
-                "bgColor": "#efefef",
-                "contrastRatio": 18.26,
-                "fontSize": "10.0pt (13.3333px)",
-                "fontWeight": "normal",
+                "fgColor": "#172033",
+                "bgColor": "#ffffff",
+                "contrastRatio": 16.26,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "bold",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 18.26"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -4085,16 +3948,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
+                "fontWeight": "bold",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -4110,16 +3973,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#000000",
-                "bgColor": "#efefef",
-                "contrastRatio": 18.26,
-                "fontSize": "10.0pt (13.3333px)",
-                "fontWeight": "normal",
+                "fgColor": "#172033",
+                "bgColor": "#ffffff",
+                "contrastRatio": 16.26,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "bold",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 18.26"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -4135,16 +3998,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
+                "fontWeight": "bold",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -4160,16 +4023,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#000000",
-                "bgColor": "#efefef",
-                "contrastRatio": 18.26,
-                "fontSize": "10.0pt (13.3333px)",
-                "fontWeight": "normal",
+                "fgColor": "#172033",
+                "bgColor": "#ffffff",
+                "contrastRatio": 16.26,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "bold",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 18.26"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -4185,16 +4048,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -4213,7 +4076,7 @@
                 "fgColor": "#000000",
                 "bgColor": "#ffffff",
                 "contrastRatio": 21,
-                "fontSize": "10.0pt (13.3333px)",
+                "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
@@ -4235,16 +4098,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -4263,7 +4126,7 @@
                 "fgColor": "#000000",
                 "bgColor": "#ffffff",
                 "contrastRatio": 21,
-                "fontSize": "10.0pt (13.3333px)",
+                "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
@@ -4285,16 +4148,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -4313,7 +4176,7 @@
                 "fgColor": "#000000",
                 "bgColor": "#ffffff",
                 "contrastRatio": 21,
-                "fontSize": "10.0pt (13.3333px)",
+                "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
@@ -4336,15 +4199,15 @@
               "id": "color-contrast",
               "data": {
                 "fgColor": "#ffffff",
-                "bgColor": "#174ea6",
-                "contrastRatio": 7.84,
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
                 "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
+                "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -4361,15 +4224,15 @@
               "id": "color-contrast",
               "data": {
                 "fgColor": "#ffffff",
-                "bgColor": "#174ea6",
-                "contrastRatio": 7.84,
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
                 "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
+                "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -4385,16 +4248,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
+                "fgColor": "#0f2d57",
+                "bgColor": "#eaf1fa",
+                "contrastRatio": 12.04,
+                "fontSize": "9.4pt (12.48px)",
+                "fontWeight": "bold",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 12.04"
             }
           ],
           "all": [],
@@ -4410,16 +4273,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#5d6879",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 5.64,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 5.64"
             }
           ],
           "all": [],
@@ -4435,16 +4298,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#174ea6",
+                "fgColor": "#163b70",
                 "bgColor": "#ffffff",
-                "contrastRatio": 7.84,
-                "fontSize": "18.0pt (24px)",
+                "contrastRatio": 11.08,
+                "fontSize": "19.8pt (26.4px)",
                 "fontWeight": "bold",
                 "expectedContrastRatio": "3:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -4460,16 +4323,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -4485,16 +4348,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#174ea6",
+                "fgColor": "#163b70",
                 "bgColor": "#ffffff",
-                "contrastRatio": 7.84,
+                "contrastRatio": 11.08,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -4510,41 +4373,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#174ea6",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 7.84,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span class=\"sr-only\">: Technology advances in local science</span>",
-          "target": [
-            "li:nth-child(1) > article > .publisher-link[target=\"_blank\"][rel=\"noopener noreferrer\"] > .sr-only"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -4560,24 +4398,24 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "14.0pt (18.72px)",
+                "contrastRatio": 16.26,
+                "fontSize": "13.0pt (17.28px)",
                 "fontWeight": "bold",
-                "expectedContrastRatio": "3:1"
+                "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<h3 id=\"ranking-title-v-9\"> Why this was ranked here </h3>",
+          "html": "<h3 id=\"ranking-title-v-6\"> Why this was ranked here </h3>",
           "target": [
-            "#ranking-title-v-9"
+            "#ranking-title-v-6"
           ]
         },
         {
@@ -4585,66 +4423,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span>Published recently</span>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1) > span"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.031211990063531758\">0.031211990063531758</output>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1) > output"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -4652,7 +4440,7 @@
           "impact": null,
           "html": "<span>Local text is similar to selected interests</span>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(2) > span"
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(1) > span"
           ]
         },
         {
@@ -4660,16 +4448,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -4677,7 +4465,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(2) > output"
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -4685,22 +4473,72 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
           "none": [],
           "impact": null,
           "html": "<span>Matches your optional location and declared article metadata</span>",
+          "target": [
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(2) > span"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#172033",
+                "bgColor": "#ffffff",
+                "contrastRatio": 16.26,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 16.26"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
+          "target": [
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(2) > output"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#172033",
+                "bgColor": "#ffffff",
+                "contrastRatio": 16.26,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 16.26"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<span>Matches your optional age and a declared audience range</span>",
           "target": [
             "li:nth-child(3) > span"
           ]
@@ -4710,22 +4548,22 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
           "target": [
             "li:nth-child(3) > output"
           ]
@@ -4735,22 +4573,22 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<span>Matches your optional age and a declared audience range</span>",
+          "html": "<span>Matches your optional gender and a declared audience value</span>",
           "target": [
             "li:nth-child(4) > span"
           ]
@@ -4760,22 +4598,22 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
+          "html": "<output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output>",
           "target": [
             "li:nth-child(4) > output"
           ]
@@ -4785,66 +4623,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "fgColor": "#172033",
+                "bgColor": "#f8fafc",
+                "contrastRatio": 15.54,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span>Matches your optional gender and a declared audience value</span>",
-          "target": [
-            "li:nth-child(5) > span"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output>",
-          "target": [
-            "li:nth-child(5) > output"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#f5f8fc",
-                "contrastRatio": 14.68,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 14.68"
+              "message": "Element has sufficient color contrast of 15.54"
             }
           ],
           "all": [],
@@ -4852,7 +4640,7 @@
           "impact": null,
           "html": "<p class=\"context\"> These are contributions reported by the ranking service, not guarantees about why you will find an article relevant. </p>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > .context"
+            "div[aria-labelledby=\"ranking-title-v-6\"] > .context"
           ]
         },
         {
@@ -4860,16 +4648,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#174ea6",
+                "fgColor": "#163b70",
                 "bgColor": "#ffffff",
-                "contrastRatio": 7.84,
+                "contrastRatio": 11.08,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -4886,15 +4674,15 @@
               "id": "color-contrast",
               "data": {
                 "fgColor": "#ffffff",
-                "bgColor": "#174ea6",
-                "contrastRatio": 7.84,
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
                 "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
+                "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -4911,15 +4699,15 @@
               "id": "color-contrast",
               "data": {
                 "fgColor": "#ffffff",
-                "bgColor": "#174ea6",
-                "contrastRatio": 7.84,
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
                 "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
+                "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -4936,15 +4724,15 @@
               "id": "color-contrast",
               "data": {
                 "fgColor": "#ffffff",
-                "bgColor": "#174ea6",
-                "contrastRatio": 7.84,
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
                 "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
+                "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -4960,16 +4748,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
+                "fgColor": "#0f2d57",
+                "bgColor": "#eaf1fa",
+                "contrastRatio": 12.04,
+                "fontSize": "9.4pt (12.48px)",
+                "fontWeight": "bold",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 12.04"
             }
           ],
           "all": [],
@@ -4985,16 +4773,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#5d6879",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 5.64,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 5.64"
             }
           ],
           "all": [],
@@ -5010,16 +4798,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#174ea6",
+                "fgColor": "#163b70",
                 "bgColor": "#ffffff",
-                "contrastRatio": 7.84,
-                "fontSize": "18.0pt (24px)",
+                "contrastRatio": 11.08,
+                "fontSize": "19.8pt (26.4px)",
                 "fontWeight": "bold",
                 "expectedContrastRatio": "3:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -5035,16 +4823,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -5060,16 +4848,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#174ea6",
+                "fgColor": "#163b70",
                 "bgColor": "#ffffff",
-                "contrastRatio": 7.84,
+                "contrastRatio": 11.08,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -5085,41 +4873,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#174ea6",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 7.84,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span class=\"sr-only\">: Climate science briefing</span>",
-          "target": [
-            "li:nth-child(2) > article > .publisher-link[target=\"_blank\"][rel=\"noopener noreferrer\"] > .sr-only"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -5135,24 +4898,24 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
-                "fontSize": "14.0pt (18.72px)",
+                "contrastRatio": 16.26,
+                "fontSize": "13.0pt (17.28px)",
                 "fontWeight": "bold",
-                "expectedContrastRatio": "3:1"
+                "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<h3 id=\"ranking-title-v-10\"> Why this was ranked here </h3>",
+          "html": "<h3 id=\"ranking-title-v-7\"> Why this was ranked here </h3>",
           "target": [
-            "#ranking-title-v-10"
+            "#ranking-title-v-7"
           ]
         },
         {
@@ -5160,16 +4923,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -5177,7 +4940,7 @@
           "impact": null,
           "html": "<span>Local text is similar to selected interests</span>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(1) > span"
+            "div[aria-labelledby=\"ranking-title-v-7\"] > ul > li:nth-child(1) > span"
           ]
         },
         {
@@ -5185,16 +4948,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -5202,7 +4965,7 @@
           "impact": null,
           "html": "<output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(1) > output"
+            "div[aria-labelledby=\"ranking-title-v-7\"] > ul > li:nth-child(1) > output"
           ]
         },
         {
@@ -5210,16 +4973,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -5227,7 +4990,7 @@
           "impact": null,
           "html": "<span>Matches your optional location and declared article metadata</span>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(2) > span"
+            "div[aria-labelledby=\"ranking-title-v-7\"] > ul > li:nth-child(2) > span"
           ]
         },
         {
@@ -5235,16 +4998,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
+                "fgColor": "#172033",
                 "bgColor": "#ffffff",
-                "contrastRatio": 15.64,
+                "contrastRatio": 16.26,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.64"
+              "message": "Element has sufficient color contrast of 16.26"
             }
           ],
           "all": [],
@@ -5260,16 +5023,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#17233c",
-                "bgColor": "#f5f8fc",
-                "contrastRatio": 14.68,
+                "fgColor": "#172033",
+                "bgColor": "#f8fafc",
+                "contrastRatio": 15.54,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 14.68"
+              "message": "Element has sufficient color contrast of 15.54"
             }
           ],
           "all": [],
@@ -5277,7 +5040,7 @@
           "impact": null,
           "html": "<p class=\"context\"> These are contributions reported by the ranking service, not guarantees about why you will find an article relevant. </p>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > .context"
+            "div[aria-labelledby=\"ranking-title-v-7\"] > .context"
           ]
         },
         {
@@ -5285,16 +5048,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#174ea6",
+                "fgColor": "#163b70",
                 "bgColor": "#ffffff",
-                "contrastRatio": 7.84,
+                "contrastRatio": 11.08,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -5311,15 +5074,15 @@
               "id": "color-contrast",
               "data": {
                 "fgColor": "#ffffff",
-                "bgColor": "#174ea6",
-                "contrastRatio": 7.84,
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
                 "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
+                "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -5336,15 +5099,15 @@
               "id": "color-contrast",
               "data": {
                 "fgColor": "#ffffff",
-                "bgColor": "#174ea6",
-                "contrastRatio": 7.84,
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
                 "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
+                "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -5361,15 +5124,15 @@
               "id": "color-contrast",
               "data": {
                 "fgColor": "#ffffff",
-                "bgColor": "#174ea6",
-                "contrastRatio": 7.84,
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
                 "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
+                "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 7.84"
+              "message": "Element has sufficient color contrast of 11.08"
             }
           ],
           "all": [],
@@ -5385,16 +5148,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#58657a",
+                "fgColor": "#5d6879",
                 "bgColor": "#ffffff",
-                "contrastRatio": 5.9,
-                "fontSize": "10.2pt (13.6px)",
+                "contrastRatio": 5.64,
+                "fontSize": "10.1pt (13.44px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 5.9"
+              "message": "Element has sufficient color contrast of 5.64"
             }
           ],
           "all": [],
@@ -5498,7 +5261,7 @@
           "any": [
             {
               "id": "duplicate-id-aria",
-              "data": "refresh-title-v-8",
+              "data": "refresh-title-v-5",
               "relatedNodes": [],
               "impact": "critical",
               "message": "Document has no elements referenced with ARIA or labels that share the same id attribute"
@@ -5507,9 +5270,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<h3 id=\"refresh-title-v-8\"> Source refresh </h3>",
+          "html": "<h3 id=\"refresh-title-v-5\"> Source refresh </h3>",
           "target": [
-            "#refresh-title-v-8"
+            "#refresh-title-v-5"
           ]
         },
         {
@@ -5570,7 +5333,7 @@
           "any": [
             {
               "id": "duplicate-id-aria",
-              "data": "ranking-title-v-9",
+              "data": "ranking-title-v-6",
               "relatedNodes": [],
               "impact": "critical",
               "message": "Document has no elements referenced with ARIA or labels that share the same id attribute"
@@ -5579,16 +5342,16 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<h3 id=\"ranking-title-v-9\"> Why this was ranked here </h3>",
+          "html": "<h3 id=\"ranking-title-v-6\"> Why this was ranked here </h3>",
           "target": [
-            "#ranking-title-v-9"
+            "#ranking-title-v-6"
           ]
         },
         {
           "any": [
             {
               "id": "duplicate-id-aria",
-              "data": "ranking-title-v-10",
+              "data": "ranking-title-v-7",
               "relatedNodes": [],
               "impact": "critical",
               "message": "Document has no elements referenced with ARIA or labels that share the same id attribute"
@@ -5597,9 +5360,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<h3 id=\"ranking-title-v-10\"> Why this was ranked here </h3>",
+          "html": "<h3 id=\"ranking-title-v-7\"> Why this was ranked here </h3>",
           "target": [
-            "#ranking-title-v-10"
+            "#ranking-title-v-7"
           ]
         }
       ]
@@ -6020,31 +5783,6 @@
               "data": null,
               "relatedNodes": [
                 {
-                  "html": "<article data-v-916e3f82=\"\" class=\"article-card\" dir=\"auto\">",
-                  "target": [
-                    "li:nth-child(2) > article"
-                  ]
-                }
-              ],
-              "impact": "serious",
-              "message": "Links can be distinguished from surrounding text by visual styling"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<a class=\"publisher-link\" href=\"http://publisher.fixture.test/metadata-climate\" target=\"_blank\" rel=\"noopener noreferrer\">Read at publisher<span class=\"sr-only\">: Climate science briefing</span></a>",
-          "target": [
-            "li:nth-child(2) > article > .publisher-link[target=\"_blank\"][rel=\"noopener noreferrer\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "link-in-text-block-style",
-              "data": null,
-              "relatedNodes": [
-                {
                   "html": "<li data-v-916e3f82=\"\">",
                   "target": [
                     "ol > li:nth-child(2)"
@@ -6143,32 +5881,6 @@
           "html": "<a href=\"/\" class=\"brand\" aria-label=\"News Aggregator home\">News Aggregator</a>",
           "target": [
             ".brand"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "has-visible-text",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has text that is visible to screen readers"
-            }
-          ],
-          "all": [],
-          "none": [
-            {
-              "id": "focusable-no-name",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element is not in tab order or has accessible text"
-            }
-          ],
-          "impact": null,
-          "html": "<a href=\"/setup\">Setup</a>",
-          "target": [
-            "a[href$=\"setup\"]"
           ]
         },
         {
@@ -6498,7 +6210,7 @@
           "impact": null,
           "html": "<ul>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul"
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul"
           ]
         },
         {
@@ -6516,7 +6228,7 @@
           "impact": null,
           "html": "<ul>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul"
+            "div[aria-labelledby=\"ranking-title-v-7\"] > ul"
           ]
         }
       ]
@@ -6620,27 +6332,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Published recently</span><output aria-label=\"Score contribution 0.031211990063531758\">0.031211990063531758</output></li>",
-          "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(1)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "listitem",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "List item has a <ul>, <ol> or role=\"list\" parent element"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
           "html": "<li><span>Local text is similar to selected interests</span><output aria-label=\"Score contribution 0.05911180681649704\">0.05911180681649704</output></li>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(2)"
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(1)"
           ]
         },
         {
@@ -6656,9 +6350,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Matches your optional location and declared article metadata</span><output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output></li>",
+          "html": "<li><span>Matches your optional location and declared article metadata</span><output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output></li>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"] > ul > li:nth-child(3)"
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(2)"
           ]
         },
         {
@@ -6674,27 +6368,27 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li><span>Matches your optional age and a declared audience range</span><output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output></li>",
+          "html": "<li><span>Matches your optional age and a declared audience range</span><output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output></li>",
+          "target": [
+            "div[aria-labelledby=\"ranking-title-v-6\"] > ul > li:nth-child(3)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "listitem",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "List item has a <ul>, <ol> or role=\"list\" parent element"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<li><span>Matches your optional gender and a declared audience value</span><output aria-label=\"Score contribution 0.01970393560549901\">0.01970393560549901</output></li>",
           "target": [
             "li:nth-child(4)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "listitem",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "List item has a <ul>, <ol> or role=\"list\" parent element"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<li><span>Matches your optional gender and a declared audience value</span><output aria-label=\"Score contribution 0.030107932293342927\">0.030107932293342927</output></li>",
-          "target": [
-            "li:nth-child(5)"
           ]
         },
         {
@@ -6730,7 +6424,7 @@
           "impact": null,
           "html": "<li><span>Local text is similar to selected interests</span><output aria-label=\"Score contribution 0.06315481073974652\">0.06315481073974652</output></li>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(1)"
+            "div[aria-labelledby=\"ranking-title-v-7\"] > ul > li:nth-child(1)"
           ]
         },
         {
@@ -6748,7 +6442,7 @@
           "impact": null,
           "html": "<li><span>Matches your optional location and declared article metadata</span><output aria-label=\"Score contribution 0.05\">0.05</output></li>",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"] > ul > li:nth-child(2)"
+            "div[aria-labelledby=\"ranking-title-v-7\"] > ul > li:nth-child(2)"
           ]
         }
       ]
@@ -7366,7 +7060,7 @@
             }
           ],
           "impact": "serious",
-          "html": "<div class=\"status\" aria-labelledby=\"refresh-title-v-8\">",
+          "html": "<div class=\"status\" aria-labelledby=\"refresh-title-v-5\">",
           "target": [
             ".status"
           ],
@@ -7392,9 +7086,9 @@
             }
           ],
           "impact": "serious",
-          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-9\">",
+          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-6\">",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-9\"]"
+            "div[aria-labelledby=\"ranking-title-v-6\"]"
           ],
           "failureSummary": "Fix all of the following:\n  aria-labelledby attribute is not well supported on a div with no valid role attribute."
         },
@@ -7444,9 +7138,9 @@
             }
           ],
           "impact": "serious",
-          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-10\">",
+          "html": "<div data-v-916e3f82=\"\" class=\"ranking\" aria-labelledby=\"ranking-title-v-7\">",
           "target": [
-            "div[aria-labelledby=\"ranking-title-v-10\"]"
+            "div[aria-labelledby=\"ranking-title-v-7\"]"
           ],
           "failureSummary": "Fix all of the following:\n  aria-labelledby attribute is not well supported on a div with no valid role attribute."
         },

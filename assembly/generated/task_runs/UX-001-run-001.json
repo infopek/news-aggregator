@@ -3,7 +3,7 @@
   "task_id": "UX-001",
   "run_id": "UX-001-run-001",
   "actor_id": "frontend-agent",
-  "status": "review",
+  "status": "done",
   "implementation_summary": "Established the consumer UI design system and application shell foundation with shared tokens, accessible composable primitives, simplified primary navigation, and responsive desktop/narrow behavior.",
   "files_changed": [
     {"path": "web/src/styles/**", "change": "Added design tokens and coherent global/primitives styling for layout, fields, actions, surfaces, banners, chips, disclosures, cards, and responsive behavior."},
@@ -20,11 +20,11 @@
     {"command": "./scripts/verify.sh", "result": "passed", "output": "Go/integration, migrations, frontend lint/typecheck/tests/build/browser, PWA, and application build verification completed successfully."}
   ],
   "proof": [
-    {"kind": "commit", "summary": "Implementation commit f95109d813f6e84a72f28d04cbf9c4ad531e11b8.", "status": "needs_review", "recorded_at": "2026-08-26T09:25:00Z"},
-    {"kind": "screenshot", "summary": "Desktop and narrow primitive plus full application screen evidence under web/tests/evidence/.", "status": "needs_review", "recorded_at": "2026-08-26T09:25:00Z"}
+    {"kind": "commit", "summary": "Implementation commit f95109d813f6e84a72f28d04cbf9c4ad531e11b8 accepted and merged through PR #58.", "status": "accepted", "recorded_at": "2026-08-26T09:43:10Z"},
+    {"kind": "screenshot", "summary": "Desktop and narrow primitive plus full application screen evidence under web/tests/evidence/ accepted by the project owner.", "status": "accepted", "recorded_at": "2026-08-26T09:43:10Z"}
   ],
   "blockers": [],
-  "notes": "Feature workflows were deliberately not rewritten in this foundation task. UX-002, UX-003, and UX-004 should compose these primitives. Independent reviewer approval is still required.",
+  "notes": "Feature workflows were deliberately not rewritten in this foundation task. The project owner explicitly reported approval and merge; the absence of a native GitHub review submission is preserved rather than fabricated.",
   "submitted_at": "2026-08-26T09:25:00Z",
-  "updated_at": "2026-08-26T09:25:00Z"
+  "updated_at": "2026-08-26T09:43:10Z"
 }

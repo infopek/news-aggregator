@@ -1,0 +1,30 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "UX-002",
+  "run_id": "UX-002-run-001",
+  "actor_id": "frontend-agent",
+  "status": "review",
+  "implementation_summary": "Replaced the technical profile form with four-step onboarding, chip-based topics, a human-facing optional location adapter, collapsed additional personalization, semantic ranking styles, and Settings organized around Personalization, Ranking, and Privacy & local data.",
+  "files_changed": [
+    {"path": "web/src/features/setup/**, web/src/features/profile/**", "change": "Implemented approachable onboarding, interest chips, Hungary/Budapest mapping, optional demographic disclosure, source cards, finish summary, and local privacy copy."},
+    {"path": "web/src/features/ranking-settings/**", "change": "Added deterministic Balanced, More personalized, and More recent mappings while preserving custom configurations and putting raw relative weights behind Advanced disclosure."},
+    {"path": "web/tests/**", "change": "Added behavior, mapping, compatibility, accessibility, desktop, Settings, and 390px onboarding evidence."},
+    {"path": "tests/e2e/**", "change": "Updated the real Go/SQLite/Vue workflow for the new onboarding and exact-revision restart, accessibility, storage, and outbound-request evidence."}
+  ],
+  "verification": [
+    {"command": "npm run lint && npm run typecheck", "result": "passed", "output": "Frontend lint and TypeScript checks passed."},
+    {"command": "npm run test:unit", "result": "passed", "output": "21 files and 148 tests passed, including chip, step, location, demographic, mapping, compatibility, error, and axe cases."},
+    {"command": "node tests/browser-proof.mjs", "result": "passed", "output": "Desktop and 390px onboarding/Settings renders, keyboard flow, privacy, authoritative reload, and no-overflow assertions passed."},
+    {"command": "node tests/e2e/verify-daily-workflow.mjs", "result": "passed", "output": "VERIFY-002 APPROVED exact implementation b142a4a1d80248a838f23719171aabcf41abac2d against real Go/SQLite/Vue with full process restart."},
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Repository Go/integration, migration, frontend, browser, PWA, and build verification passed."}
+  ],
+  "proof": [
+    {"kind": "commit", "summary": "Implementation commit b142a4a1d80248a838f23719171aabcf41abac2d.", "status": "needs_review", "recorded_at": "2026-08-26T10:00:00Z"},
+    {"kind": "screenshot", "summary": "Onboarding, Settings, and narrow evidence in web/tests/evidence plus full workflow evidence in tests/e2e/evidence.", "status": "needs_review", "recorded_at": "2026-08-26T10:00:00Z"},
+    {"kind": "manual_note", "summary": "Exact-revision restart transcript and APPROVE report preserve local storage and loopback request audits.", "status": "needs_review", "recorded_at": "2026-08-26T10:00:00Z"}
+  ],
+  "blockers": [],
+  "notes": "No backend/API/domain change was necessary. Existing weighted interests, custom ranking values, caps, profile/source persistence, and privacy boundaries remain compatible. Independent approval is still required.",
+  "submitted_at": "2026-08-26T10:00:00Z",
+  "updated_at": "2026-08-26T10:00:00Z"
+}
