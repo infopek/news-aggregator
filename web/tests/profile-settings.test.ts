@@ -68,6 +68,7 @@ describe('consumer onboarding and settings', () => {
     const api = fakeApi(); const wrapper = await ready(FirstRunSetup, api)
     await addTopic(wrapper, 'Technology'); await addTopic(wrapper, 'science')
     await continueSetup(wrapper)
+    await wrapper.get('.choice-toggle input').setValue(true)
     await wrapper.get('#country').setValue('HU'); await wrapper.get('#city').setValue('Budapest')
     const additional = wrapper.findAll('details').find((item) => item.text().includes('Additional personalization'))!
     ;(additional.element as HTMLDetailsElement).open = true
@@ -81,10 +82,10 @@ describe('consumer onboarding and settings', () => {
     await wrapper.get('form').trigger('submit'); await flushPromises()
     expect(api.updateProfile).toHaveBeenCalledWith(expect.objectContaining({
       interests: [{ name: 'Technology', weight: .8 }, { name: 'science', weight: .8 }], preferredSourceIds: ['starter-1'],
-      location: { present: true, enabled: false, value: { country: 'HU', region: 'Budapest', city: { present: true, enabled: true, value: 'Budapest' } } },
+      location: { present: true, enabled: true, value: { country: 'HU', region: 'Budapest', city: { present: true, enabled: true, value: 'Budapest' } } },
       age: { present: true, enabled: false, value: 35 }
     }), expect.any(AbortSignal))
-    expect(api.updateRanking).toHaveBeenCalledWith(expect.objectContaining({ interest: { enabled: true, weight: .35 }, recency: { enabled: true, weight: .15 } }), expect.any(AbortSignal))
+    expect(api.updateRanking).toHaveBeenCalledWith(expect.objectContaining({ interest: { enabled: true, weight: .35 }, recency: { enabled: true, weight: .15 }, location: { enabled: true, weight: .05 }, age: { enabled: false, weight: .05 } }), expect.any(AbortSignal))
     expect(wrapper.text()).toContain('Setup saved on this computer')
     wrapper.unmount()
   })
@@ -107,6 +108,36 @@ describe('consumer onboarding and settings', () => {
     await wrapper.get('#city').setValue('New locality'); await wrapper.get('form').trigger('submit'); await flushPromises()
     expect(api.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ interests: varied.interests, location: expect.objectContaining({ value: expect.objectContaining({ country: 'XX', region: 'Historic district' }) }) }), expect.any(AbortSignal))
     wrapper.unmount()
+  })
+
+  it('allows a new user to enter any valid country code through the local Other country path', async () => {
+    const api = fakeApi(); const wrapper = await ready(ProfileSettings, api)
+    await wrapper.get('#country').setValue('OTHER')
+    expect(wrapper.get('#country-code').attributes('placeholder')).toBe('FR')
+    await wrapper.get('#country-code').setValue('fr'); await wrapper.get('#city').setValue('Paris')
+    await wrapper.get('form').trigger('submit'); await flushPromises()
+    expect(api.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ location: { present: true, enabled: false, value: { country: 'FR', region: 'Paris', city: { present: true, enabled: true, value: 'Paris' } } } }), expect.any(AbortSignal))
+    wrapper.unmount()
+  })
+
+  it('round-trips mismatched profile/ranking enablement and honors explicit advanced changes', async () => {
+    const profileWithAge = { ...savedProfile, age: { present: true, enabled: true, value: 35 } } as Profile
+    const rankingWithAgeOff = { ...ranking, age: { enabled: false, weight: .05 } }
+    const preservedApi = fakeApi(profileWithAge, undefined, rankingWithAgeOff)
+    const preserved = await ready(ProfileSettings, preservedApi)
+    await addTopic(preserved, 'unrelated edit'); await preserved.get('form').trigger('submit'); await flushPromises()
+    expect(preservedApi.updateRanking).toHaveBeenCalledWith(expect.objectContaining({ age: { enabled: false, weight: .05 } }), expect.any(AbortSignal))
+    preserved.unmount()
+
+    const changedApi = fakeApi(profileWithAge, undefined, rankingWithAgeOff)
+    const changed = await ready(ProfileSettings, changedApi)
+    const advanced = changed.findAll('details').find((item) => item.text().includes('Advanced ranking controls'))!
+    ;(advanced.element as HTMLDetailsElement).open = true
+    const ageRow = changed.findAll('.advanced-row').find((item) => item.text().includes('Use Age'))!
+    await ageRow.get('input[type=checkbox]').setValue(true)
+    await changed.get('form').trigger('submit'); await flushPromises()
+    expect(changedApi.updateRanking).toHaveBeenCalledWith(expect.objectContaining({ age: { enabled: true, weight: .05 } }), expect.any(AbortSignal))
+    changed.unmount()
   })
 
   it('keeps optional demographics collapsed and explains publisher-declared matching', async () => {

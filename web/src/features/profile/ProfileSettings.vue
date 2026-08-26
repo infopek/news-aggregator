@@ -42,13 +42,15 @@ const setupStep = ref(1)
 const setupSteps = ['Interests', 'Location', 'Sources', 'Finish']
 const countries = [
   { code: '', name: 'No country selected' }, { code: 'HU', name: 'Hungary' }, { code: 'AT', name: 'Austria' },
-  { code: 'DE', name: 'Germany' }, { code: 'GB', name: 'United Kingdom' }, { code: 'US', name: 'United States' }
+  { code: 'DE', name: 'Germany' }, { code: 'GB', name: 'United Kingdom' }, { code: 'US', name: 'United States' },
+  { code: 'OTHER', name: 'Other country…' }
 ]
 let loadGeneration = 0
 let disposed = false
 const firstRun = computed(() => profile.value ? isFirstRun(profile.value) : false)
 const fieldErrors = computed(() => Object.fromEntries((saveError.value?.fields ?? []).map((field) => [field.path.replace(/^profile\./, ''), field.message])))
-const unknownCountry = computed(() => form.value?.country && !countries.some((item) => item.code === form.value?.country) ? form.value.country : '')
+const unknownCountry = computed(() => form.value?.country && form.value.country !== 'OTHER' && !countries.some((item) => item.code === form.value?.country) ? form.value.country : '')
+const showCountryCode = computed(() => form.value?.country === 'OTHER' || Boolean(unknownCountry.value))
 const countryName = computed(() => countries.find((item) => item.code === form.value?.country)?.name || form.value?.country || 'No location')
 
 onMounted(load)
@@ -91,11 +93,7 @@ async function save() {
   if (profileResult.status === 'error') { saveError.value = profileResult.error; saving.value = false; await focusError(); return }
   profile.value = profileResult.data
   form.value = profileToForm(profileResult.data)
-  const rankingPayload = rankingWrite(rankingForm.value)
-  rankingPayload.location.enabled = form.value.locationEnabled && Boolean(form.value.country || form.value.region || form.value.city)
-  rankingPayload.age.enabled = form.value.ageEnabled && Boolean(form.value.age)
-  rankingPayload.gender.enabled = form.value.genderEnabled && Boolean(form.value.gender)
-  const rankingResult = await mutations.updateRanking(rankingPayload)
+  const rankingResult = await mutations.updateRanking(rankingWrite(rankingForm.value))
   if (rankingResult.status === 'error') {
     partialSave.value = true
     saveError.value = { ...rankingResult.error, message: `${rankingResult.error.message} Your profile was saved, but ranking settings were not. Reload the authoritative settings before retrying.` }
@@ -130,6 +128,13 @@ function validate(profileForm: ProfileForm, weights: RankingForm) {
 function toggleSource(id: string, checked: boolean) {
   if (!form.value) return
   form.value.preferredSourceIds = checked ? [...form.value.preferredSourceIds, id] : form.value.preferredSourceIds.filter((value) => value !== id)
+}
+function updatePersonalizationEnabled(name: 'location' | 'age' | 'gender', enabled: boolean) {
+  if (!form.value || !rankingForm.value) return
+  if (name === 'location') form.value.locationEnabled = enabled
+  if (name === 'age') form.value.ageEnabled = enabled
+  if (name === 'gender') form.value.genderEnabled = enabled
+  rankingForm.value = { ...rankingForm.value, [name]: { ...rankingForm.value[name], enabled } }
 }
 function goToStep(step: number) { setupStep.value = Math.max(1, Math.min(4, step)); nextTick(() => document.querySelector<HTMLElement>('#profile-title')?.focus()) }
 </script>
@@ -220,8 +225,9 @@ function goToStep(step: number) { setupStep.value = Math.max(1, Math.min(4, step
         description="Used only to prioritize relevant local stories. Your location is entered manually and stays on this computer."
       >
         <label class="choice-toggle"><input
-          v-model="form.locationEnabled"
+          :checked="form.locationEnabled"
           type="checkbox"
+          @change="updatePersonalizationEnabled('location', ($event.target as HTMLInputElement).checked)"
         > Use my location when ranking stories</label>
         <div class="field-grid">
           <AccessibleField
@@ -251,6 +257,25 @@ function goToStep(step: number) { setupStep.value = Math.max(1, Math.min(4, step
                   {{ country.name }}
                 </option>
               </select>
+            </template>
+          </AccessibleField>
+          <AccessibleField
+            v-if="showCountryCode"
+            id="country-code"
+            label="Two-letter country code"
+            description="Enter the ISO country code, for example FR for France, CA for Canada, or PL for Poland. This is checked locally."
+            :error="fieldErrors['location.value.country']"
+          >
+            <template #default="{ describedby }">
+              <input
+                id="country-code"
+                v-model="form.country"
+                maxlength="2"
+                placeholder="FR"
+                autocapitalize="characters"
+                :aria-describedby="describedby"
+                :aria-invalid="Boolean(fieldErrors['location.value.country'])"
+              >
             </template>
           </AccessibleField>
           <AccessibleField
@@ -301,9 +326,10 @@ function goToStep(step: number) { setupStep.value = Math.max(1, Math.min(4, step
               </p><DemographicSignalField
                 id="age"
                 v-model="form.age"
-                v-model:enabled="form.ageEnabled"
+                :enabled="form.ageEnabled"
                 label="Age"
                 :error="fieldErrors['age.value']"
+                @update:enabled="updatePersonalizationEnabled('age', $event)"
               />
             </div>
             <div>
@@ -312,9 +338,10 @@ function goToStep(step: number) { setupStep.value = Math.max(1, Math.min(4, step
               </p><DemographicSignalField
                 id="gender"
                 v-model="form.gender"
-                v-model:enabled="form.genderEnabled"
+                :enabled="form.genderEnabled"
                 label="Gender"
                 :error="fieldErrors['gender.value']"
+                @update:enabled="updatePersonalizationEnabled('gender', $event)"
               />
             </div>
           </div>
