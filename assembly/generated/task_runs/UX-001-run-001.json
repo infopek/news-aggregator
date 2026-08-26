@@ -1,0 +1,30 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "UX-001",
+  "run_id": "UX-001-run-001",
+  "actor_id": "frontend-agent",
+  "status": "review",
+  "implementation_summary": "Established the consumer UI design system and application shell foundation with shared tokens, accessible composable primitives, simplified primary navigation, and responsive desktop/narrow behavior.",
+  "files_changed": [
+    {"path": "web/src/styles/**", "change": "Added design tokens and coherent global/primitives styling for layout, fields, actions, surfaces, banners, chips, disclosures, cards, and responsive behavior."},
+    {"path": "web/src/components/layout/**, web/src/components/shared/**", "change": "Added accessible composable UI primitives and adopted the status banner in the production shell."},
+    {"path": "web/src/router/**", "change": "Kept onboarding directly routable while limiting post-onboarding primary navigation to Ranked feed, Library, Sources, and Settings."},
+    {"path": "web/tests/**", "change": "Added primitive accessibility/semantics tests and refreshed deterministic desktop and 390px browser evidence with overflow assertions."}
+  ],
+  "verification": [
+    {"command": "npm run lint", "result": "passed", "output": "ESLint completed with zero warnings."},
+    {"command": "npm run typecheck", "result": "passed", "output": "Vue and Node TypeScript checks completed successfully."},
+    {"command": "npm run test:unit", "result": "passed", "output": "21 files and 147 tests passed, including axe coverage for the shell and new primitives."},
+    {"command": "node tests/browser-proof.mjs", "result": "passed", "output": "Desktop and 390px evidence completed with keyboard navigation, same-origin privacy, and no narrow overflow."},
+    {"command": "node tests/primitive-browser-proof.mjs", "result": "passed", "output": "Deterministic desktop/narrow primitive screenshots, Unicode wrapping, and hostile-text containment passed."},
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Go/integration, migrations, frontend lint/typecheck/tests/build/browser, PWA, and application build verification completed successfully."}
+  ],
+  "proof": [
+    {"kind": "commit", "summary": "Implementation commit f95109d813f6e84a72f28d04cbf9c4ad531e11b8.", "status": "needs_review", "recorded_at": "2026-08-26T09:25:00Z"},
+    {"kind": "screenshot", "summary": "Desktop and narrow primitive plus full application screen evidence under web/tests/evidence/.", "status": "needs_review", "recorded_at": "2026-08-26T09:25:00Z"}
+  ],
+  "blockers": [],
+  "notes": "Feature workflows were deliberately not rewritten in this foundation task. UX-002, UX-003, and UX-004 should compose these primitives. Independent reviewer approval is still required.",
+  "submitted_at": "2026-08-26T09:25:00Z",
+  "updated_at": "2026-08-26T09:25:00Z"
+}
