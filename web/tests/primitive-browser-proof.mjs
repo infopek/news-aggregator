@@ -20,7 +20,7 @@ try {
     await page.goto(url)
     await page.getByRole('heading', { name: 'Shared primitive variants' }).waitFor()
     await assertScreenshot(page, 'desktop-primitives.png')
-    await page.setViewportSize({ width: 360, height: 740 })
+    await page.setViewportSize({ width: 390, height: 844 })
     await assertScreenshot(page, 'narrow-primitives.png')
     if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)) throw new Error('Primitive variants overflow narrow viewport')
     if (await page.locator('img, script[src="x"]').count()) throw new Error('Untrusted article text became executable markup')

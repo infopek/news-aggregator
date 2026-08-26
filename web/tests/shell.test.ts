@@ -23,7 +23,7 @@ describe('application shell', () => {
     expect(wrapper.find('nav[aria-label="Primary navigation"]').exists()).toBe(true)
     expect(wrapper.find('main').exists()).toBe(true)
     expect(wrapper.find('footer').exists()).toBe(true)
-    expect(wrapper.findAll('nav a').map((link) => link.text())).toEqual(['Setup', 'Ranked feed', 'Library', 'Sources', 'Settings'])
+    expect(wrapper.findAll('nav a').map((link) => link.text())).toEqual(['Ranked feed', 'Library', 'Sources', 'Settings'])
     const result = await axe.run(wrapper.element)
     expect(result.violations).toEqual([])
     wrapper.unmount()

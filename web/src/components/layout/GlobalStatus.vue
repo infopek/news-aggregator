@@ -1,26 +1,26 @@
 <script setup lang="ts">
 import type { ShellStatus } from '../../app/shell-status'
+import StatusBanner from '../shared/StatusBanner.vue'
 
 defineProps<{ status: ShellStatus }>()
 </script>
 
 <template>
-  <section
+  <StatusBanner
     v-if="status.kind === 'loading'"
-    class="status"
-    aria-live="polite"
+    title="Loading"
+    live
     aria-busy="true"
   >
-    <h2>Loading</h2><p>{{ status.message }}</p>
-  </section>
-  <section
+    <p>{{ status.message }}</p>
+  </StatusBanner>
+  <StatusBanner
     v-else-if="status.kind === 'api-down'"
-    class="status status--error"
-    role="alert"
+    title="Local app service unavailable"
+    tone="danger"
   >
-    <h2>Local app service unavailable</h2>
     <p>News Aggregator cannot reach the service running on this computer.</p>
-    <div class="actions">
+    <div class="action-group">
       <button
         v-if="status.retry"
         type="button"
@@ -29,13 +29,13 @@ defineProps<{ status: ShellStatus }>()
         Retry connection
       </button><p>Close this window, relaunch News Aggregator, then retry.</p>
     </div>
-  </section>
-  <section
+  </StatusBanner>
+  <StatusBanner
     v-else-if="status.kind === 'error'"
-    class="status status--error"
-    role="alert"
+    title="Something went wrong"
+    tone="danger"
   >
-    <h2>Something went wrong</h2><p>{{ status.message }}</p>
+    <p>{{ status.message }}</p>
     <button
       v-if="status.retry"
       type="button"
@@ -43,5 +43,5 @@ defineProps<{ status: ShellStatus }>()
     >
       Try again
     </button>
-  </section>
+  </StatusBanner>
 </template>

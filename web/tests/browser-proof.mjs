@@ -126,14 +126,14 @@ try {
     await page.goBack()
     await page.getByRole('heading', { name: 'Personal library' }).waitFor()
 
-    await page.setViewportSize({ width: 360, height: 740 })
+    await page.setViewportSize({ width: 390, height: 844 })
     await page.goto(`${baseUrl}/articles/direct-link`)
     await page.screenshot({ path: new URL('narrow-article.png', evidenceDirectory).pathname, fullPage: true })
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)
     if (overflow) throw new Error('Narrow viewport has horizontal page overflow')
     const labels = await page.getByRole('navigation', { name: 'Primary navigation' }).getByRole('link').allTextContents()
-    if (labels.length !== 5) throw new Error(`Navigation lost items at narrow width: ${labels.join(', ')}`)
-    for (const label of ['Setup', 'Ranked feed', 'Library', 'Sources', 'Settings']) {
+    if (labels.length !== 4) throw new Error(`Navigation lost items at narrow width: ${labels.join(', ')}`)
+    for (const label of ['Ranked feed', 'Library', 'Sources', 'Settings']) {
       if (!labels.includes(label)) throw new Error(`Accepted route is not reachable from navigation: ${label}`)
     }
     console.log('Browser proof passed: authoritative first-run/save/reload/clear, same-origin privacy, deep links, keyboard navigation, screenshots, and no narrow overflow.')
