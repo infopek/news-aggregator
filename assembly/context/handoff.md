@@ -2,13 +2,9 @@
 
 ## Current lifecycle phase
 
-The original MVP lifecycle is complete and accepted. A post-MVP consumer UI/UX
-overhaul has been proposed through requirements PR #53. The user reported that
-PR #53 was merged, but at the final durable-state check on 2026-08-26 GitHub
-still reported it as OPEN and `main` remained at `dab194672168bfd70d6d7bab0c346431e88ba1ef`.
-
-Do not treat the UX-overhaul requirements as accepted until PR #53 has an actual
-merge commit on `main`.
+The original MVP lifecycle is complete and accepted. Post-MVP consumer UI/UX
+overhaul requirements are merged through PR #53 at
+`d53d71655a20eab8edc2b10d0f3a8b9c48c3b094`.
 
 ## Source of truth
 
@@ -25,14 +21,14 @@ merge commit on `main`.
 
 ## Next action
 
-1. Fetch `main` and confirm the durable state of PR #53.
-2. If PR #53 is still open, complete its review/merge before continuing.
-3. Once the requirements are merged, create a separate post-MVP planning PR by
+1. Fetch `main` and confirm it includes PR #53 merge
+   `d53d71655a20eab8edc2b10d0f3a8b9c48c3b094`.
+2. Create a separate post-MVP planning PR by
    updating the planning package and planning-run trace. Do not create executable
    tasks in that planning PR.
-4. After the planning PR is reviewed and merged, create the separate task-batch
+3. After the planning PR is reviewed and merged, create the separate task-batch
    and canonical-backlog PR.
-5. Begin UI implementation only after that task-decomposition PR is merged and
+4. Begin UI implementation only after that task-decomposition PR is merged and
    a dependency-ready task is claimed.
 
 The detailed accepted/proposed UX direction is recorded in
@@ -62,7 +58,6 @@ The detailed accepted/proposed UX direction is recorded in
 ## Working-tree expectations
 
 - Resume from a clean checkout of `main`.
-- Do not continue from the old requirements branch without first checking PR
-  #53 and fetching its actual merge commit.
+- Do not continue from the old requirements branch; PR #53 is already merged.
 - Keep build-wrapper work separate from the UX-overhaul planning and
   implementation lifecycle.
