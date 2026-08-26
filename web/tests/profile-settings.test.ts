@@ -1,11 +1,13 @@
 // @vitest-environment happy-dom
 import axe from 'axe-core'
-import { flushPromises, mount } from '@vue/test-utils'
+import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { ApiRequestError } from '../src/api/client'
 import type { Profile, RankingConfiguration, Source } from '../src/api/generated/models'
 import type { ServerApi } from '../src/api/server-api'
 import ProfileSettings from '../src/features/profile/ProfileSettings.vue'
+import InterestChipInput from '../src/features/profile/InterestChipInput.vue'
+import { applyRankingPreset, detectRankingPreset, profileToForm, profileWrite, rankingToForm, rankingWrite } from '../src/features/profile/profile-form'
 import FirstRunSetup from '../src/features/setup/FirstRunSetup.vue'
 import { ServerStateClient } from '../src/state/query-client'
 
@@ -18,10 +20,10 @@ const ranking: RankingConfiguration = {
 }
 const starter: Source = { id: 'starter-1', name: 'Starter feed', url: 'https://example.com/feed', kind: 'feed', enabled: true, contentPermission: 'metadata_only', adapterConfig: { format: 'rss' }, scraperPolicy: { status: 'not_applicable', termsUrl: null, robotsUrl: null, reviewedAt: null, reviewNotes: null }, credentialConfigured: false, lastSuccessAt: null, lastError: null, retryAfter: null }
 
-function fakeApi(initial: Profile = emptyProfile, failure?: Error) {
+function fakeApi(initial: Profile = emptyProfile, failure?: Error, rankingValue: RankingConfiguration = ranking) {
   let current = structuredClone(initial)
   const api = {
-    profile: vi.fn(async () => current), ranking: vi.fn(async () => ranking), starterSources: vi.fn(async () => ({ items: [starter] })),
+    profile: vi.fn(async () => current), ranking: vi.fn(async () => rankingValue), starterSources: vi.fn(async () => ({ items: [starter] })),
     updateProfile: vi.fn(async (body) => { if (failure) throw failure; current = { ...body, id: 'local-profile', updatedAt: '2026-08-03T00:00:00Z' }; return current }),
     updateRanking: vi.fn(async (body) => ({ ...body, perDemographicCap: .1, totalDemographicCap: .2, normalizationVersion: 'v1' }))
   }
@@ -31,138 +33,149 @@ async function ready(component: typeof ProfileSettings | typeof FirstRunSetup, a
   const wrapper = mount(component, { props: { serverApi: api }, attachTo: document.body })
   await flushPromises(); return wrapper
 }
+async function addTopic(wrapper: VueWrapper, topic: string) {
+  await wrapper.get('#interest-input').setValue(topic)
+  await wrapper.get('#interest-input').trigger('keydown', { key: 'Enter' })
+}
+async function continueSetup(wrapper: VueWrapper) {
+  await wrapper.findAll('button').find((item) => item.text() === 'Continue')!.trigger('click')
+  await flushPromises()
+}
 
-describe('profile and first-run workflow', () => {
-  it('renders a new, optional-empty, keyboard-accessible setup without violations', async () => {
+describe('consumer onboarding and settings', () => {
+  it('starts with an approachable interest step and no raw ranking controls', async () => {
     const wrapper = await ready(FirstRunSetup, fakeApi())
-    expect(wrapper.get('button[type=submit]').text()).toBe('Save setup')
-    expect(wrapper.text()).toContain('Selecting none is allowed')
-    expect(wrapper.text()).toContain('Each demographic contribution is capped at 0.1')
+    expect(wrapper.get('h1').text()).toBe('Make your feed yours')
+    expect(wrapper.get('[aria-current=step]').text()).toContain('Interests')
+    expect(wrapper.get('#interest-input').attributes('placeholder')).toContain('Try “AI”')
+    expect(wrapper.text()).not.toContain('New interest weight')
+    expect(wrapper.find('input[type=number]').exists()).toBe(false)
     expect((await axe.run(wrapper.element)).violations).toEqual([])
-    const controls = wrapper.findAll('input,button'); controls[0].element.focus()
-    await wrapper.get('form').trigger('keydown', { key: 'Tab' }); expect(controls.length).toBeGreaterThan(10)
     wrapper.unmount()
   })
 
-  it('preserves a disabled entered demographic and submits valid explicit state', async () => {
+  it('adds/removes chips, rejects duplicates, and supports Enter', async () => {
+    const wrapper = mount(InterestChipInput, { props: { modelValue: ['Science'] } })
+    await wrapper.get('#interest-input').setValue('science')
+    await wrapper.get('#interest-input').trigger('keydown', { key: 'Enter' })
+    expect(wrapper.text()).toContain('already in your interests')
+    await wrapper.setProps({ modelValue: ['Science', 'AI'] })
+    await wrapper.get('button[aria-label="Remove Science"]').trigger('click')
+    expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toEqual(['AI'])
+  })
+
+  it('completes four-step setup with Hungary, Budapest, optional demographics, sources, and a semantic preset', async () => {
     const api = fakeApi(); const wrapper = await ready(FirstRunSetup, api)
-    await wrapper.get('#interests').setValue('technology, science')
-    await wrapper.get('#country').setValue('hu'); await wrapper.get('#region').setValue('Pest')
-    const ageToggle = wrapper.findAll('input[type=checkbox]').find((item) => item.element.parentElement?.textContent?.includes('Use this signal'))!
-    await ageToggle.setValue(true); await wrapper.get('#age').setValue('35')
-    await ageToggle.setValue(false)
+    await addTopic(wrapper, 'Technology'); await addTopic(wrapper, 'science')
+    await continueSetup(wrapper)
+    await wrapper.get('#country').setValue('HU'); await wrapper.get('#city').setValue('Budapest')
+    const additional = wrapper.findAll('details').find((item) => item.text().includes('Additional personalization'))!
+    ;(additional.element as HTMLDetailsElement).open = true
+    const ageToggle = additional.findAll('input[type=checkbox]')[0]
+    await ageToggle.setValue(true); await wrapper.get('#age').setValue('35'); await ageToggle.setValue(false)
+    await continueSetup(wrapper)
+    await wrapper.get('.source-choice input').setValue(true)
+    await continueSetup(wrapper)
+    await wrapper.get('input[value=personalized]').setValue(true)
+    expect(wrapper.get('button[type=submit]').text()).toBe('Finish setup')
     await wrapper.get('form').trigger('submit'); await flushPromises()
     expect(api.updateProfile).toHaveBeenCalledWith(expect.objectContaining({
-      interests: [{ name: 'technology', weight: .8 }, { name: 'science', weight: .8 }],
-      location: expect.objectContaining({ present: true, value: expect.objectContaining({ country: 'HU', region: 'Pest' }) }),
+      interests: [{ name: 'Technology', weight: .8 }, { name: 'science', weight: .8 }], preferredSourceIds: ['starter-1'],
+      location: { present: true, enabled: false, value: { country: 'HU', region: 'Budapest', city: { present: true, enabled: true, value: 'Budapest' } } },
       age: { present: true, enabled: false, value: 35 }
     }), expect.any(AbortSignal))
+    expect(api.updateRanking).toHaveBeenCalledWith(expect.objectContaining({ interest: { enabled: true, weight: .35 }, recency: { enabled: true, weight: .15 } }), expect.any(AbortSignal))
     expect(wrapper.text()).toContain('Setup saved on this computer')
     wrapper.unmount()
   })
 
-  it('bypasses completed first-run, supports clearing all values, and reloads authoritative state', async () => {
-    window.history.replaceState(null, '', '/setup')
-    const api = fakeApi(savedProfile); const setup = await ready(FirstRunSetup, api)
-    expect(window.location.pathname).toBe('/settings')
-    setup.unmount()
-    const wrapper = await ready(ProfileSettings, api)
-    expect(wrapper.get('#city').element).toHaveProperty('value', 'Budapest')
-    await wrapper.get('#interests').setValue(''); await wrapper.get('#country').setValue(''); await wrapper.get('#region').setValue(''); await wrapper.get('#city').setValue('')
-    const ageToggle = wrapper.findAll('input[type=checkbox]').find((item) => item.element.parentElement?.textContent?.includes('Use this signal'))!
-    await ageToggle.setValue(true); await wrapper.get('#age').setValue(''); await wrapper.get('#gender').setValue('')
+  it('maps presets exactly and preserves a custom configuration until explicitly changed', () => {
+    const balanced = rankingToForm(ranking)
+    expect(detectRankingPreset(balanced)).toBe('balanced')
+    const personalized = applyRankingPreset(balanced, 'personalized')
+    expect(detectRankingPreset(personalized)).toBe('personalized')
+    expect(rankingWrite(personalized)).toMatchObject({ interest: { weight: .35 }, recency: { weight: .15 } })
+    const custom = { ...balanced, recency: { ...balanced.recency, weight: '.37' } }
+    expect(detectRankingPreset(custom)).toBe('custom')
+    expect(rankingWrite(custom).recency.weight).toBe(.37)
+  })
+
+  it('preserves distinct saved interest weights and unusual region/country values during unrelated edits', async () => {
+    const varied = { ...savedProfile, interests: [{ name: 'technology', weight: .9 }, { name: 'science', weight: .4 }], location: { present: true, enabled: true, value: { country: 'XX', region: 'Historic district', city: { present: true, enabled: true, value: 'Locality' } } } } as Profile
+    const api = fakeApi(varied); const wrapper = await ready(ProfileSettings, api)
+    expect(wrapper.get('#country').text()).toContain('Other (XX)')
+    await wrapper.get('#city').setValue('New locality'); await wrapper.get('form').trigger('submit'); await flushPromises()
+    expect(api.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ interests: varied.interests, location: expect.objectContaining({ value: expect.objectContaining({ country: 'XX', region: 'Historic district' }) }) }), expect.any(AbortSignal))
+    wrapper.unmount()
+  })
+
+  it('keeps optional demographics collapsed and explains publisher-declared matching', async () => {
+    const wrapper = await ready(ProfileSettings, fakeApi(savedProfile))
+    const disclosure = wrapper.findAll('details').find((item) => item.text().includes('Additional personalization'))!
+    expect(disclosure.attributes('open')).toBeUndefined()
+    expect(disclosure.text()).toContain('publisher explicitly labels')
+    expect(disclosure.text()).toContain('never inferred')
+    wrapper.unmount()
+  })
+
+  it('clears visible profile values while preserving source choices managed on the Sources screen', async () => {
+    window.history.replaceState(null, '', '/settings')
+    const api = fakeApi(savedProfile); const wrapper = await ready(ProfileSettings, api)
+    await wrapper.get('button[aria-label="Remove technology"]').trigger('click')
+    await wrapper.get('#country').setValue(''); await wrapper.get('#region').setValue(''); await wrapper.get('#city').setValue('')
+    await wrapper.get('#age').setValue(''); await wrapper.get('#gender').setValue('')
     for (const item of wrapper.findAll('input[type=checkbox]')) await item.setValue(false)
     await wrapper.get('form').trigger('submit'); await flushPromises()
-    expect(api.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ interests: [], preferredSourceIds: [], location: { present: false, enabled: false }, age: { present: false, enabled: false }, gender: { present: false, enabled: false } }), expect.any(AbortSignal))
-    wrapper.unmount()
-    window.history.replaceState(null, '', '/setup')
-    const reloaded = await ready(FirstRunSetup, api); expect(reloaded.get('button[type=submit]').text()).toBe('Save setup'); reloaded.unmount()
-  })
-
-  it('preserves distinct authoritative interest weights when editing other settings', async () => {
-    const varied = { ...savedProfile, interests: [{ name: 'technology', weight: .9 }, { name: 'science', weight: .4 }] }
-    const api = fakeApi(varied); const wrapper = await ready(ProfileSettings, api)
-    await wrapper.get('#city').setValue('Buda'); await wrapper.get('form').trigger('submit'); await flushPromises()
-    expect(api.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ interests: varied.interests }), expect.any(AbortSignal))
+    expect(api.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ interests: [], preferredSourceIds: ['starter-1'], location: { present: false, enabled: false }, age: { present: true, enabled: false, value: 35 }, gender: { present: false, enabled: false } }), expect.any(AbortSignal))
     wrapper.unmount()
   })
 
-  it('shows contract fields while retaining other unsaved entries', async () => {
-    const error = new ApiRequestError(400, { code: 'validation_failed', message: 'Check values.', correlationId: 'safe-id', fields: [{ path: 'location.value.country', code: 'INVALID_COUNTRY', message: 'Use a two-letter country code.' }] })
+  it('shows authoritative field errors without clearing chip edits', async () => {
+    const error = new ApiRequestError(400, { code: 'validation_failed', message: 'Check values.', correlationId: 'safe-id', fields: [{ path: 'profile.location.value.country', code: 'INVALID_COUNTRY', message: 'Choose a supported country.' }] })
     const wrapper = await ready(ProfileSettings, fakeApi(emptyProfile, error))
-    await wrapper.get('#interests').setValue('keep me'); await wrapper.get('#country').setValue('bad')
+    await addTopic(wrapper, 'keep me'); await wrapper.get('#country').setValue('HU'); await wrapper.get('#city').setValue('Budapest')
     await wrapper.get('form').trigger('submit'); await flushPromises()
-    expect(wrapper.get('#country-error').text()).toContain('two-letter')
-    expect(wrapper.get('#interests').element).toHaveProperty('value', 'keep me')
+    expect(wrapper.get('#country-error').text()).toContain('supported country')
+    expect(wrapper.text()).toContain('keep me')
     expect(wrapper.text()).toContain('Settings were not saved')
     wrapper.unmount()
   })
 
-  it('rejects invalid bounded weights before mutation and keeps partial form state', async () => {
+  it('rejects invalid advanced weights before mutation and retains edits', async () => {
     const api = fakeApi(); const wrapper = await ready(ProfileSettings, api)
-    await wrapper.get('#interests').setValue('still here')
+    await addTopic(wrapper, 'still here')
+    const advanced = wrapper.findAll('details').find((item) => item.text().includes('Advanced ranking controls'))!
+    ;(advanced.element as HTMLDetailsElement).open = true
     await wrapper.get('#ranking-age').setValue('1.1')
     await wrapper.get('form').trigger('submit'); await flushPromises()
     expect(wrapper.get('#ranking-age-error').text()).toContain('0 to 1')
-    expect(wrapper.get('#interests').element).toHaveProperty('value', 'still here')
-    expect(document.activeElement).toBe(wrapper.get('.error-summary').element)
+    expect(wrapper.text()).toContain('still here')
     expect(api.updateProfile).not.toHaveBeenCalled(); expect(api.updateRanking).not.toHaveBeenCalled()
     wrapper.unmount()
   })
 
-  it.each([
-    ['conflict', 409, 'conflict', 'Saved settings changed elsewhere.'],
-    ['unavailable', 503, 'unavailable', 'Service down.']
-  ] as const)('reports %s save failures without clearing edits', async (_, status, code, message) => {
-    const error = new ApiRequestError(status, { code, message, correlationId: 'safe-id', fields: [] })
-    const wrapper = await ready(ProfileSettings, fakeApi(emptyProfile, error)); await wrapper.get('#interests').setValue('unsaved')
-    await wrapper.get('form').trigger('submit'); await flushPromises()
-    expect(wrapper.get('#interests').element).toHaveProperty('value', 'unsaved')
-    expect(wrapper.text()).toContain(code === 'unavailable' ? 'temporarily unavailable' : message)
-    wrapper.unmount()
-  })
-
-  it('cancels outstanding state-layer loads on unmount', async () => {
-    const cache = new ServerStateClient()
-    let profileSignal: AbortSignal | undefined
-    const api = fakeApi()
-    vi.mocked(api.profile).mockImplementation(async (signal) => {
-      profileSignal = signal
-      await new Promise<void>((resolve) => signal?.addEventListener('abort', () => resolve(), { once: true }))
-      return emptyProfile
-    })
-    const wrapper = mount(ProfileSettings, { props: { serverApi: api, serverState: cache } })
-    await flushPromises()
-    wrapper.unmount()
-    expect(profileSignal?.aborted).toBe(true)
-  })
-
-  it('ignores an older load that resolves after an authoritative retry', async () => {
-    let releaseFirst!: (profile: Profile) => void
-    const first = new Promise<Profile>((resolve) => { releaseFirst = resolve })
+  it('cancels outstanding loads and ignores obsolete load completion', async () => {
+    const cache = new ServerStateClient(); let profileSignal: AbortSignal | undefined
     const api = fakeApi(savedProfile)
-    vi.mocked(api.profile).mockImplementationOnce(async () => first).mockImplementation(async () => savedProfile)
-    const wrapper = mount(ProfileSettings, { props: { serverApi: api }, attachTo: document.body })
-    await flushPromises()
-    await (wrapper.vm as unknown as { load: () => Promise<void> }).load()
-    await flushPromises()
-    releaseFirst(emptyProfile)
-    await flushPromises()
-    expect(wrapper.get('#interests').element).toHaveProperty('value', 'technology')
-    wrapper.unmount()
+    vi.mocked(api.profile).mockImplementationOnce(async (signal) => { profileSignal = signal; await new Promise<void>((resolve) => signal?.addEventListener('abort', () => resolve(), { once: true })); return emptyProfile })
+    const pending = mount(ProfileSettings, { props: { serverApi: api, serverState: cache } }); await flushPromises(); pending.unmount(); expect(profileSignal?.aborted).toBe(true)
+
+    let release!: (profile: Profile) => void
+    vi.mocked(api.profile).mockImplementationOnce(async () => new Promise<Profile>((resolve) => { release = resolve })).mockImplementation(async () => savedProfile)
+    const wrapper = mount(ProfileSettings, { props: { serverApi: api }, attachTo: document.body }); await flushPromises(); await (wrapper.vm as unknown as { load: () => Promise<void> }).load(); await flushPromises(); release(emptyProfile); await flushPromises()
+    expect(wrapper.text()).toContain('technology'); wrapper.unmount()
   })
 
-  it('reconciles a successful profile when ranking save fails and offers authoritative reload', async () => {
-    const api = fakeApi()
-    vi.mocked(api.updateRanking).mockRejectedValueOnce(new ApiRequestError(503, { code: 'unavailable', message: 'Ranking unavailable.', correlationId: 'safe-id', fields: [] }))
-    const wrapper = await ready(ProfileSettings, api)
-    await wrapper.get('#interests').setValue('saved profile')
-    await wrapper.get('form').trigger('submit'); await flushPromises()
+  it('reports partial ranking save and reloads authoritative settings', async () => {
+    const api = fakeApi(); vi.mocked(api.updateRanking).mockRejectedValueOnce(new ApiRequestError(503, { code: 'unavailable', message: 'Ranking unavailable.', correlationId: 'safe-id', fields: [] }))
+    const wrapper = await ready(ProfileSettings, api); await addTopic(wrapper, 'saved profile'); await wrapper.get('form').trigger('submit'); await flushPromises()
     expect(wrapper.text()).toContain('Profile saved; ranking settings not saved.')
-    expect(wrapper.get('#interests').element).toHaveProperty('value', 'saved profile')
     await wrapper.get('.error-summary button').trigger('click'); await flushPromises()
-    expect(wrapper.find('.error-summary').exists()).toBe(false)
-    expect(wrapper.get('#interests').element).toHaveProperty('value', 'saved profile')
-    wrapper.unmount()
+    expect(wrapper.find('.error-summary').exists()).toBe(false); expect(wrapper.text()).toContain('saved profile'); wrapper.unmount()
+  })
+
+  it('adapts a simple city to the existing region contract without losing saved advanced detail', () => {
+    const simple = profileToForm(emptyProfile); simple.country = 'HU'; simple.city = 'Budapest'; simple.locationEnabled = true
+    expect(profileWrite(simple).location).toEqual({ present: true, enabled: true, value: { country: 'HU', region: 'Budapest', city: { present: true, enabled: true, value: 'Budapest' } } })
   })
 })

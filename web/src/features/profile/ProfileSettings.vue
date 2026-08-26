@@ -1,12 +1,16 @@
 <script setup lang="ts">
-/* global HTMLElement */
+/* global HTMLElement, document */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { api as client } from '../../api/client'
 import { createServerApi, type ServerApi } from '../../api/server-api'
 import type { Profile, RankingConfiguration, Source } from '../../api/generated/models'
 import AccessibleField from '../../components/shared/AccessibleField.vue'
+import ActionGroup from '../../components/shared/ActionGroup.vue'
 import DemographicSignalField from '../../components/shared/DemographicSignalField.vue'
+import DisclosurePanel from '../../components/shared/DisclosurePanel.vue'
 import LiveRegion from '../../components/shared/LiveRegion.vue'
+import StatusBanner from '../../components/shared/StatusBanner.vue'
+import SurfaceCard from '../../components/shared/SurfaceCard.vue'
 import { navigate } from '../../router/router'
 import AppLink from '../../router/AppLink.vue'
 import type { UserSafeError } from '../../state/errors'
@@ -14,6 +18,7 @@ import { ServerMutations } from '../../state/mutations'
 import { queryKeys } from '../../state/query-keys'
 import { ServerStateClient, type QueryState } from '../../state/query-client'
 import RankingSignalSettings from '../ranking-settings/RankingSignalSettings.vue'
+import InterestChipInput from './InterestChipInput.vue'
 import { isFirstRun, profileToForm, profileWrite, rankingToForm, rankingWrite, starterLabel, type ProfileForm, type RankingForm } from './profile-form'
 
 const props = withDefaults(defineProps<{ mode?: 'setup' | 'settings'; serverApi?: ServerApi; serverState?: ServerStateClient; serverMutations?: ServerMutations }>(), { mode: 'settings', serverApi: undefined, serverState: undefined, serverMutations: undefined })
@@ -33,10 +38,18 @@ const saveError = ref<UserSafeError>()
 const saving = ref(false)
 const partialSave = ref(false)
 const errorSummary = ref<HTMLElement>()
+const setupStep = ref(1)
+const setupSteps = ['Interests', 'Location', 'Sources', 'Finish']
+const countries = [
+  { code: '', name: 'No country selected' }, { code: 'HU', name: 'Hungary' }, { code: 'AT', name: 'Austria' },
+  { code: 'DE', name: 'Germany' }, { code: 'GB', name: 'United Kingdom' }, { code: 'US', name: 'United States' }
+]
 let loadGeneration = 0
 let disposed = false
 const firstRun = computed(() => profile.value ? isFirstRun(profile.value) : false)
 const fieldErrors = computed(() => Object.fromEntries((saveError.value?.fields ?? []).map((field) => [field.path.replace(/^profile\./, ''), field.message])))
+const unknownCountry = computed(() => form.value?.country && !countries.some((item) => item.code === form.value?.country) ? form.value.country : '')
+const countryName = computed(() => countries.find((item) => item.code === form.value?.country)?.name || form.value?.country || 'No location')
 
 onMounted(load)
 defineExpose({ load })
@@ -78,7 +91,11 @@ async function save() {
   if (profileResult.status === 'error') { saveError.value = profileResult.error; saving.value = false; await focusError(); return }
   profile.value = profileResult.data
   form.value = profileToForm(profileResult.data)
-  const rankingResult = await mutations.updateRanking(rankingWrite(rankingForm.value))
+  const rankingPayload = rankingWrite(rankingForm.value)
+  rankingPayload.location.enabled = form.value.locationEnabled && Boolean(form.value.country || form.value.region || form.value.city)
+  rankingPayload.age.enabled = form.value.ageEnabled && Boolean(form.value.age)
+  rankingPayload.gender.enabled = form.value.genderEnabled && Boolean(form.value.gender)
+  const rankingResult = await mutations.updateRanking(rankingPayload)
   if (rankingResult.status === 'error') {
     partialSave.value = true
     saveError.value = { ...rankingResult.error, message: `${rankingResult.error.message} Your profile was saved, but ranking settings were not. Reload the authoritative settings before retrying.` }
@@ -100,11 +117,9 @@ async function focusError() {
 function validate(profileForm: ProfileForm, weights: RankingForm) {
   const fields: { path: string; code: string; message: string }[] = []
   const add = (path: string, message: string) => fields.push({ path, code: 'INVALID_VALUE', message })
-  const interestWeight = Number(profileForm.interestWeight)
-  if (!Number.isFinite(interestWeight) || interestWeight < 0 || interestWeight > 1) add('interests.weight', 'Interest weight must be from 0 to 1.')
   const hasLocation = Boolean(profileForm.country.trim() || profileForm.region.trim() || profileForm.city.trim())
-  if (hasLocation && !/^[A-Za-z]{2}$/.test(profileForm.country.trim())) add('location.value.country', 'Use a two-letter country code.')
-  if (hasLocation && !profileForm.region.trim()) add('location.value.region', 'Enter a region when a location is present.')
+  if (hasLocation && !/^[A-Za-z]{2}$/.test(profileForm.country.trim())) add('location.value.country', 'Choose a country for this location.')
+  if (hasLocation && !profileForm.region.trim() && !profileForm.city.trim()) add('location.value.region', 'Enter a city, area, or administrative region.')
   if (profileForm.age.trim() && (!Number.isInteger(Number(profileForm.age)) || Number(profileForm.age) < 0 || Number(profileForm.age) > 130)) add('age.value', 'Age must be a whole number from 0 to 130.')
   for (const name of Object.keys(weights) as (keyof RankingForm)[]) {
     const value = Number(weights[name].weight)
@@ -116,6 +131,7 @@ function toggleSource(id: string, checked: boolean) {
   if (!form.value) return
   form.value.preferredSourceIds = checked ? [...form.value.preferredSourceIds, id] : form.value.preferredSourceIds.filter((value) => value !== id)
 }
+function goToStep(step: number) { setupStep.value = Math.max(1, Math.min(4, step)); nextTick(() => document.querySelector<HTMLElement>('#profile-title')?.focus()) }
 </script>
 
 <template>
@@ -130,17 +146,17 @@ function toggleSource(id: string, checked: boolean) {
       id="profile-title"
       tabindex="-1"
     >
-      {{ mode === 'setup' ? 'First-run setup' : 'Profile and ranking' }}
+      {{ mode === 'setup' ? 'Make your feed yours' : 'Settings' }}
     </h1>
-    <p>Everything here stays with the same-origin local API. There is no account, automatic location, or demographic inference.</p>
+    <p class="page-intro">
+      {{ mode === 'setup' ? 'A few choices help order your news. You can change everything later.' : 'Manage personalization, ranking, and local privacy choices.' }}
+    </p>
     <nav
       v-if="mode==='settings'"
       aria-label="Settings sections"
       class="settings-navigation"
     >
-      <a href="#preferences-title">Profile preferences</a><a href="#ranking-settings">Ranking signals</a><AppLink to="/sources">
-        Sources, credentials, and refresh
-      </AppLink>
+      <a href="#personalization-title">Personalization</a><a href="#ranking-settings-title">Ranking</a><a href="#privacy-title">Privacy &amp; local data</a>
     </nav>
     <p
       v-if="state === 'loading'"
@@ -161,146 +177,219 @@ function toggleSource(id: string, checked: boolean) {
     </div>
     <form
       v-else-if="form && ranking && rankingForm"
+      class="settings-form"
       novalidate
       @submit.prevent="save"
     >
-      <p
-        v-if="mode === 'setup' && !firstRun"
-        class="notice"
+      <ol
+        v-if="mode === 'setup'"
+        class="stepper"
+        aria-label="Setup progress"
       >
-        Setup is already complete. Your saved settings are shown below.
-      </p>
-      <section aria-labelledby="preferences-title">
-        <h2 id="preferences-title">
-          Your primary preferences
+        <li
+          v-for="(label,index) in setupSteps"
+          :key="label"
+          :class="{ current: setupStep === index + 1, complete: setupStep > index + 1 }"
+          :aria-current="setupStep === index + 1 ? 'step' : undefined"
+        >
+          <span>{{ index + 1 }}</span>{{ label }}
+        </li>
+      </ol>
+
+      <SurfaceCard
+        v-if="mode === 'settings' || setupStep === 1"
+        :title="mode === 'setup' ? 'What are you interested in?' : 'Personalization'"
+        :description="mode === 'setup' ? 'Add a few topics to shape your feed. There are no numeric weights to manage.' : 'Choose the topics and place that matter to you.'"
+      >
+        <h2
+          v-if="mode === 'settings'"
+          id="personalization-title"
+          class="section-anchor"
+        >
+          Topics you care about
         </h2>
-        <AccessibleField
-          id="interests"
-          label="Interests"
-          description="Comma-separated topics, such as technology, local news."
+        <InterestChipInput
+          v-model="form.interests"
           :error="fieldErrors['interests'] || fieldErrors['interests.name']"
-        >
-          <template #default="{ describedby }">
-            <input
-              id="interests"
-              v-model="form.interests"
-              :aria-describedby="describedby"
-              :aria-invalid="Boolean(fieldErrors['interests'])"
-            >
-          </template>
-        </AccessibleField>
-        <AccessibleField
-          id="interest-weight"
-          label="New interest weight"
-          description="Applied to newly entered interests; saved interests keep their individual weights. Enter 0 to 1."
-          :error="fieldErrors['interests.weight']"
-        >
-          <template #default="{ describedby }">
-            <input
-              id="interest-weight"
-              v-model="form.interestWeight"
-              type="number"
-              min="0"
-              max="1"
-              step="0.05"
-              :aria-describedby="describedby"
-              :aria-invalid="Boolean(fieldErrors['interests.weight'])"
-            >
-          </template>
-        </AccessibleField>
-        <fieldset>
-          <legend>Starter sources</legend><p>Choose any starter sources you prefer. Selecting none is allowed.</p>
-          <label
+        />
+      </SurfaceCard>
+
+      <SurfaceCard
+        v-if="mode === 'settings' || setupStep === 2"
+        title="Location — optional"
+        description="Used only to prioritize relevant local stories. Your location is entered manually and stays on this computer."
+      >
+        <label class="choice-toggle"><input
+          v-model="form.locationEnabled"
+          type="checkbox"
+        > Use my location when ranking stories</label>
+        <div class="field-grid">
+          <AccessibleField
+            id="country"
+            label="Country"
+            description="Choose the country you care about for local reporting."
+            :error="fieldErrors['location.value.country']"
+          >
+            <template #default="{ describedby }">
+              <select
+                id="country"
+                v-model="form.country"
+                autocomplete="country"
+                :aria-describedby="describedby"
+                :aria-invalid="Boolean(fieldErrors['location.value.country'])"
+              >
+                <option
+                  v-if="unknownCountry"
+                  :value="unknownCountry"
+                >
+                  Other ({{ unknownCountry }})
+                </option><option
+                  v-for="country in countries"
+                  :key="country.code"
+                  :value="country.code"
+                >
+                  {{ country.name }}
+                </option>
+              </select>
+            </template>
+          </AccessibleField>
+          <AccessibleField
+            id="city"
+            label="City or area"
+            description="For example, Budapest. You do not need to know an administrative region."
+            :error="fieldErrors['location.value.city.value'] || fieldErrors['location.value.region']"
+          >
+            <template #default="{ describedby }">
+              <input
+                id="city"
+                v-model="form.city"
+                placeholder="Budapest"
+                autocomplete="address-level2"
+                :aria-describedby="describedby"
+                :aria-invalid="Boolean(fieldErrors['location.value.city.value'] || fieldErrors['location.value.region'])"
+              >
+            </template>
+          </AccessibleField>
+        </div>
+        <DisclosurePanel summary="Administrative region — optional advanced detail">
+          <AccessibleField
+            id="region"
+            label="Region"
+            description="Only add this when it differs from your city or area, or your local news sources use it."
+            :error="fieldErrors['location.value.region']"
+          >
+            <template #default="{ describedby }">
+              <input
+                id="region"
+                v-model="form.region"
+                placeholder="Pest"
+                autocomplete="address-level1"
+                :aria-describedby="describedby"
+                :aria-invalid="Boolean(fieldErrors['location.value.region'])"
+              >
+            </template>
+          </AccessibleField>
+        </DisclosurePanel>
+        <DisclosurePanel summary="Additional personalization">
+          <p class="field__description">
+            These optional values can only help when a publisher explicitly labels an article for that audience. They are never inferred.
+          </p>
+          <div class="optional-grid">
+            <div>
+              <p><strong>Age — optional</strong></p><p class="field__description">
+                Can slightly boost articles explicitly identified as relevant to your age group.
+              </p><DemographicSignalField
+                id="age"
+                v-model="form.age"
+                v-model:enabled="form.ageEnabled"
+                label="Age"
+                :error="fieldErrors['age.value']"
+              />
+            </div>
+            <div>
+              <p><strong>Gender — optional</strong></p><p class="field__description">
+                Can slightly boost articles explicitly identified as relevant to that audience.
+              </p><DemographicSignalField
+                id="gender"
+                v-model="form.gender"
+                v-model:enabled="form.genderEnabled"
+                label="Gender"
+                :error="fieldErrors['gender.value']"
+              />
+            </div>
+          </div>
+        </DisclosurePanel>
+      </SurfaceCard>
+
+      <SurfaceCard
+        v-if="mode === 'setup' && setupStep === 3"
+        title="Choose starter sources"
+        description="Start with any of these reviewed sources. Selecting none is fine; you can add sources later."
+      >
+        <fieldset class="source-choices">
+          <legend class="sr-only">
+            Starter sources
+          </legend><label
             v-for="source in starters"
             :key="source.id"
+            class="source-choice"
           ><input
             type="checkbox"
             :checked="form.preferredSourceIds.includes(source.id)"
-            @change="toggleSource(source.id, ($event.target as HTMLInputElement).checked)"
-          > {{ starterLabel(source) }}</label>
+            @change="toggleSource(source.id,($event.target as HTMLInputElement).checked)"
+          ><span><strong>{{ source.name }}</strong><small>{{ starterLabel(source) }}</small></span></label>
         </fieldset>
-      </section>
-      <section aria-labelledby="location-title">
-        <h2 id="location-title">
-          Manual location
-        </h2><p>Enter country and region yourself. This app never requests browser or IP location.</p>
-        <label><input
-          v-model="form.locationEnabled"
-          type="checkbox"
-        > Use location for ranking</label>
-        <AccessibleField
-          id="country"
-          label="Country code"
-          description="Two-letter code, for example HU."
-          :error="fieldErrors['location.value.country']"
-        >
-          <template #default="{ describedby }">
-            <input
-              id="country"
-              v-model="form.country"
-              maxlength="2"
-              autocomplete="country"
-              :aria-describedby="describedby"
-              :aria-invalid="Boolean(fieldErrors['location.value.country'])"
-            >
-          </template>
-        </AccessibleField>
-        <AccessibleField
-          id="region"
-          label="Region"
-          :error="fieldErrors['location.value.region']"
-        >
-          <template #default="{ describedby }">
-            <input
-              id="region"
-              v-model="form.region"
-              autocomplete="address-level1"
-              :aria-describedby="describedby"
-              :aria-invalid="Boolean(fieldErrors['location.value.region'])"
-            >
-          </template>
-        </AccessibleField>
-        <AccessibleField
-          id="city"
-          label="City (optional)"
-          :error="fieldErrors['location.value.city.value']"
-        >
-          <template #default="{ describedby }">
-            <input
-              id="city"
-              v-model="form.city"
-              autocomplete="address-level2"
-              :aria-describedby="describedby"
-              :aria-invalid="Boolean(fieldErrors['location.value.city.value'])"
-            >
-          </template>
-        </AccessibleField>
-      </section>
-      <section aria-labelledby="optional-title">
-        <h2 id="optional-title">
-          Optional demographic signals
-        </h2><p>Values are explicit, local, individually disableable, and subject to the server caps shown below. Disabling keeps an entered value but gives it no ranking effect; clearing removes it on save.</p>
-        <DemographicSignalField
-          id="age"
-          v-model="form.age"
-          v-model:enabled="form.ageEnabled"
-          label="Age"
-          :error="fieldErrors['age.value']"
+      </SurfaceCard>
+
+      <SurfaceCard
+        v-if="mode === 'settings'"
+        title="Ranking"
+        description="Choose an understandable ranking style. Precise controls are available only when you want them."
+      >
+        <RankingSignalSettings
+          id="ranking-settings"
+          v-model="rankingForm"
+          :limits="ranking"
+          :errors="fieldErrors"
         />
-        <DemographicSignalField
-          id="gender"
-          v-model="form.gender"
-          v-model:enabled="form.genderEnabled"
-          label="Gender"
-          :error="fieldErrors['gender.value']"
+      </SurfaceCard>
+
+      <SurfaceCard
+        v-if="mode === 'setup' && setupStep === 4"
+        title="Ready to begin"
+        description="Review the essentials, choose a ranking style, then finish setup."
+      >
+        <ul class="setup-summary">
+          <li><strong>{{ form.interests.length }}</strong> topics selected</li><li><strong>{{ countryName }}</strong><span v-if="form.city"> · {{ form.city }}</span></li><li><strong>{{ form.preferredSourceIds.length }}</strong> starter sources selected</li>
+        </ul>
+        <RankingSignalSettings
+          id="ranking-settings"
+          v-model="rankingForm"
+          :limits="ranking"
+          :errors="fieldErrors"
         />
-      </section>
-      <RankingSignalSettings
-        id="ranking-settings"
-        v-model="rankingForm"
-        :limits="ranking"
-        :errors="fieldErrors"
-      />
+        <StatusBanner
+          title="Private by design"
+          tone="success"
+        >
+          <p>No account, automatic location, demographic inference, tracking, or cloud profile. These choices stay in the local app.</p>
+        </StatusBanner>
+      </SurfaceCard>
+
+      <SurfaceCard
+        v-if="mode === 'settings'"
+        title="Privacy & local data"
+        description="Your profile, ranking preferences, filters, and sources are authoritative in the local app database."
+      >
+        <h2
+          id="privacy-title"
+          class="section-anchor"
+        >
+          Local-only behavior
+        </h2><p>No account, cloud sync, automatic location, tracking, or external profile processing is used.</p><p>Credentials remain write-only behind the operating system credential store.</p><AppLink to="/sources">
+          Manage sources and credentials
+        </AppLink>
+      </SurfaceCard>
       <div
         v-if="saveError"
         ref="errorSummary"
@@ -324,11 +413,39 @@ function toggleSource(id: string, checked: boolean) {
           Reload saved settings
         </button>
       </div>
+      <ActionGroup
+        v-if="mode === 'setup'"
+        label="Setup navigation"
+      >
+        <button
+          v-if="setupStep > 1"
+          type="button"
+          class="secondary"
+          @click="goToStep(setupStep - 1)"
+        >
+          Back
+        </button>
+        <button
+          v-if="setupStep < 4"
+          type="button"
+          @click="goToStep(setupStep + 1)"
+        >
+          Continue
+        </button>
+        <button
+          v-else
+          type="submit"
+          :disabled="saving"
+        >
+          {{ saving ? 'Saving…' : 'Finish setup' }}
+        </button>
+      </ActionGroup>
       <button
+        v-else
         type="submit"
         :disabled="saving"
       >
-        {{ saving ? 'Saving…' : mode === 'setup' && firstRun ? 'Save setup' : 'Save changes' }}
+        {{ saving ? 'Saving…' : 'Save changes' }}
       </button>
       <LiveRegion :message="saveMessage" />
     </form>
@@ -336,5 +453,5 @@ function toggleSource(id: string, checked: boolean) {
 </template>
 
 <style scoped>
-.profile-workflow,.profile-workflow form,.profile-workflow section,.profile-workflow fieldset{display:grid;gap:1rem}.profile-workflow{max-width:58rem}.settings-navigation{display:flex;flex-wrap:wrap;gap:1rem}.profile-workflow section,.profile-workflow fieldset{border:0;padding:1rem 0;border-top:1px solid #c7cbd1}.profile-workflow fieldset label{display:block}.profile-workflow input:not([type=checkbox]){box-sizing:border-box;width:100%;max-width:32rem;padding:.65rem}.notice,.error-summary{padding:1rem;border-inline-start:.3rem solid #8a4b00;background:#fff5e6}.error-summary{border-color:#a40000;background:#fff0f0}button{justify-self:start;padding:.7rem 1rem}
+.profile-workflow,.settings-form{display:grid;gap:var(--space-5)}.profile-workflow{max-width:var(--content-form)}.page-intro{max-width:42rem;color:var(--color-muted);font-size:1.08rem}.settings-navigation{display:flex;flex-wrap:wrap;gap:var(--space-2);padding:var(--space-2);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface-soft)}.settings-navigation a{min-height:2.75rem;display:inline-flex;align-items:center;padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);font-weight:680;text-decoration:none}.section-anchor{font-size:1.05rem}.stepper{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-2);margin:0;padding:0;list-style:none}.stepper li{display:flex;align-items:center;gap:var(--space-2);color:var(--color-muted);font-size:.88rem;font-weight:680}.stepper span{width:1.8rem;height:1.8rem;display:grid;place-items:center;border:1px solid var(--color-border-strong);border-radius:50%;background:var(--color-surface)}.stepper .current{color:var(--color-brand)}.stepper .current span,.stepper .complete span{border-color:var(--color-brand);background:var(--color-brand);color:#fff}.choice-toggle{display:flex;align-items:center;gap:var(--space-2);font-weight:700}.field-grid,.optional-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4)}.source-choices{display:grid;gap:var(--space-3);padding:0;border:0}.source-choice{display:flex;align-items:flex-start;gap:var(--space-3);padding:var(--space-4);border:1px solid var(--color-border);border-radius:var(--radius-md);cursor:pointer}.source-choice:hover{border-color:var(--color-brand);background:var(--color-brand-soft)}.source-choice span{display:grid;gap:var(--space-1)}.source-choice small{color:var(--color-muted)}.setup-summary{display:grid;gap:var(--space-2);margin:0;padding:var(--space-4);border-radius:var(--radius-md);background:var(--color-surface-soft);list-style:none}.error-summary{display:grid;gap:var(--space-2);padding:var(--space-4);border-inline-start:.3rem solid var(--color-danger);border-radius:var(--radius-md);background:var(--color-danger-soft)}@media(max-width:42rem){.stepper{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:var(--space-3)}.field-grid,.optional-grid{grid-template-columns:1fr}.settings-navigation{display:grid;grid-template-columns:1fr}}
 </style>
