@@ -17,7 +17,7 @@ describe('route contract', () => {
   })
 
   it('makes every non-contextual screen reachable from primary navigation', () => {
-    const acceptedScreenNames = ['setup', 'feed', 'library', 'sources', 'settings']
+    const acceptedScreenNames = ['feed', 'library', 'sources', 'settings']
     expect(routes.filter((route) => route.navigation).map((route) => route.name)).toEqual(acceptedScreenNames)
     expect(routes.filter((route) => route.navigation).every((route) => Boolean(route.navigationLabel))).toBe(true)
     expect(articleRoute.path).toContain(':articleId')

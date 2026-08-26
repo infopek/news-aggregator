@@ -8,7 +8,7 @@ export interface AppRoute {
 }
 
 export const routes: readonly AppRoute[] = [
-  { name: 'setup', path: '/setup', title: 'First-run setup', description: 'Set up your private, local news experience.', navigation: true, navigationLabel: 'Setup' },
+  { name: 'setup', path: '/setup', title: 'First-run setup', description: 'Set up your private, local news experience.' },
   { name: 'feed', path: '/', title: 'Ranked feed', description: 'Your ranked news feed.', navigation: true, navigationLabel: 'Ranked feed' },
   { name: 'library', path: '/library', title: 'Personal library', description: 'Saved and previously read articles.', navigation: true, navigationLabel: 'Library' },
   { name: 'sources', path: '/sources', title: 'Sources and refresh', description: 'Manage sources and refresh news.', navigation: true, navigationLabel: 'Sources' },
