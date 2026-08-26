@@ -27,7 +27,7 @@
   {
     "slot_id": "frontend-lane",
     "role": "frontend-implementer",
-    "status": "planned",
+    "status": "ready",
     "inputs": [
       "Merged requirements and planning package",
       "Task Splitter assignment",
@@ -48,7 +48,7 @@
       "Desktop and narrow rendered evidence, keyboard/accessibility checks, and privacy/storage/network assertions",
       "Independent reviewer approval before merge"
     ],
-    "notes": "Planned for the post-MVP UX overhaul after executable tasks are accepted. Own coherent shared design primitives and consumer workflows; may run concurrently with backend compatibility work only against an accepted contract handoff."
+    "notes": "UX-001 is dependency-ready after the Consumer UX task-decomposition PR is accepted. Later screen tasks may proceed in parallel only after UX-001 is merged; backend compatibility work requires a separately accepted contract handoff."
   },
   {
     "slot_id": "review-gate",

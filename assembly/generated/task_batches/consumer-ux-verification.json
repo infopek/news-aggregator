@@ -1,0 +1,57 @@
+{
+  "schema_version": "0.1.0",
+  "batch_id": "consumer-ux-verification",
+  "source_plan_path": "assembly/generated/project_spec.json",
+  "tasks": [
+    {
+      "id": "UX-VERIFY-001",
+      "title": "Independently verify the consumer UX overhaul",
+      "summary": "Audit the exact integrated revision against every merged UX acceptance signal, existing MVP boundary, rendered desktop/narrow evidence, and the real-process workflow.",
+      "objective": "Issue the binding final APPROVE or REJECT decision for the post-MVP consumer UX milestone.",
+      "context": "Automated checks are necessary but cannot prove usable hierarchy, grouping, copy, progressive disclosure, or responsive visual quality. Reviewer rejection is binding.",
+      "owner_role": "independent-reviewer",
+      "lane": "review-gate",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "Consumer UX overhaul",
+      "allowed_areas": [
+        "Read all repository files, history, PR diffs, task runs, reviews, tests, screenshots, traces, and verification artifacts",
+        "tests/e2e/**",
+        "web/tests/evidence/**",
+        "Review notes and final UX acceptance report"
+      ],
+      "depends_on": ["UX-005"],
+      "inputs": ["Merged UX requirements and planning package", "Canonical UX task runs and implementation PRs", "Exact-revision CI and real-process evidence", "Desktop and narrow screenshot set"],
+      "outputs": ["Screen-by-screen acceptance matrix", "Privacy/safety/persistence regression assessment", "Residual-risk report", "Explicit APPROVE or REJECT decision", "Actionable blocking findings"],
+      "implementation_notes": [
+        "Review actual rendered onboarding, Settings, feed, expanded explanation, reader, Sources, Library, empty/error states, and approximately 390px layouts.",
+        "Reject work that remains confusing, inconsistently spaced/grouped, visually competitive, technically worded, inaccessible, or raw-model-oriented even when tests pass.",
+        "Trace semantic ranking controls to persisted backend configuration and confirm the frontend does not duplicate ranking or explanations.",
+        "Confirm all original local-only, credential, permission, scraper, persistence, demographic, loopback, and Windows boundaries remain intact.",
+        "Do not implement fixes or merge while acting as reviewer."
+      ],
+      "acceptance_criteria": [
+        "Every post-MVP UX requirement has implementation plus observable exact-revision proof, including meaningful desktop and narrow screenshots.",
+        "A new user can understand and complete interests, Hungary/Budapest location, optional demographics, and sources without raw weights or administrative-schema knowledge.",
+        "Feed refresh, filters, cards, explanations, reading/library actions, Sources, Settings, and Library form one deliberate accessible responsive application.",
+        "No unexplained raw numeric weights or long contribution floats appear in normal workflows; advanced disclosures remain truthful and subordinate.",
+        "Real-process restart, interruption/recovery, keyboard, accessibility, storage, outbound-request, content-permission, credential, ranking, and Windows evidence passes at the exact revision.",
+        "All implementation PRs have independent approved reviews with blocking findings resolved and lifecycle records remain truthful."
+      ],
+      "verification": [
+        "Inspect and, where practical, rerun full CI and task-specific component/browser verification from the exact revision.",
+        "Run or inspect the real Go/SQLite/Vue workflow, process restart transcript, accessibility report, browser-storage audit, and loopback-only request audit.",
+        "Compare screenshots across desktop/narrow screens for hierarchy, grouping, spacing, action priority, field clarity, overflow, and consistency.",
+        "Perform representative keyboard-only setup, filtering, explanation, source, and library actions.",
+        "Trace preserved ranking, demographic, persistence, permission, credential, and scraper-policy invariants through code and tests."
+      ],
+      "proof_required": ["Explicit reviewer decision", "Screen-by-screen matrix", "Exact-revision CI/E2E references", "Screenshot assessment", "Accessibility/privacy/restart evidence", "Residual risks"],
+      "edge_cases": ["Check passed on an older commit", "Screenshot omits a required screen/state", "Raw score hidden visually but exposed accessibly", "390px overflow", "Custom persisted weights", "API interruption", "Partial refresh", "Metadata-only article", "Credential/source validation"],
+      "non_goals": ["Implementing fixes", "Merging PRs", "Expanding product scope", "Accepting privacy or accessibility regressions"],
+      "estimated_size": "M",
+      "risk_tags": ["mandatory-review", "visual-acceptance", "accessibility", "privacy", "regression"],
+      "handoff_notes": "Only an explicit exact-revision APPROVE completes the Consumer UX overhaul milestone; any unresolved blocker returns work to the responsible task."
+    }
+  ]
+}

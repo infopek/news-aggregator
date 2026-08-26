@@ -93,6 +93,32 @@
       "output_path": "assembly/generated/task_batches/integration-release.json",
       "status": "validated",
       "notes": "Establishes cross-stack proof, Windows packaging smoke coverage, safety checks, and the mandatory independent acceptance review."
+    },
+    {
+      "batch_id": "frontend-consumer-ux",
+      "owner_role": "frontend-implementer",
+      "repo_targets": ["news-aggregator"],
+      "lanes": ["frontend-ux-foundation", "frontend-onboarding-settings", "frontend-feed-reader", "frontend-sources-library", "frontend-ux-integration"],
+      "milestones": ["Consumer UX overhaul"],
+      "expected_task_count": 5,
+      "expected_task_ids": ["UX-001", "UX-002", "UX-003", "UX-004", "UX-005"],
+      "depends_on_batches": ["frontend-foundation", "frontend-workflows", "integration-release"],
+      "output_path": "assembly/generated/task_batches/frontend-consumer-ux.json",
+      "status": "validated",
+      "notes": "Builds shared consumer design foundations, then redesigns onboarding/settings, feed/reader, and Sources/Library before a sequential integrated visual verification pass."
+    },
+    {
+      "batch_id": "consumer-ux-verification",
+      "owner_role": "independent-reviewer",
+      "repo_targets": ["news-aggregator"],
+      "lanes": ["review-gate"],
+      "milestones": ["Consumer UX overhaul"],
+      "expected_task_count": 1,
+      "expected_task_ids": ["UX-VERIFY-001"],
+      "depends_on_batches": ["frontend-consumer-ux"],
+      "output_path": "assembly/generated/task_batches/consumer-ux-verification.json",
+      "status": "validated",
+      "notes": "Performs the binding exact-revision screen-by-screen, real-process, privacy, accessibility, persistence, and regression acceptance review."
     }
   ]
 }

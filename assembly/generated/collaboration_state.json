@@ -360,6 +360,30 @@
       "task_id": "VERIFY-004", "assigned_to": "reviewer-agent", "assignee_type": "web_ai", "assignee_label": "Web PR Reviewer", "status": "done", "claimed_at": "2026-08-22T08:00:00Z",
       "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/VERIFY-004-run-001.json", "summary": "Independent final post-merge audit APPROVED exact revision 49de411ac1c2b924e126e70dfc48253f284a025f.", "status": "accepted", "recorded_at": "2026-08-22T09:00:00Z"}],
       "notes": "Approval applies to the combined implementation as merged and does not retroactively approve incomplete historical revisions in isolation.", "updated_at": "2026-08-22T09:00:00Z"
+    },
+    {
+      "task_id": "UX-001", "assigned_to": null, "assignee_type": "unassigned", "assignee_label": "Unassigned", "status": "unclaimed",
+      "proof": [], "notes": "Ready after this task-decomposition PR is reviewed and merged; establishes shared UX foundations before screen work.", "updated_at": "2026-08-26T10:00:00Z"
+    },
+    {
+      "task_id": "UX-002", "assigned_to": null, "assignee_type": "unassigned", "assignee_label": "Unassigned", "status": "unclaimed",
+      "proof": [], "notes": "Blocked by UX-001 until the shared design system is accepted.", "updated_at": "2026-08-26T10:00:00Z"
+    },
+    {
+      "task_id": "UX-003", "assigned_to": null, "assignee_type": "unassigned", "assignee_label": "Unassigned", "status": "unclaimed",
+      "proof": [], "notes": "Blocked by UX-001 until the shared design system is accepted.", "updated_at": "2026-08-26T10:00:00Z"
+    },
+    {
+      "task_id": "UX-004", "assigned_to": null, "assignee_type": "unassigned", "assignee_label": "Unassigned", "status": "unclaimed",
+      "proof": [], "notes": "Blocked by UX-001 until the shared design system is accepted.", "updated_at": "2026-08-26T10:00:00Z"
+    },
+    {
+      "task_id": "UX-005", "assigned_to": null, "assignee_type": "unassigned", "assignee_label": "Unassigned", "status": "unclaimed",
+      "proof": [], "notes": "Sequential integration task after UX-002, UX-003, and UX-004 are accepted.", "updated_at": "2026-08-26T10:00:00Z"
+    },
+    {
+      "task_id": "UX-VERIFY-001", "assigned_to": null, "assignee_type": "unassigned", "assignee_label": "Unassigned", "status": "unclaimed",
+      "proof": [], "notes": "Independent final review after UX-005; reviewer must not implement or merge.", "updated_at": "2026-08-26T10:00:00Z"
     }
   ],
   "task_claims": [
@@ -1671,6 +1695,9 @@
     },
     {
       "event_id": "late-task-lifecycle-closed", "actor_id": "reviewer-agent", "event_type": "coordination_updated", "target_id": "news-aggregator", "created_at": "2026-08-22T09:00:00Z", "details": "Closed INGEST-005, RANK-004, RANK-005, FRONTEND-006, FRONTEND-007, FRONTEND-008, VERIFY-001, VERIFY-002, and VERIFY-003 using the independent post-merge audit while preserving historical process exceptions."
+    },
+    {
+      "event_id": "consumer-ux-backlog-proposed", "actor_id": "project-owner", "event_type": "coordination_updated", "target_id": "news-aggregator", "created_at": "2026-08-26T10:00:00Z", "details": "Proposed six unclaimed Consumer UX overhaul tasks from merged planning revision 31259ad; assignments become dispatchable only after the task-decomposition PR is accepted and merged."
     }
   ]
 }

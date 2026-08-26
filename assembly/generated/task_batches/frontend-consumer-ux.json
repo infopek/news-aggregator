@@ -1,0 +1,261 @@
+{
+  "schema_version": "0.1.0",
+  "batch_id": "frontend-consumer-ux",
+  "source_plan_path": "assembly/generated/project_spec.json",
+  "tasks": [
+    {
+      "id": "UX-001",
+      "title": "Establish the consumer UI design system and application shell",
+      "summary": "Create the shared tokens, layout, navigation, surfaces, controls, chips, banners, cards, disclosures, empty states, and responsive/accessibility foundations required by every redesigned workflow.",
+      "objective": "Replace raw browser-form presentation with one restrained, reusable visual and interaction system before screen-specific work begins.",
+      "context": "The current application has inconsistent spacing, weak grouping, competing actions, and screen-local CSS. Later UX tasks must consume stable shared primitives instead of introducing parallel styling systems.",
+      "owner_role": "frontend-implementer",
+      "lane": "frontend-ux-foundation",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "Consumer UX overhaul",
+      "allowed_areas": [
+        "web/src/styles/**",
+        "web/src/components/layout/**",
+        "web/src/components/shared/**",
+        "web/src/router/**",
+        "web/src/App.vue",
+        "web/tests/**"
+      ],
+      "depends_on": ["FRONTEND-008", "VERIFY-004"],
+      "inputs": ["Merged UX requirements", "Merged consumer-ux-overhaul planning package", "Existing Vue shell and accessible shared primitives"],
+      "outputs": ["Design tokens and global layout rules", "Accessible shared UI primitives", "Updated application navigation/shell", "Primitive and responsive tests", "Desktop and narrow shell evidence"],
+      "implementation_notes": [
+        "Use a small 4/8-based spacing system, deliberate content widths, clear typography hierarchy, subtle surfaces, consistent radii/borders, and restrained shadows.",
+        "Provide visible hover/focus/pressed/disabled states and comfortable interaction targets without relying on color alone.",
+        "Keep primary navigation Ranked feed, Library, Sources, and Settings; preserve the local-only indicator with clearer treatment.",
+        "Create primitives generic enough for later screens, but do not rewrite feature workflows in this task.",
+        "Do not add a remote CSS framework, analytics, fonts, runtime CDN assets, or a second client-state architecture."
+      ],
+      "acceptance_criteria": [
+        "The application shell has clear hierarchy and a consistent bounded content area at desktop and approximately 390px without horizontal overflow.",
+        "Shared fields, buttons, chips, cards, banners, disclosures, action groups, and empty states expose semantic markup, visible focus, and consistent spacing.",
+        "Primary, secondary, and tertiary actions are visually distinguishable and meet keyboard/touch usability expectations.",
+        "Existing routes, local-only status, API error announcements, and accessibility semantics continue to work.",
+        "Later feature tasks can compose the primitives without adding competing global design rules."
+      ],
+      "verification": [
+        "Run frontend lint, typecheck, shared-component tests, and production build.",
+        "Add keyboard and automated accessibility coverage for navigation and all new interactive primitives.",
+        "Render representative shell/primitive states at desktop and approximately 390px and assert no horizontal overflow.",
+        "Inspect screenshots for spacing rhythm, grouping, contrast, focus, action priority, and consistency."
+      ],
+      "proof_required": ["Component/a11y output", "Desktop and narrow screenshots", "Responsive overflow assertion", "Production build result"],
+      "edge_cases": ["Long labels and titles", "Validation and API banners", "Disabled and busy actions", "Navigation wrapping", "Keyboard-only use", "High browser zoom"],
+      "non_goals": ["Rewriting feature workflows", "Changing API/domain contracts", "Adding a UI framework", "Changing ranking semantics"],
+      "estimated_size": "M",
+      "risk_tags": ["design-system", "accessibility", "responsive", "shared-ownership"],
+      "handoff_notes": "UX-002, UX-003, and UX-004 must use these accepted primitives and must not independently redefine the global visual system."
+    },
+    {
+      "id": "UX-002",
+      "title": "Redesign onboarding and personalization settings",
+      "summary": "Replace the giant technical profile form with four-step onboarding, accessible interest chips, human-facing optional location, secondary demographics, reorganized Settings, and semantic ranking controls.",
+      "objective": "Let an ordinary user configure interests, Budapest/Hungary, starter sources, and ranking style without understanding administrative schemas or numeric ranking mathematics.",
+      "context": "Existing APIs and SQLite representations are accepted. Adapt cleanly to them unless an unavoidable contract gap is proven and handed back before implementation.",
+      "owner_role": "frontend-implementer",
+      "lane": "frontend-onboarding-settings",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "Consumer UX overhaul",
+      "allowed_areas": [
+        "web/src/features/setup/**",
+        "web/src/features/profile/**",
+        "web/src/features/ranking-settings/**",
+        "web/tests/**",
+        "tests/e2e/**"
+      ],
+      "depends_on": ["UX-001"],
+      "inputs": ["Accepted shared UX primitives", "Profile/ranking/starter-source APIs", "Existing persisted profile and RankingConfiguration behavior"],
+      "outputs": ["Four-step first-run workflow", "Interest chip/custom-topic control", "Simplified manual location adapter", "Additional-personalization disclosure", "Reorganized Settings", "Semantic ranking preset/influence mapping", "Compatibility and workflow tests"],
+      "implementation_notes": [
+        "Use Interests, optional Location, Sources, and Finish as clearly separated onboarding steps with one final primary action.",
+        "Give new interests the existing canonical default weight and preserve saved per-interest weights; any precise editing is advanced-only.",
+        "Present Country using human-readable values and City or area as the normal locality input. Map Budapest/Hungary safely onto the existing country/region/city contract; keep unusual administrative detail advanced-only if needed.",
+        "Keep age/gender collapsed by default with explicit publisher-audience explanations and clear neutral disablement.",
+        "Map Balanced, More personalized, More recent, and any advanced semantic controls deterministically to accepted weights/caps. Existing non-preset configurations must remain representable as custom/advanced without silent overwrite.",
+        "Do not add geolocation, remote lookup, inference, or browser-authoritative profile state."
+      ],
+      "acceptance_criteria": [
+        "A new user can add/remove example and custom interest chips, choose starter sources, enter Hungary and Budapest, skip optional demographics, and finish setup without seeing raw weights.",
+        "Age/gender are collapsed secondary controls with truthful explanations, explicit enablement, and neutral missing/disabled behavior.",
+        "Settings clearly separates Personalization, Ranking, and Privacy & local data and does not duplicate full source administration.",
+        "Semantic ranking choices round-trip deterministically to the existing backend configuration, preserve caps, and do not destroy compatible custom saved values.",
+        "All non-obvious controls include useful examples/helper text and actionable field errors.",
+        "Profile/ranking/source choices remain same-origin and SQLite-authoritative across a full process restart."
+      ],
+      "verification": [
+        "Add component tests for chip entry/removal/duplicates/keyboard use, step navigation, simplified location, optional disclosure, and validation.",
+        "Add exact mapping and round-trip tests for semantic presets, custom configurations, canonical defaults, and demographic caps.",
+        "Run the real-process onboarding workflow with Hungary/Budapest and optional demographics, then restart against the same SQLite database.",
+        "Run desktop/narrow screenshot, keyboard, accessibility, storage, and no-geolocation/network assertions."
+      ],
+      "proof_required": ["Onboarding and Settings screenshots", "Semantic mapping test output", "Restart transcript", "Accessibility/privacy assertions"],
+      "edge_cases": ["No starter selected", "All optional fields empty", "Duplicate/custom topics", "Existing custom weights", "Unknown country input", "Disabled value retained", "API interruption mid-setup", "Partial profile/ranking save"],
+      "non_goals": ["Automatic location", "Per-interest numeric tuning in normal onboarding", "Changing ranking algorithms", "Full source management inside Settings"],
+      "estimated_size": "M",
+      "risk_tags": ["onboarding", "persistence-compatibility", "ranking-config", "privacy-ui"],
+      "handoff_notes": "If the existing location or ranking contract truly cannot support the accepted UX, stop and request a separate contract task rather than silently changing backend files outside this task."
+    },
+    {
+      "id": "UX-003",
+      "title": "Redesign ranked feed, refresh feedback, article cards, and explanations",
+      "summary": "Create the core consumer reading experience with compact refresh state, a coherent responsive filter bar, distinct article cards, balanced actions, and concise backend-driven explanations without raw floats.",
+      "objective": "Make refresh, filtering, story boundaries, reading actions, and why-this-story reasons immediately understandable while preserving server order and authority.",
+      "context": "The backend owns ranking order, contributions, filter persistence, library mutations, and permissions. The frontend may reorganize presentation but must not recompute or invent those results.",
+      "owner_role": "frontend-implementer",
+      "lane": "frontend-feed-reader",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "Consumer UX overhaul",
+      "allowed_areas": [
+        "web/src/features/feed/**",
+        "web/src/features/reader/**",
+        "web/src/features/refresh/**",
+        "web/src/components/shared/ArticleSummaryCard.vue",
+        "web/src/components/shared/RankingExplanation.vue",
+        "web/src/components/shared/RefreshStatus.vue",
+        "web/tests/**",
+        "tests/e2e/**"
+      ],
+      "depends_on": ["UX-001"],
+      "inputs": ["Accepted shared UX primitives", "Feed/filter/refresh/article/library APIs", "Production ranking reason-code vocabulary", "Content-permission contract"],
+      "outputs": ["Ranked-feed header and compact refresh UI", "Responsive filter bar with More filters", "Article-card list", "Reader/action hierarchy", "Concise explanation disclosure", "Feed/reader tests and evidence"],
+      "implementation_notes": [
+        "Keep complete refresh outcomes recoverable and accessible, but collapse completed details behind a compact status/disclosure.",
+        "Bind every cursor to the successful applied filter snapshot and retain server-authoritative filter persistence/restart behavior.",
+        "Use source, publication time, title, excerpt, primary read/open action, and subordinate library actions in a consistent card hierarchy.",
+        "Render backend reason codes as concise truthful bullets. Hide raw contribution numbers by default; any debug values require a labeled advanced disclosure.",
+        "Preserve metadata-only/full-content behavior, outbound publisher clarity, mutation invalidation, stale/retry states, and route/unmount race protections."
+      ],
+      "acceptance_criteria": [
+        "Refresh is a clear action near the feed heading; terminal success is compact and partial failure offers accessible details without dominating the page.",
+        "Filters form one coherent responsive bar/panel, More filters contains date/hidden options, and Clear filters appears only when active.",
+        "Articles are visually distinct keyboard-accessible cards with obvious story hierarchy and secondary actions that do not overpower reading.",
+        "Default explanations show human-readable production reasons and no long raw floating-point contribution values.",
+        "Server order, cursor stability, filter persistence, library invalidation, permission-aware reader behavior, and publisher fallback remain correct.",
+        "Initial, stale/retry, empty, loading-more, refresh-running/partial, and API-unavailable states remain distinct and accessible."
+      ],
+      "verification": [
+        "Add component tests for compact refresh outcomes/details, filter active state/reflow, article actions, explanation disclosure, reason mapping, and hidden raw scores.",
+        "Retain and extend deferred-request tests for cursor/filter generations, route changes, mutation uncertainty, and component disposal.",
+        "Run real-process refresh-to-feed, explanation, reader/link-out, read/save/hide, API interruption, filter restart, and recovery coverage.",
+        "Capture desktop/narrow feed, expanded explanation, reader, empty/error, and partial-refresh evidence with keyboard/a11y checks."
+      ],
+      "proof_required": ["Feed/reader screenshots", "Component and race test output", "Real-process trace", "Accessibility and raw-score-absence assertions"],
+      "edge_cases": ["Long Hungarian title", "Missing publication time", "Unknown reason code", "Many filters", "Partial refresh", "Status lookup unavailable", "Metadata-only empty content", "Mutation settles after navigation"],
+      "non_goals": ["Client-side reranking", "Generated summaries", "Showing debug floats by default", "Bypassing publisher permissions"],
+      "estimated_size": "M",
+      "risk_tags": ["core-workflow", "pagination", "async-state", "content-permission", "accessibility"],
+      "handoff_notes": "Consume UX-001 primitives. Do not broaden shared global styling or change backend reason/score semantics in this task."
+    },
+    {
+      "id": "UX-004",
+      "title": "Redesign Sources and Library workflows",
+      "summary": "Apply the shared consumer design language to source configuration, manual refresh context, library views, forms, validation, empty states, and reversible actions.",
+      "objective": "Make source identity, enabled/permission/policy state, expected custom values, and saved/read/hidden library workflows easy to scan and operate.",
+      "context": "Source permissions, credentials, scraper policy, refresh outcomes, and library authority are already accepted and must not be weakened for visual convenience.",
+      "owner_role": "frontend-implementer",
+      "lane": "frontend-sources-library",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "Consumer UX overhaul",
+      "allowed_areas": [
+        "web/src/features/sources/**",
+        "web/src/features/library/**",
+        "web/src/components/shared/CredentialInput.vue",
+        "web/src/components/shared/PermissionBadge.vue",
+        "web/tests/**",
+        "tests/e2e/**"
+      ],
+      "depends_on": ["UX-001"],
+      "inputs": ["Accepted shared UX primitives", "Source/starter/credential/refresh APIs", "Feed/library APIs", "Scraper and content-permission policy"],
+      "outputs": ["Scannable configured/starter source UI", "Plain-language source form/help", "Compact refresh context", "Consistent Library views/cards/actions", "Source/Library tests and evidence"],
+      "implementation_notes": [
+        "Use clear source names, kinds, enabled states, permission modes, credential configured state, and scraper-policy status without exposing secrets or unnecessary protocol jargon.",
+        "Provide realistic URL/config examples and explain feed/API/content permission choices in plain language while preserving every authoritative validation.",
+        "Keep credential input write-only and clear it on all accepted lifecycle paths.",
+        "Use the same article cards/action hierarchy for Saved, Read, Unread, and Hidden views; preserve independent reversible states and hidden restoration ranking semantics.",
+        "Do not duplicate full source management in Settings or make refresh state inconsistent with the feed."
+      ],
+      "acceptance_criteria": [
+        "Configured and starter sources are clearly separated and scannable, with obvious enabled, permission, adapter, credential, and policy state.",
+        "Every non-obvious source field has a useful example/helper and actionable error; a normal RSS setup does not require interpreting internal protocol models.",
+        "Credentials, metadata-only/full-content permission, approved scraper policy, and sanitized failures remain truthful and enforced.",
+        "Saved/read/unread/hidden Library views use consistent cards, empty/error states, filters, and reversible actions at desktop and narrow widths.",
+        "Source and library state remain authoritative after navigation, reload, mutation uncertainty, and full process restart."
+      ],
+      "verification": [
+        "Update component tests for starter/configured cards, each source kind, helpers/errors, credential lifecycle, permission/policy states, refresh context, Library empty/error/action states, and mutation races.",
+        "Run sentinel checks across DOM, logs, snapshots, caches, and browser storage.",
+        "Run real-process source creation/refresh and saved/read/hidden/restore flows through restart.",
+        "Capture desktop/narrow Sources and Library evidence and run keyboard/accessibility/overflow checks."
+      ],
+      "proof_required": ["Sources and Library screenshots", "Component test output", "Credential leak audit", "Restart and accessibility evidence"],
+      "edge_cases": ["No sources", "Duplicate URL", "Disabled source", "Vault unavailable", "Approved scraper fields", "No saved items", "All items hidden", "Restore fails", "Long source name/URL"],
+      "non_goals": ["Automatic source discovery", "Policy bypass", "Viewing credentials", "Folders or annotations", "Changing ingestion adapters"],
+      "estimated_size": "M",
+      "risk_tags": ["secrets", "scraping-policy", "library-state", "forms", "responsive"],
+      "handoff_notes": "Consume UX-001 primitives and coordinate refresh presentation with UX-003 without editing its feed-owned files."
+    },
+    {
+      "id": "UX-005",
+      "title": "Integrate and visually verify the complete redesigned workflow",
+      "summary": "Assemble the redesigned screens, resolve cross-screen inconsistencies, update the real-process workflow/evidence, and fix rendered desktop/narrow problems discovered outside isolated component tests.",
+      "objective": "Deliver one coherent consumer application rather than individually improved screens with inconsistent transitions or visual behavior.",
+      "context": "This sequential integration task begins only after onboarding/settings, feed/reader, and Sources/Library tasks are merged and independently approved.",
+      "owner_role": "frontend-implementer",
+      "lane": "frontend-ux-integration",
+      "repo_target": "news-aggregator",
+      "status": "ready",
+      "priority": "P0",
+      "milestone": "Consumer UX overhaul",
+      "allowed_areas": [
+        "web/src/**",
+        "web/tests/**",
+        "tests/e2e/**",
+        "test/fixtures/**",
+        "README.md"
+      ],
+      "depends_on": ["UX-002", "UX-003", "UX-004"],
+      "inputs": ["All accepted screen redesigns", "Real Go/SQLite/Vue E2E harness", "Existing VERIFY-002 evidence requirements", "Merged UX acceptance signals"],
+      "outputs": ["Cohesive cross-screen workflow", "Updated real-process E2E and evidence generation", "Desktop/narrow screenshot set", "Accessibility/storage/network/restart report", "User-facing run documentation if needed"],
+      "implementation_notes": [
+        "Inspect actual rendered output rather than trusting snapshots or tests; fix cross-screen spacing, grouping, focus, navigation, action, and responsive inconsistencies discovered during the complete workflow.",
+        "Use only fictional/permitted deterministic fixtures; do not introduce live external providers or outbound services.",
+        "Preserve API interruption/recovery, process restart, filter/profile/source/library persistence, browser-storage privacy, and loopback-only request audits.",
+        "Do not use this integration task for unrelated refactors, ranking changes, or new product features."
+      ],
+      "acceptance_criteria": [
+        "A first-time user can immediately understand interests, optional Hungary/Budapest location, secondary demographics, source selection, and one Finish setup action.",
+        "Settings, feed, reader, Sources, and Library share consistent hierarchy, spacing, surfaces, controls, actions, status, empty/error states, and responsive behavior.",
+        "Normal UI contains no unexplained raw ranking weights or long raw contribution floats.",
+        "Refresh, filters, articles, explanations, read/save/hide/restore, source configuration, and recovery are clear at desktop and approximately 390px with no horizontal overflow.",
+        "Profile, ranking configuration, sources, library state, and server-backed filters survive a real Go-process restart on the same SQLite database.",
+        "Keyboard path, automated accessibility, browser-storage audit, loopback-only request audit, content permissions, credential secrecy, and Windows build remain passing."
+      ],
+      "verification": [
+        "Run full repository verification, frontend lint/typecheck/tests/build, Go tests/race/vet, contract/drift checks, and Windows amd64 build.",
+        "Run the complete real-process E2E from empty data through setup, sources, mixed refresh, feed, explanation, reader/link-out, library actions, filters, API interruption, restart, and restored state.",
+        "Run automated accessibility at every core screen plus a meaningful keyboard-only path and narrow viewport assertions.",
+        "Audit browser storage and outbound requests and assert raw weights/long contribution floats are absent from normal UI.",
+        "Record screenshots for onboarding, Settings, feed, expanded explanation, Sources, Library, empty/error states, and narrow viewport."
+      ],
+      "proof_required": ["Full command transcript", "Real-process trace and restart transcript", "Required screenshot set", "Accessibility report", "Storage/network/privacy audit", "Windows build result"],
+      "edge_cases": ["Empty feed", "Partial refresh", "API interruption during navigation", "Long localized content", "No optional personalization", "All items hidden", "390px viewport", "Keyboard-only workflow", "Existing custom ranking configuration"],
+      "non_goals": ["Backend feature expansion", "Live provider selection", "Public release", "Accounts/sync", "Analytics", "Unrelated cleanup"],
+      "estimated_size": "M",
+      "risk_tags": ["integration", "visual-acceptance", "regression", "privacy", "accessibility"],
+      "handoff_notes": "Submit exact-revision evidence to UX-VERIFY-001. Passing automation without the complete rendered screenshot set is insufficient."
+    }
+  ]
+}
