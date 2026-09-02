@@ -3,7 +3,7 @@
   "task_id": "UX-002",
   "run_id": "UX-002-run-001",
   "actor_id": "frontend-agent",
-  "status": "review",
+  "status": "done",
   "implementation_summary": "Replaced the technical profile form with four-step onboarding, chip-based topics, a human-facing optional location adapter, collapsed additional personalization, semantic ranking styles, and Settings organized around Personalization, Ranking, and Privacy & local data.",
   "files_changed": [
     {"path": "web/src/features/setup/**, web/src/features/profile/**", "change": "Implemented approachable onboarding, interest chips, Hungary/Budapest mapping, optional demographic disclosure, source cards, finish summary, and local privacy copy."},
@@ -19,12 +19,12 @@
     {"command": "./scripts/verify.sh", "result": "passed", "output": "Repository Go/integration, migration, frontend, browser, PWA, and build verification passed."}
   ],
   "proof": [
-    {"kind": "commit", "summary": "Corrective implementation commit 674016e36cd8679da633723078072aeedad0fbef preserves independent advanced ranking enablement and supports manual entry for countries outside the suggested list.", "status": "needs_review", "recorded_at": "2026-08-26T10:15:00Z"},
-    {"kind": "screenshot", "summary": "Onboarding, Settings, and narrow evidence in web/tests/evidence plus full workflow evidence in tests/e2e/evidence.", "status": "needs_review", "recorded_at": "2026-08-26T10:00:00Z"},
-    {"kind": "manual_note", "summary": "Exact-revision restart transcript and APPROVE report preserve local storage and loopback request audits.", "status": "needs_review", "recorded_at": "2026-08-26T10:00:00Z"}
+    {"kind": "commit", "summary": "Corrective implementation commit 674016e36cd8679da633723078072aeedad0fbef preserves independent advanced ranking enablement and supports manual entry for countries outside the suggested list; accepted and merged through PR #59 as 62bc7a77a13a8f5eddcbf69ce98e3f27cff0064a.", "status": "accepted", "recorded_at": "2026-09-02T19:48:36Z"},
+    {"kind": "screenshot", "summary": "Onboarding, Settings, and narrow evidence in web/tests/evidence plus full workflow evidence in tests/e2e/evidence.", "status": "accepted", "recorded_at": "2026-09-02T19:48:36Z"},
+    {"kind": "manual_note", "summary": "Exact-revision restart transcript and APPROVE report preserve local storage and loopback request audits.", "status": "accepted", "recorded_at": "2026-09-02T19:48:36Z"}
   ],
   "blockers": [],
-  "notes": "No backend/API/domain change was necessary. Existing weighted interests, custom ranking values and enablement, caps, profile/source persistence, and privacy boundaries remain compatible. The reviewer findings on custom enablement and unrestricted country entry are corrected at 674016e36cd8679da633723078072aeedad0fbef. Independent approval is still required.",
+  "notes": "No backend/API/domain change was necessary. Existing weighted interests, custom ranking values and enablement, caps, profile/source persistence, and privacy boundaries remain compatible. The reviewer findings on custom enablement and unrestricted country entry were corrected at 674016e36cd8679da633723078072aeedad0fbef. The project owner explicitly reported acceptance and merge of PR #59; no native GitHub review submission is claimed.",
   "submitted_at": "2026-08-26T10:00:00Z",
-  "updated_at": "2026-08-26T10:15:00Z"
+  "updated_at": "2026-09-02T19:48:36Z"
 }

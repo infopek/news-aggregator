@@ -1,0 +1,31 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "UX-003",
+  "run_id": "UX-003-run-001",
+  "actor_id": "frontend-agent",
+  "status": "review",
+  "implementation_summary": "Redesigned the ranked feed and reader around a quiet consumer-news hierarchy: compact refresh feedback, grouped responsive filters, complete article cards, subordinate library actions, permission-aware reading, and progressive backend-driven ranking explanations with precise values hidden behind technical disclosure.",
+  "files_changed": [
+    {"path": "web/src/features/feed/**", "change": "Reorganized the feed header, persisted filters, stale/loading/empty/error states, article actions, pagination, and card composition without changing server-owned query or mutation behavior."},
+    {"path": "web/src/features/refresh/**, web/src/components/shared/RefreshStatus.vue", "change": "Made refresh initiation and terminal results compact while retaining recoverable per-source counts, failures, uncertainty, and retry behavior."},
+    {"path": "web/src/features/reader/**, web/src/components/shared/ArticleSummaryCard.vue", "change": "Established clear story metadata, title, excerpt, reading action, permission fallback, and responsive reader hierarchy."},
+    {"path": "web/src/components/shared/RankingExplanation.vue", "change": "Rendered concise production reason text by default and moved exact contribution values behind nested technical disclosure."},
+    {"path": "web/tests/**, tests/e2e/**", "change": "Updated component, async race, browser, narrow, accessibility, raw-score, partial-refresh, real-process, restart, and privacy evidence."}
+  ],
+  "verification": [
+    {"command": "npm run lint && npm run typecheck", "result": "passed", "output": "Frontend lint and TypeScript checks passed."},
+    {"command": "npm run test:unit", "result": "passed", "output": "21 files and 153 tests passed, including persisted include-hidden restoration/clearing, filter grouping, conditional clear, hidden raw scores, refresh outcomes, pagination generations, mutation uncertainty, route changes, and accessibility."},
+    {"command": "node tests/browser-proof.mjs", "result": "passed", "output": "Desktop and 390px feed/reader flows, expanded explanation, partial refresh details, keyboard navigation, screenshots, privacy, and no-overflow assertions passed."},
+    {"command": "node tests/e2e/verify-daily-workflow.mjs", "result": "passed", "output": "VERIFY-002 APPROVED corrective implementation 7440b81dec719316c82fc4a322caedc0bb2a8787 against real Go/SQLite/Vue with include-hidden and other feed filters retained across a full process restart."},
+    {"command": "./scripts/verify.sh", "result": "passed", "output": "Repository Go/integration, migration, frontend, browser, PWA, and build verification passed."}
+  ],
+  "proof": [
+    {"kind": "commit", "summary": "Corrective implementation commit 7440b81dec719316c82fc4a322caedc0bb2a8787 restores the accepted include-hidden control and authoritative persistence path.", "status": "needs_review", "recorded_at": "2026-09-02T20:25:00Z"},
+    {"kind": "screenshot", "summary": "Updated desktop feed, expanded explanation, partial refresh, reader, empty/error, narrow reader/feed, and primitive evidence under web/tests/evidence and tests/e2e/evidence.", "status": "needs_review", "recorded_at": "2026-09-02T20:10:00Z"},
+    {"kind": "manual_note", "summary": "Exact-revision report includes accessibility, restart persistence, loopback-only requests, and browser-storage audit.", "status": "needs_review", "recorded_at": "2026-09-02T20:10:00Z"}
+  ],
+  "blockers": [],
+  "notes": "No API, backend ranking, permission, persistence, or shared global-style contract changed. Exact contribution values remain available only through an explicitly labeled Technical details disclosure. The include-hidden review finding is corrected at 7440b81dec719316c82fc4a322caedc0bb2a8787. Independent approval is required.",
+  "submitted_at": "2026-09-02T20:10:00Z",
+  "updated_at": "2026-09-02T20:25:00Z"
+}
