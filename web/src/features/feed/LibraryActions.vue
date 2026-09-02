@@ -7,11 +7,12 @@ defineEmits<{ mutate: [LibraryStateWrite] }>()
 </script>
 <template>
   <div
-    class="actions"
+    class="article-actions"
     aria-label="Article actions"
   >
     <button
       type="button"
+      class="tertiary"
       :disabled="busy"
       @click="$emit('mutate', { read: !article.library.readAt })"
     >
@@ -19,6 +20,7 @@ defineEmits<{ mutate: [LibraryStateWrite] }>()
     </button>
     <button
       type="button"
+      class="tertiary"
       :disabled="busy"
       @click="$emit('mutate', { saved: !article.library.savedAt })"
     >
@@ -26,6 +28,7 @@ defineEmits<{ mutate: [LibraryStateWrite] }>()
     </button>
     <button
       type="button"
+      class="tertiary article-actions__hide"
       :disabled="busy"
       @click="$emit('mutate', { hidden: true })"
     >
@@ -37,3 +40,9 @@ defineEmits<{ mutate: [LibraryStateWrite] }>()
     />
   </div>
 </template>
+<style scoped>
+.article-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-1); }
+.article-actions button { min-height: 2.5rem; padding-inline: .7rem; }
+.article-actions__hide { color: var(--color-muted); }
+@media (max-width: 34rem) { .article-actions { justify-content: flex-start; } .article-actions button { flex: 1 1 auto; } }
+</style>

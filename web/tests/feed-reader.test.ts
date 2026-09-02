@@ -28,6 +28,16 @@ function fakeApi(detail?: ArticleDetail) {
 beforeEach(() => localStorage.clear())
 
 describe('ranked feed', () => {
+  it('groups primary filters, keeps dates in More filters, and only offers clear when active', async () => {
+    const wrapper = mount(RankedFeed, { props: { serverApi: fakeApi() } }); await flushPromises()
+    expect(wrapper.get('form[aria-label="Filter ranked stories"]').exists()).toBe(true)
+    expect(wrapper.get('.more-filters').attributes('open')).toBeUndefined()
+    expect(wrapper.findAll('button').some(item => item.text() === 'Clear filters')).toBe(false)
+    await wrapper.get('#read-filter').setValue('unread')
+    expect(wrapper.findAll('button').some(item => item.text() === 'Clear filters')).toBe(true)
+    wrapper.unmount()
+  })
+
   it('restores and persists authoritative filter state', async()=>{
     const api=fakeApi();vi.mocked(api.feedFilter).mockResolvedValueOnce({sourceId:'opaque-source',read:'unread',savedOnly:true,includeHidden:false,searchQuery:'science',updatedAt:'2026-08-14T10:00:00Z'})
     const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();expect((wrapper.get('#source-filter').element as HTMLSelectElement).value).toBe('opaque-source');expect((wrapper.get('#read-filter').element as HTMLSelectElement).value).toBe('unread');expect((wrapper.get('#saved-filter').element as HTMLSelectElement).value).toBe('saved');expect((wrapper.get('input[maxlength="200"]').element as HTMLInputElement).value).toBe('science');expect(api.feed).toHaveBeenCalledWith(expect.objectContaining({sourceId:['opaque-source'],read:false,saved:true,text:'science'}),expect.any(AbortSignal));expect(api.updateFeedFilter).not.toHaveBeenCalled();wrapper.unmount()
@@ -35,11 +45,11 @@ describe('ranked feed', () => {
   it('preserves server order, explanations, source metadata, filters, and pagination', async () => {
     const api = fakeApi(), wrapper = mount(RankedFeed, { props: { serverApi: api }, attachTo: document.body }); await flushPromises()
     expect(wrapper.findAll('.ranked-list>li').map((item) => item.text())).toEqual([expect.stringContaining('Top ranked story'), expect.stringContaining('Second story')])
-    expect(wrapper.text()).toContain('Science Wire'); expect(wrapper.text()).toContain('Matches an explicit interest')
+    expect(wrapper.text()).toContain('Science Wire'); expect(wrapper.text()).toContain('Matches one of your interests')
     await wrapper.get('#source-filter').setValue('opaque-source'); await wrapper.get('#read-filter').setValue('unread'); await wrapper.get('input[type=search], input[maxlength="200"]').setValue('science')
     await wrapper.get('.feed-filters').trigger('submit'); await flushPromises()
     expect(api.feed).toHaveBeenLastCalledWith(expect.objectContaining({ sourceId: ['opaque-source'], read: false, text: 'science' }), expect.any(AbortSignal))
-    await wrapper.findAll('button').find((item) => item.text() === 'Load more')!.trigger('click'); await flushPromises(); expect(wrapper.findAll('.ranked-list>li')).toHaveLength(3)
+    await wrapper.findAll('button').find((item) => item.text() === 'Load more stories')!.trigger('click'); await flushPromises(); expect(wrapper.findAll('.ranked-list>li')).toHaveLength(3)
     expect((await axe.run(wrapper.element)).violations).toEqual([]); wrapper.unmount()
   })
 
@@ -53,8 +63,8 @@ describe('ranked feed', () => {
 
   it('reloads authoritative order after a terminal refresh', async () => {
     const api = fakeApi(), wrapper = mount(RankedFeed, { props: { serverApi: api } }); await flushPromises()
-    await wrapper.findAll('button').find((item) => item.text().includes('Refresh all'))!.trigger('click'); await flushPromises()
-    expect(api.startRefresh).toHaveBeenCalledOnce(); expect(api.feed).toHaveBeenCalledTimes(2); expect(wrapper.text()).toContain('some source failures')
+    await wrapper.findAll('button').find((item) => item.text() === 'Refresh news')!.trigger('click'); await flushPromises()
+    expect(api.startRefresh).toHaveBeenCalledOnce(); expect(api.feed).toHaveBeenCalledTimes(2); expect(wrapper.text()).toContain('some source issues')
     wrapper.unmount()
   })
 
@@ -63,7 +73,7 @@ describe('ranked feed', () => {
     vi.mocked(api.feed).mockImplementation(async (query) => query.cursor ? new Promise(resolve => { releasePage = resolve }) : { items: [article(query.sourceId?.[0] === 'opaque-source' ? 'filtered' : 'initial', .9)], nextCursor: 'cursor' })
     const wrapper = mount(RankedFeed, { props: { serverApi: api } }); await flushPromises()
     await wrapper.get('#source-filter').setValue('opaque-source')
-    await wrapper.findAll('button').find((item) => item.text() === 'Load more')!.trigger('click'); await flushPromises()
+    await wrapper.findAll('button').find((item) => item.text() === 'Load more stories')!.trigger('click'); await flushPromises()
     expect(api.feed).toHaveBeenLastCalledWith(expect.objectContaining({ cursor: 'cursor', sourceId: undefined }), expect.any(AbortSignal))
     await wrapper.get('.feed-filters').trigger('submit'); await flushPromises()
     releasePage({ items: [article('obsolete', .5)], nextCursor: null }); await flushPromises()
@@ -74,14 +84,14 @@ describe('ranked feed', () => {
   it('withholds the old cursor while a replacement filter query is pending', async () => {
     const api=fakeApi();let resolveFiltered!:(page:FeedPage)=>void
     vi.mocked(api.feed).mockResolvedValueOnce({items:[article('initial',.9)],nextCursor:'cursor-a'}).mockImplementationOnce(async()=>new Promise(resolve=>{resolveFiltered=resolve})).mockResolvedValueOnce({items:[article('page-b',.6)],nextCursor:null})
-    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.get('#source-filter').setValue('opaque-source');await wrapper.get('.feed-filters').trigger('submit');await flushPromises();expect(wrapper.findAll('button').some(item=>item.text()==='Load more')).toBe(false);expect(api.feed).toHaveBeenCalledTimes(2)
-    resolveFiltered({items:[article('filtered',.8)],nextCursor:'cursor-b'});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Load more')!.trigger('click');await flushPromises();expect(api.feed).toHaveBeenLastCalledWith(expect.objectContaining({cursor:'cursor-b',sourceId:['opaque-source']}),expect.any(AbortSignal));expect(wrapper.text()).toContain('page-b');wrapper.unmount()
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.get('#source-filter').setValue('opaque-source');await wrapper.get('.feed-filters').trigger('submit');await flushPromises();expect(wrapper.findAll('button').some(item=>item.text()==='Load more stories')).toBe(false);expect(api.feed).toHaveBeenCalledTimes(2)
+    resolveFiltered({items:[article('filtered',.8)],nextCursor:'cursor-b'});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Load more stories')!.trigger('click');await flushPromises();expect(api.feed).toHaveBeenLastCalledWith(expect.objectContaining({cursor:'cursor-b',sourceId:['opaque-source']}),expect.any(AbortSignal));expect(wrapper.text()).toContain('page-b');wrapper.unmount()
   })
 
   it('does not retain an old cursor when a replacement filter query fails', async () => {
     const api=fakeApi(),unavailable=new ApiRequestError(503,{code:'unavailable',message:'Down',correlationId:'safe',fields:[]})
     vi.mocked(api.feed).mockResolvedValueOnce({items:[article('initial',.9)],nextCursor:'cursor-a'}).mockRejectedValueOnce(unavailable)
-    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.get('#source-filter').setValue('opaque-source');await wrapper.get('.feed-filters').trigger('submit');await flushPromises();expect(wrapper.findAll('button').some(item=>item.text()==='Load more')).toBe(false);expect(wrapper.text()).not.toContain('may be stale');expect(api.feed).toHaveBeenCalledTimes(2);wrapper.unmount()
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.get('#source-filter').setValue('opaque-source');await wrapper.get('.feed-filters').trigger('submit');await flushPromises();expect(wrapper.findAll('button').some(item=>item.text()==='Load more stories')).toBe(false);expect(wrapper.text()).not.toContain('may be stale');expect(api.feed).toHaveBeenCalledTimes(2);wrapper.unmount()
   })
 
   it.each([['saved', 'Unsave'], ['unread', 'Mark read']] as const)('removes mutations that no longer match %s filter', async (filter, action) => {
@@ -96,16 +106,16 @@ describe('ranked feed', () => {
   it('clears cancelled page loading and permits pagination for the new query', async () => {
     const api=fakeApi();let release!: (page:FeedPage)=>void
     vi.mocked(api.feed).mockImplementation(async query=>query.cursor?new Promise(resolve=>{release=resolve}):{items:[article('current',.8)],nextCursor:'new-cursor'})
-    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Load more')!.trigger('click');await wrapper.get('#source-filter').setValue('opaque-source');await wrapper.get('.feed-filters').trigger('submit');await flushPromises()
-    expect(wrapper.findAll('button').find(item=>item.text()==='Load more')!.attributes('disabled')).toBeUndefined();release({items:[],nextCursor:null});wrapper.unmount()
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Load more stories')!.trigger('click');await wrapper.get('#source-filter').setValue('opaque-source');await wrapper.get('.feed-filters').trigger('submit');await flushPromises()
+    expect(wrapper.findAll('button').find(item=>item.text()==='Load more stories')!.attributes('disabled')).toBeUndefined();release({items:[],nextCursor:null});wrapper.unmount()
   })
 
   it('shows one query error and clears a pagination error after retry', async () => {
     const unavailable=new ApiRequestError(503,{code:'unavailable',message:'Down',correlationId:'safe',fields:[]}), api=fakeApi();vi.mocked(api.feed).mockRejectedValueOnce(unavailable)
     const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();expect(wrapper.findAll('[role=alert]')).toHaveLength(1)
     vi.mocked(api.feed).mockResolvedValueOnce({items:[article('current',.8)],nextCursor:'cursor'});await wrapper.findAll('button').find(item=>item.text()==='Try again')!.trigger('click');await flushPromises()
-    vi.mocked(api.feed).mockRejectedValueOnce(unavailable);await wrapper.findAll('button').find(item=>item.text()==='Load more')!.trigger('click');await flushPromises();expect(wrapper.findAll('[role=alert]')).toHaveLength(1)
-    vi.mocked(api.feed).mockResolvedValueOnce({items:[article('next-page',.7)],nextCursor:null});await wrapper.findAll('button').find(item=>item.text()==='Load more')!.trigger('click');await flushPromises();expect(wrapper.findAll('[role=alert]')).toHaveLength(0);expect(wrapper.text()).toContain('next-page');wrapper.unmount()
+    vi.mocked(api.feed).mockRejectedValueOnce(unavailable);await wrapper.findAll('button').find(item=>item.text()==='Load more stories')!.trigger('click');await flushPromises();expect(wrapper.findAll('[role=alert]')).toHaveLength(1)
+    vi.mocked(api.feed).mockResolvedValueOnce({items:[article('next-page',.7)],nextCursor:null});await wrapper.findAll('button').find(item=>item.text()==='Load more stories')!.trigger('click');await flushPromises();expect(wrapper.findAll('[role=alert]')).toHaveLength(0);expect(wrapper.text()).toContain('next-page');wrapper.unmount()
   })
 
   it('refreshes server order and explanations after an inline mutation', async () => {
@@ -134,9 +144,9 @@ describe('ranked feed', () => {
   it('retains prior articles as stale when revalidation fails and retries them', async () => {
     const unavailable=new ApiRequestError(503,{code:'unavailable',message:'Down',correlationId:'safe',fields:[]}),api=fakeApi()
     vi.mocked(api.feed).mockResolvedValueOnce({items:[article('article-a',.9)],nextCursor:null}).mockRejectedValueOnce(unavailable).mockResolvedValueOnce({items:[article('article-b',.8)],nextCursor:null})
-    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text().includes('Refresh all'))!.trigger('click');await flushPromises()
-    expect(wrapper.text()).toContain('Top ranked story');expect(wrapper.text()).toContain('may be stale')
-    await wrapper.findAll('button').find(item=>item.text()==='Retry update')!.trigger('click');await flushPromises();expect(wrapper.text()).toContain('Second story');expect(wrapper.text()).not.toContain('may be stale');wrapper.unmount()
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Refresh news')!.trigger('click');await flushPromises()
+    expect(wrapper.text()).toContain('Top ranked story');expect(wrapper.text()).toContain('Showing your last results')
+    await wrapper.findAll('button').find(item=>item.text()==='Retry update')!.trigger('click');await flushPromises();expect(wrapper.text()).toContain('Second story');expect(wrapper.text()).not.toContain('Showing your last results');wrapper.unmount()
   })
 
   it.each([
@@ -144,8 +154,8 @@ describe('ranked feed', () => {
     ['missing', new ApiRequestError(404,{code:'not_found',message:'Missing',correlationId:'safe',fields:[]})]
   ])('stops claiming refresh is running when status is %s', async (_case, failure) => {
     const api=fakeApi();vi.mocked(api.refresh).mockRejectedValueOnce(failure)
-    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text().includes('Refresh all'))!.trigger('click');await flushPromises()
-    expect(wrapper.text()).not.toContain('Refresh is running.');expect(wrapper.text()).toContain('Refresh status is unavailable.');expect(wrapper.text()).toContain('may be stale');wrapper.unmount()
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();await wrapper.findAll('button').find(item=>item.text()==='Refresh news')!.trigger('click');await flushPromises()
+    expect(wrapper.text()).not.toContain('Refresh is running.');expect(wrapper.text()).toContain('Refresh status unavailable');expect(wrapper.text()).toContain('may be out of date');wrapper.unmount()
   })
 
   it('does not query the feed after a pending mutation settles post-unmount', async () => {
@@ -167,7 +177,7 @@ describe('ranked feed', () => {
 describe('permission-aware reader', () => {
   it('never renders metadata-only body and provides the canonical publisher link', async () => {
     const wrapper = mount(ArticleReader, { props: { articleId: 'article-a', serverApi: fakeApi() }, attachTo: document.body }); await flushPromises()
-    expect(wrapper.text()).toContain('body is not stored or displayed'); expect(wrapper.get('a[href="https://publisher.example/article-a"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('full text is not stored'); expect(wrapper.get('a[href="https://publisher.example/article-a"]').exists()).toBe(true)
     expect((await axe.run(wrapper.element)).violations).toEqual([]); wrapper.unmount()
   })
 
@@ -192,7 +202,7 @@ describe('permission-aware reader', () => {
   it('reloads the reader ranking explanation after a library mutation', async () => {
     const api=fakeApi(), changed={...article('article-a',.6),library:{...library,readAt:'2026-08-14T11:00:00Z'},ranking:{...article('article-a',.6).ranking,contributions:[]}}
     vi.mocked(api.article).mockResolvedValueOnce({article:article('article-a',.9),fullContent:null}).mockResolvedValueOnce({article:changed,fullContent:null})
-    const wrapper=mount(ArticleReader,{props:{articleId:'article-a',serverApi:api}});await flushPromises();expect(wrapper.text()).toContain('Matches an explicit interest');await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');await flushPromises();expect(wrapper.text()).toContain('Mark unread');expect(wrapper.text()).toContain('No ranking explanation');expect(api.article).toHaveBeenCalledTimes(2);wrapper.unmount()
+    const wrapper=mount(ArticleReader,{props:{articleId:'article-a',serverApi:api}});await flushPromises();expect(wrapper.text()).toContain('Matches one of your interests');await wrapper.findAll('button').find(item=>item.text()==='Mark read')!.trigger('click');await flushPromises();expect(wrapper.text()).toContain('Mark unread');expect(wrapper.text()).toContain('No ranking explanation');expect(api.article).toHaveBeenCalledTimes(2);wrapper.unmount()
   })
 
   it('does not apply an article mutation after navigating to another article', async () => {

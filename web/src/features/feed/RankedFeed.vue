@@ -7,6 +7,8 @@ import type { ArticleSummary, FeedQuery, LibraryStateWrite, Source } from '../..
 import ArticleSummaryCard from '../../components/shared/ArticleSummaryCard.vue'
 import RankingExplanation from '../../components/shared/RankingExplanation.vue'
 import FilterControl from '../../components/shared/FilterControl.vue'
+import EmptyState from '../../components/shared/EmptyState.vue'
+import StatusBanner from '../../components/shared/StatusBanner.vue'
 import AppLink from '../../router/AppLink.vue'
 import { toUserSafeError } from '../../state/errors'
 import { ServerMutations } from '../../state/mutations'
@@ -29,6 +31,7 @@ let generation = 0, loadController: AbortController | undefined, pageController:
 let unsubscribeInvalidation: (()=>void) | undefined
 const refreshState = ref<'idle'|'running'|'uncertain'>('idle')
 const sourceNames = computed(() => Object.fromEntries(sources.value.map((item) => [item.id, item.name])))
+const filtersActive = computed(() => Boolean(source.value || read.value !== 'all' || saved.value !== 'all' || text.value.trim() || after.value || before.value))
 onMounted(() => {unsubscribeInvalidation=subscribeLibraryInvalidation(()=>{void load(false)});void restoreAndLoad()}); onBeforeUnmount(() => { mounted=false;++generation;unsubscribeInvalidation?.();loadController?.abort();pageController?.abort() })
 async function restoreAndLoad() {
   try {
@@ -67,108 +70,184 @@ async function refreshed(){refreshState.value='idle';await load(false)}
 function clear(){source.value='';read.value='all';saved.value='all';text.value='';after.value='';before.value='';void load()}
 </script>
 <template>
-  <section aria-labelledby="feed-title">
-    <p class="eyebrow">
-      Relevant first
-    </p><h1
-      id="feed-title"
-      tabindex="-1"
-    >
-      Ranked feed
-    </h1><p>Order and explanations come from your local ranking service.</p>
-    <p
+  <section
+    class="feed-page"
+    aria-labelledby="feed-title"
+  >
+    <header class="feed-header">
+      <div class="feed-heading">
+        <p class="eyebrow">
+          Your local news
+        </p>
+        <h1
+          id="feed-title"
+          tabindex="-1"
+        >
+          Ranked feed
+        </h1>
+        <p>Stories ordered using your preferences on this computer.</p>
+      </div>
+      <RefreshControl
+        :server="server"
+        :source-names="sourceNames"
+        compact
+        @started="refreshState='running'"
+        @completed="refreshed"
+        @stopped="refreshState='uncertain'"
+      />
+    </header>
+
+    <StatusBanner
       v-if="refreshState==='running'"
-      role="status"
+      title="Refreshing your sources"
+      live
     >
-      Refresh is running. Current articles may be stale until it completes.
-    </p>
-    <p
+      Current stories remain available while new articles are checked.
+    </StatusBanner>
+    <StatusBanner
       v-else-if="refreshState==='uncertain'"
-      role="status"
+      title="Refresh status unavailable"
+      tone="warning"
+      live
     >
-      Refresh status is unavailable. Current articles may be stale; retry the saved status below or start a new refresh.
-    </p>
-    <RefreshControl
-      :server="server"
-      :source-names="sourceNames"
-      @started="refreshState='running'"
-      @completed="refreshed"
-      @stopped="refreshState='uncertain'"
-    />
+      Current stories may be out of date. Retry the saved refresh status or start a new refresh.
+    </StatusBanner>
+
     <form
       class="feed-filters"
+      aria-label="Filter ranked stories"
       @submit.prevent="load()"
     >
-      <FilterControl
-        id="source-filter"
-        v-model="source"
-        label="Source"
-        :options="[{value:'',label:'All sources'},...sources.map(item=>({value:item.id,label:item.name}))]"
-      /><FilterControl
-        id="read-filter"
-        v-model="read"
-        label="Read state"
-        :options="[{value:'all',label:'All'},{value:'unread',label:'Unread'},{value:'read',label:'Read'}]"
-      /><FilterControl
-        id="saved-filter"
-        v-model="saved"
-        label="Saved state"
-        :options="[{value:'all',label:'All'},{value:'saved',label:'Saved only'}]"
-      /><label>Search <input
-        v-model="text"
-        maxlength="200"
-      ></label><label>Published after <input
-        v-model="after"
-        type="date"
-      ></label><label>Published before <input
-        v-model="before"
-        type="date"
-      ></label><button type="submit">
-        Apply filters
-      </button><button
-        type="button"
-        @click="clear"
+      <div class="feed-filters__main">
+        <FilterControl
+          id="source-filter"
+          v-model="source"
+          label="Source"
+          :options="[{value:'',label:'All sources'},...sources.map(item=>({value:item.id,label:item.name}))]"
+        />
+        <FilterControl
+          id="read-filter"
+          v-model="read"
+          label="Reading status"
+          :options="[{value:'all',label:'All stories'},{value:'unread',label:'Unread'},{value:'read',label:'Read'}]"
+        />
+        <FilterControl
+          id="saved-filter"
+          v-model="saved"
+          label="Saved"
+          :options="[{value:'all',label:'All stories'},{value:'saved',label:'Saved only'}]"
+        />
+        <label
+          class="feed-search"
+          for="feed-search"
+        >Search stories<input
+          id="feed-search"
+          v-model="text"
+          type="search"
+          maxlength="200"
+          placeholder="Topics, titles, or keywords…"
+        ></label>
+      </div>
+      <details
+        class="more-filters"
+        :open="Boolean(after || before)"
       >
-        Clear filters
-      </button>
+        <summary>More filters</summary>
+        <div class="more-filters__fields">
+          <label for="published-after">Published after<input
+            id="published-after"
+            v-model="after"
+            type="date"
+          ></label>
+          <label for="published-before">Published before<input
+            id="published-before"
+            v-model="before"
+            type="date"
+          ></label>
+        </div>
+      </details>
+      <div class="feed-filters__actions">
+        <button type="submit">
+          Apply filters
+        </button>
+        <button
+          v-if="filtersActive"
+          type="button"
+          class="tertiary"
+          @click="clear"
+        >
+          Clear filters
+        </button>
+      </div>
     </form>
+
     <p
       v-if="revalidating"
+      class="feed-update"
       role="status"
     >
-      Updating ranked articles… Current results remain visible.
+      Updating ranked stories… Current results remain visible.
     </p>
-    <div
+    <StatusBanner
       v-if="stale"
-      role="alert"
+      title="Showing your last results"
+      tone="warning"
     >
-      <p>These articles may be stale. {{ queryError }}</p><button
-        type="button"
-        @click="load(false)"
-      >
-        Retry update
-      </button>
-    </div>
-    <p
+      {{ queryError }}
+      <template #actions>
+        <button
+          type="button"
+          class="secondary"
+          @click="load(false)"
+        >
+          Retry update
+        </button>
+      </template>
+    </StatusBanner>
+    <div
       v-if="state==='loading'"
+      class="feed-loading"
       role="status"
     >
-      Loading ranked articles…
-    </p><div
-      v-else-if="state==='error'"
-      role="alert"
-    >
-      <p>{{ queryError }}</p><button
-        type="button"
-        @click="load()"
-      >
-        Try again
-      </button>
-    </div><div v-else-if="state==='empty'">
-      <p>No articles match these filters.</p><AppLink to="/sources">
-        Manage sources or refresh news
-      </AppLink>
+      Loading ranked stories…
     </div>
+    <StatusBanner
+      v-else-if="state==='error'"
+      title="The ranked feed is unavailable"
+      tone="danger"
+    >
+      {{ queryError }}
+      <template #actions>
+        <button
+          type="button"
+          class="secondary"
+          @click="load()"
+        >
+          Try again
+        </button>
+      </template>
+    </StatusBanner>
+    <EmptyState
+      v-else-if="state==='empty'"
+      title="No stories found"
+      :description="filtersActive ? 'No stories match these filters. Try clearing one or more filters.' : 'Add or refresh a source to bring stories into your feed.'"
+    >
+      <div class="actions">
+        <button
+          v-if="filtersActive"
+          type="button"
+          class="secondary"
+          @click="clear"
+        >
+          Clear filters
+        </button><AppLink
+          class="button-link"
+          to="/sources"
+        >
+          Manage sources
+        </AppLink>
+      </div>
+    </EmptyState>
     <ol
       v-else
       class="ranked-list"
@@ -181,34 +260,61 @@ function clear(){source.value='';read.value='all';saved.value='all';text.value='
           :article="article"
           :source-name="sourceNames[article.sourceId] ?? 'Unknown source'"
           heading-level="h2"
-        /><p v-if="article.publishedAt">
-          Published {{ new Date(article.publishedAt).toLocaleString() }}
-        </p><RankingExplanation
-          :contributions="article.ranking.contributions"
-          heading-level="h3"
-        /><AppLink :to="`/articles/${encodeURIComponent(article.id)}`">
-          Open reader
-        </AppLink><LibraryActions
-          :article="article"
-          :busy="actionBusy[article.id]"
-          :message="actionMessages[article.id]"
-          @mutate="mutate(article,$event)"
-        />
+          :reader-to="`/articles/${encodeURIComponent(article.id)}`"
+        >
+          <template #explanation>
+            <RankingExplanation :contributions="article.ranking.contributions" />
+          </template>
+          <template #actions>
+            <LibraryActions
+              :article="article"
+              :busy="actionBusy[article.id]"
+              :message="actionMessages[article.id]"
+              @mutate="mutate(article,$event)"
+            />
+          </template>
+        </ArticleSummaryCard>
       </li>
     </ol>
-    <p
+    <StatusBanner
       v-if="pageError"
-      role="alert"
+      title="Could not load more stories"
+      tone="danger"
     >
       {{ pageError }}
-    </p><button
+    </StatusBanner>
+    <div
       v-if="cursor"
-      type="button"
-      :disabled="loadingMore || paginationBlocked"
-      @click="more"
+      class="load-more"
     >
-      {{ loadingMore ? 'Loading more…' : 'Load more' }}
-    </button>
+      <button
+        type="button"
+        class="secondary"
+        :disabled="loadingMore || paginationBlocked"
+        @click="more"
+      >
+        {{ loadingMore ? 'Loading more…' : 'Load more stories' }}
+      </button>
+    </div>
   </section>
 </template>
-<style scoped>.feed-filters{display:flex;flex-wrap:wrap;gap:1rem;align-items:end}.feed-filters label{display:grid}.ranked-list{padding:0;list-style:none}.ranked-list>li{border-block-end:1px solid var(--border,#777);padding-block:1rem}</style>
+<style scoped>
+.feed-page { display: grid; gap: var(--space-5); }
+.feed-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-6); }
+.feed-heading { display: grid; gap: var(--space-2); }
+.feed-heading > p:last-child { color: var(--color-muted); font-size: 1.02rem; }
+.feed-filters { display: grid; gap: var(--space-4); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface-soft); }
+.feed-filters__main { display: grid; grid-template-columns: repeat(3, minmax(9rem, .7fr)) minmax(15rem, 1.6fr); gap: var(--space-3); align-items: end; }
+.feed-search, .more-filters label { display: grid; gap: var(--space-1); color: var(--color-ink); font-weight: 720; }
+.feed-search input, .more-filters input { width: 100%; min-height: var(--control-height); padding: .65rem .75rem; border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-ink); }
+.more-filters { border-top: 1px solid var(--color-border); padding-top: var(--space-3); }
+.more-filters summary { width: fit-content; min-height: 2.75rem; display: flex; align-items: center; color: var(--color-brand); cursor: pointer; font-weight: 720; }
+.more-filters__fields { display: grid; grid-template-columns: repeat(2, minmax(12rem, 18rem)); gap: var(--space-3); padding-top: var(--space-2); }
+.feed-filters__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.feed-update { color: var(--color-muted); }
+.feed-loading { min-height: 12rem; display: grid; place-items: center; color: var(--color-muted); }
+.ranked-list { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.load-more { display: flex; justify-content: center; }
+@media (max-width: 62rem) { .feed-filters__main { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 40rem) { .feed-header { flex-direction: column; } .feed-filters__main, .more-filters__fields { grid-template-columns: 1fr; } .feed-filters__actions > * { flex: 1 1 auto; } }
+</style>

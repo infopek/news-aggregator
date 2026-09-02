@@ -76,13 +76,13 @@ describe('source management and refresh', () => {
 
   it('starts one refresh, polls to terminal mixed outcome, and presents sanitized counts', async () => {
     const { wrapper, api } = await ready()
-    await wrapper.findAll('button').find((item) => item.text().includes('Refresh all'))!.trigger('click')
+    await wrapper.findAll('button').find((item) => item.text() === 'Refresh news')!.trigger('click')
     await flushPromises()
     expect(api.startRefresh).toHaveBeenCalledOnce()
     expect(api.refresh).toHaveBeenCalledWith('refresh-1', expect.any(AbortSignal))
-    expect(wrapper.text()).toContain('completed with some source failures')
-    expect(wrapper.text()).toContain('Rate limited — 3 fetched, 2 inserted, 0 updated, 0 skipped, 1 failed — Retry later.')
-    expect(wrapper.text()).toContain('Local feed: Rate limited')
+    expect(wrapper.text()).toContain('complete with some source issues')
+    expect(wrapper.text()).toContain('Rate limited — Retry later.')
+    expect(wrapper.text()).toContain('Local feedRate limited')
     expect(wrapper.text()).not.toContain(feed.id)
     expect(localStorage.getItem('news-aggregator:last-refresh-id')).toBe('refresh-1')
     wrapper.unmount()
@@ -94,7 +94,7 @@ describe('source management and refresh', () => {
     const wrapper = mount(SourceManagement, { props: { serverApi: api } })
     await flushPromises()
     expect(api.refresh).toHaveBeenCalledWith('refresh-1', expect.any(AbortSignal))
-    expect(wrapper.text()).toContain('Refresh completed with some source failures.')
+    expect(wrapper.text()).toContain('Refresh complete with some source issues.')
     wrapper.unmount()
   })
 
@@ -111,7 +111,7 @@ describe('source management and refresh', () => {
     failed.unmount()
     const recovered = mount(RefreshControl, { props: { server: api } })
     await flushPromises()
-    expect(recovered.text()).toContain('Refresh completed with some source failures.')
+    expect(recovered.text()).toContain('Refresh complete with some source issues.')
     recovered.unmount()
   })
 

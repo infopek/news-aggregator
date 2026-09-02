@@ -9,7 +9,7 @@ import { toUserSafeError } from '../../state/errors'
 import { RefreshRecoveryPoller } from './refresh-recovery-poller'
 import type { RecoveryReason } from './refresh-recovery-poller'
 
-const props = defineProps<{ server: ServerApi; sourceNames?: Record<string, string> }>()
+const props = withDefaults(defineProps<{ server: ServerApi; sourceNames?: Record<string, string>; compact?: boolean }>(), { sourceNames: () => ({}), compact: false })
 const emit = defineEmits<{ started: []; completed: [RefreshRun]; stopped: [Exclude<RecoveryReason, RefreshRun['status']|'disposed'|'obsolete'>] }>()
 const refresh = ref<RefreshRun>()
 const loading = ref(false)
@@ -58,17 +58,32 @@ async function retry(){if(!pendingId.value)return;loading.value=true;statusError
 </script>
 
 <template>
-  <section aria-labelledby="manual-refresh-title">
-    <h2 id="manual-refresh-title">
-      Manual refresh
+  <section
+    :class="['refresh-control', { 'refresh-control--compact': compact }]"
+    aria-labelledby="manual-refresh-title"
+  >
+    <div
+      v-if="!compact"
+      class="refresh-control__intro"
+    >
+      <h2 id="manual-refresh-title">
+        Refresh news
+      </h2>
+      <p>Checks all enabled sources while this local application is open.</p>
+    </div>
+    <h2
+      v-else
+      id="manual-refresh-title"
+      class="sr-only"
+    >
+      Refresh news
     </h2>
-    <p>Refresh runs only while the local application process is open. Starting another refresh while one is active will be refused.</p>
     <button
       type="button"
       :disabled="loading"
       @click="start"
     >
-      {{ loading ? 'Refresh running…' : 'Refresh all enabled sources' }}
+      {{ loading ? 'Refreshing…' : 'Refresh news' }}
     </button>
     <RefreshStatus
       :refresh="refresh"
@@ -87,3 +102,11 @@ async function retry(){if(!pendingId.value)return;loading.value=true;statusError
     </button>
   </section>
 </template>
+<style scoped>
+.refresh-control { display: grid; gap: var(--space-3); }
+.refresh-control__intro { display: grid; gap: var(--space-1); }
+.refresh-control__intro p { color: var(--color-muted); }
+.refresh-control--compact { justify-items: end; }
+.refresh-control--compact :deep(.refresh-status) { max-width: 32rem; justify-items: end; text-align: end; }
+@media (max-width: 40rem) { .refresh-control--compact { width: 100%; justify-items: stretch; } .refresh-control--compact :deep(.refresh-status) { justify-items: stretch; text-align: start; } }
+</style>

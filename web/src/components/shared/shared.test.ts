@@ -62,18 +62,25 @@ describe('shared accessible primitives', () => {
   it('reports API contributions exactly and safely labels unknown/no reasons', async () => {
     const unknown = contribution({ signal: 'recency', weightedScore: -0.125, reasonCode: '<unknown>' })
     const wrapper = mount(RankingExplanation, { attachTo: document.body, props: { contributions: [unknown] } })
-    expect(wrapper.text()).toContain('Another ranking signal contributed'); expect(wrapper.text()).toContain('-0.125')
+    expect(wrapper.text()).toContain('Another local ranking signal contributed'); expect(wrapper.get('.ranking__technical').attributes('open')).toBeUndefined()
     expect(wrapper.text()).not.toContain('<unknown>'); expect(wrapper.text()).toContain('not guarantees')
     await wrapper.setProps({ contributions: [] }); expect(wrapper.text()).toContain('No ranking explanation was provided')
     await expectAccessible(wrapper.element)
   })
 
+  it('keeps precise contribution values behind a second technical disclosure', async () => {
+    const wrapper = mount(RankingExplanation, { props: { contributions: [contribution({ weightedScore: 0.24981461489426257 })] } })
+    expect(wrapper.get('.ranking').attributes('open')).toBeUndefined()
+    expect(wrapper.get('.ranking__technical').attributes('open')).toBeUndefined()
+    expect(wrapper.get('.ranking__technical').text()).toContain('0.24981461489426257')
+  })
+
   it.each([
-    ['explicit_interest_match', 'Matches an explicit interest'],
-    ['explicit_location_match', 'Matches your optional location'],
-    ['explicit_age_adjustment', 'Matches your optional age'],
-    ['explicit_gender_adjustment', 'Matches your optional gender'],
-    ['local_text_match', 'Local text is similar'],
+    ['explicit_interest_match', 'Matches one of your interests'],
+    ['explicit_location_match', 'Relevant to your optional location'],
+    ['explicit_age_adjustment', 'publisher-declared age range'],
+    ['explicit_gender_adjustment', 'publisher-declared audience'],
+    ['local_text_match', 'Similar to topics you follow'],
   ])('renders production reason code %s', (reasonCode, label) => {
     const wrapper = mount(RankingExplanation, { props: { contributions: [contribution({ reasonCode })] } })
     expect(wrapper.text()).toContain(label)
@@ -84,10 +91,10 @@ describe('shared accessible primitives', () => {
     const wrapper = mount(RefreshStatus, { attachTo: document.body, props: { loading: true } })
     expect(wrapper.get('[role=status]').text()).toContain('Refreshing')
     await wrapper.setProps({ loading: false, refresh: partialRefresh(), sourceNames: { 'source-good': 'City News', 'source-bad': 'Official Wire' } })
-    expect(wrapper.text()).toContain('some source failures'); expect(wrapper.text()).toContain('City News: Succeeded — 2 fetched, 2 inserted, 0 updated, 0 skipped, 0 failed'); expect(wrapper.text()).toContain('Official Wire: Failed'); expect(wrapper.text()).toContain('Timed out')
+    expect(wrapper.text()).toContain('some source issues'); expect(wrapper.text()).toContain('City News2 new'); expect(wrapper.text()).toContain('Official WireFailed'); expect(wrapper.text()).toContain('Timed out')
     const outcome = partialRefresh().outcomes[0]
     await wrapper.setProps({ refresh: { ...partialRefresh(), outcomes: [{ ...outcome, fetched: 0, inserted: 0 }] } })
-    expect(wrapper.text()).toContain('Unchanged — 0 fetched')
+    expect(wrapper.text()).toContain('No new stories')
     await wrapper.setProps({ refresh: { ...partialRefresh(), outcomes: [{ ...outcome, failed: 1, errorCode: 'rate_limited', errorSummary: 'Retry later.' }] } })
     expect(wrapper.text()).toContain('Rate limited')
     await wrapper.setProps({ refresh: { ...partialRefresh(), outcomes: [{ ...outcome, failed: 1, errorCode: 'cancelled', errorSummary: 'Refresh was cancelled.' }] } })
