@@ -371,7 +371,7 @@
     },
     {
       "task_id": "UX-003", "assigned_to": "frontend-agent", "assignee_type": "local_ai", "assignee_label": "Frontend Implementation Agent", "status": "review",
-      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/UX-003-run-001.json", "summary": "Feed/reader redesign, compact refresh, responsive filters, cards, progressive explanations, async-race tests, browser evidence, and real-process restart proof submitted for independent review.", "status": "needs_review", "recorded_at": "2026-09-02T20:10:00Z"}], "notes": "Exact implementation de05d7770fc4a9c9a00ab7e3245c0209206f080d is submitted for independent review; no approval is claimed.", "claimed_at": "2026-09-02T19:50:00Z", "updated_at": "2026-09-02T20:10:00Z"
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/UX-003-run-001.json", "summary": "Feed/reader redesign, compact refresh, responsive filters including persisted hidden stories, cards, progressive explanations, async-race tests, browser evidence, and real-process restart proof submitted for independent review.", "status": "needs_review", "recorded_at": "2026-09-02T20:25:00Z"}], "notes": "Corrective implementation 7440b81dec719316c82fc4a322caedc0bb2a8787 is submitted for independent review; no approval is claimed.", "claimed_at": "2026-09-02T19:50:00Z", "updated_at": "2026-09-02T20:25:00Z"
     },
     {
       "task_id": "UX-004", "assigned_to": null, "assignee_type": "unassigned", "assignee_label": "Unassigned", "status": "unclaimed",
@@ -896,7 +896,7 @@
       "submission_id": "ux-003-run-001-submission", "task_id": "UX-003", "actor_id": "frontend-agent",
       "artifact_paths": ["web/src/features/feed", "web/src/features/reader", "web/src/features/refresh", "web/src/components/shared/ArticleSummaryCard.vue", "web/src/components/shared/RankingExplanation.vue", "web/src/components/shared/RefreshStatus.vue", "web/tests", "tests/e2e", "assembly/generated/task_runs/UX-003-run-001.json"],
       "summary": "Consumer ranked-feed and reader hierarchy with compact refresh results, coherent responsive filters, complete article cards, permission-aware reading, and progressive backend-driven explanations.",
-      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/UX-003-run-001.json", "summary": "Component, async-race, desktop/narrow, accessibility, privacy, exact-revision real Go/SQLite restart, and repository verification evidence for de05d7770fc4a9c9a00ab7e3245c0209206f080d.", "status": "needs_review", "recorded_at": "2026-09-02T20:10:00Z"}],
+      "proof": [{"kind": "task_run", "path": "assembly/generated/task_runs/UX-003-run-001.json", "summary": "Component, async-race, persisted include-hidden, desktop/narrow, accessibility, privacy, exact-revision real Go/SQLite restart, and repository verification evidence for 7440b81dec719316c82fc4a322caedc0bb2a8787.", "status": "needs_review", "recorded_at": "2026-09-02T20:25:00Z"}],
       "status": "submitted", "submitted_at": "2026-09-02T20:10:00Z"
     }
   ],
@@ -1755,7 +1755,7 @@
       "event_id": "ux-003-claimed", "actor_id": "frontend-agent", "event_type": "status_changed", "target_id": "UX-003", "created_at": "2026-09-02T19:50:00Z", "details": "Claimed UX-003 after the accepted UX-001 design-system dependency."
     },
     {
-      "event_id": "ux-003-submitted", "actor_id": "frontend-agent", "event_type": "status_changed", "target_id": "UX-003", "created_at": "2026-09-02T20:10:00Z", "details": "Submitted exact implementation de05d7770fc4a9c9a00ab7e3245c0209206f080d with component, browser, accessibility, privacy, and real-process evidence for independent review; no approval claimed."
+      "event_id": "ux-003-submitted", "actor_id": "frontend-agent", "event_type": "status_changed", "target_id": "UX-003", "created_at": "2026-09-02T20:25:00Z", "details": "Submitted corrective implementation 7440b81dec719316c82fc4a322caedc0bb2a8787 with include-hidden persistence, component, browser, accessibility, privacy, and real-process evidence for independent review; no approval claimed."
     }
   ]
 }

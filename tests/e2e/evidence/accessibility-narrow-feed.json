@@ -13,8 +13,8 @@
     "orientationAngle": 0,
     "orientationType": "landscape-primary"
   },
-  "timestamp": "2026-09-02T20:04:58.046Z",
-  "url": "http://127.0.0.1:39565/",
+  "timestamp": "2026-09-02T20:21:56.372Z",
+  "url": "http://127.0.0.1:45917/",
   "toolOptions": {
     "runOnly": {
       "type": "tag",
@@ -753,7 +753,7 @@
             }
           ],
           "impact": null,
-          "html": "<section data-v-25028009=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
+          "html": "<section data-v-286937b5=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
           "target": [
             ".feed-page"
           ]
@@ -779,7 +779,7 @@
             }
           ],
           "impact": null,
-          "html": "<section data-v-735aabbe=\"\" data-v-25028009=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
+          "html": "<section data-v-735aabbe=\"\" data-v-286937b5=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
           "target": [
             ".refresh-control"
           ]
@@ -831,7 +831,7 @@
             }
           ],
           "impact": null,
-          "html": "<form data-v-25028009=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
+          "html": "<form data-v-286937b5=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
           "target": [
             "form"
           ]
@@ -857,7 +857,7 @@
             }
           ],
           "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-25028009=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
+          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
           "target": [
             "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
           ]
@@ -909,7 +909,7 @@
             }
           ],
           "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-25028009=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
+          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
           "target": [
             "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
           ]
@@ -1041,7 +1041,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<section data-v-25028009=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
+          "html": "<section data-v-286937b5=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
           "target": [
             ".feed-page"
           ]
@@ -1059,7 +1059,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<section data-v-735aabbe=\"\" data-v-25028009=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
+          "html": "<section data-v-735aabbe=\"\" data-v-286937b5=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
           "target": [
             ".refresh-control"
           ]
@@ -1095,7 +1095,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<form data-v-25028009=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
+          "html": "<form data-v-286937b5=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
           "target": [
             "form"
           ]
@@ -1113,7 +1113,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-25028009=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
+          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
           "target": [
             "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
           ]
@@ -1149,7 +1149,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-25028009=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
+          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
           "target": [
             "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
           ]
@@ -1475,7 +1475,7 @@
             }
           ],
           "impact": null,
-          "html": "<section data-v-25028009=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
+          "html": "<section data-v-286937b5=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
           "target": [
             ".feed-page"
           ]
@@ -1493,7 +1493,7 @@
             }
           ],
           "impact": null,
-          "html": "<section data-v-735aabbe=\"\" data-v-25028009=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
+          "html": "<section data-v-735aabbe=\"\" data-v-286937b5=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
           "target": [
             ".refresh-control"
           ]
@@ -1529,7 +1529,7 @@
             }
           ],
           "impact": null,
-          "html": "<form data-v-25028009=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
+          "html": "<form data-v-286937b5=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
           "target": [
             "form"
           ]
@@ -1923,7 +1923,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<section data-v-25028009=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
+          "html": "<section data-v-286937b5=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
           "target": [
             ".feed-page"
           ]
@@ -1955,7 +1955,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<section data-v-735aabbe=\"\" data-v-25028009=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
+          "html": "<section data-v-735aabbe=\"\" data-v-286937b5=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
           "target": [
             ".refresh-control"
           ]
@@ -2019,7 +2019,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<form data-v-25028009=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
+          "html": "<form data-v-286937b5=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
           "target": [
             "form"
           ]
@@ -2051,7 +2051,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-25028009=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
+          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
           "target": [
             "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
           ]
@@ -2115,7 +2115,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-25028009=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
+          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
           "target": [
             "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
           ]
@@ -2253,7 +2253,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<section data-v-25028009=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
+          "html": "<section data-v-286937b5=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
           "target": [
             ".feed-page"
           ]
@@ -2271,7 +2271,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<section data-v-735aabbe=\"\" data-v-25028009=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
+          "html": "<section data-v-735aabbe=\"\" data-v-286937b5=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
           "target": [
             ".refresh-control"
           ]
@@ -2307,7 +2307,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<form data-v-25028009=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
+          "html": "<form data-v-286937b5=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
           "target": [
             "form"
           ]
@@ -2325,7 +2325,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-25028009=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
+          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
           "target": [
             "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
           ]
@@ -2361,7 +2361,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-25028009=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
+          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
           "target": [
             "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
           ]
@@ -2436,7 +2436,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button data-v-25028009=\"\" type=\"submit\"> Apply filters </button>",
+          "html": "<button data-v-286937b5=\"\" type=\"submit\"> Apply filters </button>",
           "target": [
             "button[type=\"submit\"]"
           ]
@@ -2583,7 +2583,7 @@
               "data": null,
               "relatedNodes": [
                 {
-                  "html": "<h1 data-v-25028009=\"\" id=\"feed-title\" tabindex=\"-1\"> Ranked feed </h1>",
+                  "html": "<h1 data-v-286937b5=\"\" id=\"feed-title\" tabindex=\"-1\"> Ranked feed </h1>",
                   "target": [
                     "#feed-title"
                   ]
@@ -2822,7 +2822,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<p data-v-25028009=\"\" class=\"eyebrow\"> Your local news </p>",
+          "html": "<p data-v-286937b5=\"\" class=\"eyebrow\"> Your local news </p>",
           "target": [
             ".eyebrow"
           ]
@@ -2847,7 +2847,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<h1 data-v-25028009=\"\" id=\"feed-title\" tabindex=\"-1\"> Ranked feed </h1>",
+          "html": "<h1 data-v-286937b5=\"\" id=\"feed-title\" tabindex=\"-1\"> Ranked feed </h1>",
           "target": [
             "#feed-title"
           ]
@@ -2872,7 +2872,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<p data-v-25028009=\"\">Stories ordered using your preferences on this computer.</p>",
+          "html": "<p data-v-286937b5=\"\">Stories ordered using your preferences on this computer.</p>",
           "target": [
             ".feed-heading > p:nth-child(3)"
           ]
@@ -2972,7 +2972,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<label data-v-25028009=\"\" class=\"filter\" for=\"source-filter\">",
+          "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"source-filter\">",
           "target": [
             "label[for=\"source-filter\"]"
           ]
@@ -3022,7 +3022,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<label data-v-25028009=\"\" class=\"filter\" for=\"read-filter\">Reading status<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select></label>",
+          "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"read-filter\">Reading status<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select></label>",
           "target": [
             "label[for=\"read-filter\"]"
           ]
@@ -3072,7 +3072,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<label data-v-25028009=\"\" class=\"filter\" for=\"saved-filter\">Saved<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select></label>",
+          "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"saved-filter\">Saved<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select></label>",
           "target": [
             "label[for=\"saved-filter\"]"
           ]
@@ -3122,7 +3122,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<label data-v-25028009=\"\" class=\"feed-search\" for=\"feed-search\">Search stories<input data-v-25028009=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\"></label>",
+          "html": "<label data-v-286937b5=\"\" class=\"feed-search\" for=\"feed-search\">Search stories<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\"></label>",
           "target": [
             ".feed-search"
           ]
@@ -3147,7 +3147,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<input data-v-25028009=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\">",
+          "html": "<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\">",
           "target": [
             "#feed-search"
           ]
@@ -3172,7 +3172,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<summary data-v-25028009=\"\">More filters</summary>",
+          "html": "<summary data-v-286937b5=\"\">More filters</summary>",
           "target": [
             ".more-filters > summary"
           ]
@@ -3192,7 +3192,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<input data-v-25028009=\"\" id=\"published-after\" type=\"date\" style=\"\">",
+          "html": "<input data-v-286937b5=\"\" id=\"published-after\" type=\"date\" style=\"\">",
           "target": [
             "#published-after"
           ]
@@ -3212,7 +3212,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<input data-v-25028009=\"\" id=\"published-before\" type=\"date\" style=\"\">",
+          "html": "<input data-v-286937b5=\"\" id=\"published-before\" type=\"date\" style=\"\">",
           "target": [
             "#published-before"
           ]
@@ -3237,7 +3237,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button data-v-25028009=\"\" type=\"submit\"> Apply filters </button>",
+          "html": "<button data-v-286937b5=\"\" type=\"submit\"> Apply filters </button>",
           "target": [
             "button[type=\"submit\"]"
           ]
@@ -3883,7 +3883,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<h1 data-v-25028009=\"\" id=\"feed-title\" tabindex=\"-1\"> Ranked feed </h1>",
+          "html": "<h1 data-v-286937b5=\"\" id=\"feed-title\" tabindex=\"-1\"> Ranked feed </h1>",
           "target": [
             "#feed-title"
           ]
@@ -3973,7 +3973,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<input data-v-25028009=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\">",
+          "html": "<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\">",
           "target": [
             "#feed-search"
           ]
@@ -3991,7 +3991,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<input data-v-25028009=\"\" id=\"published-after\" type=\"date\" style=\"\">",
+          "html": "<input data-v-286937b5=\"\" id=\"published-after\" type=\"date\" style=\"\">",
           "target": [
             "#published-after"
           ]
@@ -4009,9 +4009,27 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<input data-v-25028009=\"\" id=\"published-before\" type=\"date\" style=\"\">",
+          "html": "<input data-v-286937b5=\"\" id=\"published-before\" type=\"date\" style=\"\">",
           "target": [
             "#published-before"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "duplicate-id-aria",
+              "data": "include-hidden",
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Document has no elements referenced with ARIA or labels that share the same id attribute"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<input data-v-286937b5=\"\" id=\"include-hidden\" type=\"checkbox\" style=\"\">",
+          "target": [
+            "#include-hidden"
           ]
         }
       ]
@@ -4041,7 +4059,7 @@
               "data": null,
               "relatedNodes": [
                 {
-                  "html": "<label data-v-25028009=\"\" class=\"filter\" for=\"source-filter\">",
+                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"source-filter\">",
                   "target": [
                     "label[for=\"source-filter\"]"
                   ]
@@ -4066,7 +4084,7 @@
               "data": null,
               "relatedNodes": [
                 {
-                  "html": "<label data-v-25028009=\"\" class=\"filter\" for=\"read-filter\">Reading status<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select></label>",
+                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"read-filter\">Reading status<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select></label>",
                   "target": [
                     "label[for=\"read-filter\"]"
                   ]
@@ -4091,7 +4109,7 @@
               "data": null,
               "relatedNodes": [
                 {
-                  "html": "<label data-v-25028009=\"\" class=\"filter\" for=\"saved-filter\">Saved<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select></label>",
+                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"saved-filter\">Saved<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select></label>",
                   "target": [
                     "label[for=\"saved-filter\"]"
                   ]
@@ -4116,7 +4134,7 @@
               "data": null,
               "relatedNodes": [
                 {
-                  "html": "<label data-v-25028009=\"\" class=\"feed-search\" for=\"feed-search\">Search stories<input data-v-25028009=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\"></label>",
+                  "html": "<label data-v-286937b5=\"\" class=\"feed-search\" for=\"feed-search\">Search stories<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\"></label>",
                   "target": [
                     ".feed-search"
                   ]
@@ -4127,7 +4145,7 @@
             }
           ],
           "impact": null,
-          "html": "<input data-v-25028009=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\">",
+          "html": "<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\">",
           "target": [
             "#feed-search"
           ]
@@ -4236,7 +4254,7 @@
               },
               "relatedNodes": [
                 {
-                  "html": "<label data-v-25028009=\"\" class=\"feed-search\" for=\"feed-search\">Search stories<input data-v-25028009=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\"></label>",
+                  "html": "<label data-v-286937b5=\"\" class=\"feed-search\" for=\"feed-search\">Search stories<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\"></label>",
                   "target": [
                     ".feed-search"
                   ]
@@ -4252,7 +4270,7 @@
               },
               "relatedNodes": [
                 {
-                  "html": "<label data-v-25028009=\"\" class=\"feed-search\" for=\"feed-search\">Search stories<input data-v-25028009=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\"></label>",
+                  "html": "<label data-v-286937b5=\"\" class=\"feed-search\" for=\"feed-search\">Search stories<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\"></label>",
                   "target": [
                     ".feed-search"
                   ]
@@ -4280,7 +4298,7 @@
             }
           ],
           "impact": null,
-          "html": "<input data-v-25028009=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\">",
+          "html": "<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\">",
           "target": [
             "#feed-search"
           ]
@@ -4604,7 +4622,7 @@
             }
           ],
           "impact": null,
-          "html": "<ol data-v-25028009=\"\" class=\"ranked-list\">",
+          "html": "<ol data-v-286937b5=\"\" class=\"ranked-list\">",
           "target": [
             "ol"
           ]
@@ -4638,7 +4656,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li data-v-25028009=\"\">",
+          "html": "<li data-v-286937b5=\"\">",
           "target": [
             "ol > li:nth-child(1)"
           ]
@@ -4656,7 +4674,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li data-v-25028009=\"\">",
+          "html": "<li data-v-286937b5=\"\">",
           "target": [
             "ol > li:nth-child(2)"
           ]
@@ -4925,7 +4943,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<summary data-v-25028009=\"\">More filters</summary>",
+          "html": "<summary data-v-286937b5=\"\">More filters</summary>",
           "target": [
             ".more-filters > summary"
           ]
@@ -4943,7 +4961,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<button data-v-25028009=\"\" type=\"submit\"> Apply filters </button>",
+          "html": "<button data-v-286937b5=\"\" type=\"submit\"> Apply filters </button>",
           "target": [
             "button[type=\"submit\"]"
           ]
@@ -5122,7 +5140,7 @@
               },
               "relatedNodes": [
                 {
-                  "html": "<label data-v-25028009=\"\" class=\"filter\" for=\"source-filter\">",
+                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"source-filter\">",
                   "target": [
                     "label[for=\"source-filter\"]"
                   ]
@@ -5138,7 +5156,7 @@
               },
               "relatedNodes": [
                 {
-                  "html": "<label data-v-25028009=\"\" class=\"filter\" for=\"source-filter\">",
+                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"source-filter\">",
                   "target": [
                     "label[for=\"source-filter\"]"
                   ]
@@ -5173,7 +5191,7 @@
               },
               "relatedNodes": [
                 {
-                  "html": "<label data-v-25028009=\"\" class=\"filter\" for=\"read-filter\">Reading status<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select></label>",
+                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"read-filter\">Reading status<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select></label>",
                   "target": [
                     "label[for=\"read-filter\"]"
                   ]
@@ -5189,7 +5207,7 @@
               },
               "relatedNodes": [
                 {
-                  "html": "<label data-v-25028009=\"\" class=\"filter\" for=\"read-filter\">Reading status<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select></label>",
+                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"read-filter\">Reading status<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select></label>",
                   "target": [
                     "label[for=\"read-filter\"]"
                   ]
@@ -5224,7 +5242,7 @@
               },
               "relatedNodes": [
                 {
-                  "html": "<label data-v-25028009=\"\" class=\"filter\" for=\"saved-filter\">Saved<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select></label>",
+                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"saved-filter\">Saved<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select></label>",
                   "target": [
                     "label[for=\"saved-filter\"]"
                   ]
@@ -5240,7 +5258,7 @@
               },
               "relatedNodes": [
                 {
-                  "html": "<label data-v-25028009=\"\" class=\"filter\" for=\"saved-filter\">Saved<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select></label>",
+                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"saved-filter\">Saved<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select></label>",
                   "target": [
                     "label[for=\"saved-filter\"]"
                   ]
@@ -5317,7 +5335,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<summary data-v-25028009=\"\">More filters</summary>",
+          "html": "<summary data-v-286937b5=\"\">More filters</summary>",
           "target": [
             ".more-filters > summary"
           ]
@@ -5422,7 +5440,7 @@
             }
           ],
           "impact": "serious",
-          "html": "<div data-v-2cf2739b=\"\" data-v-25028009=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
+          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
           "target": [
             "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
           ],
@@ -5448,7 +5466,7 @@
             }
           ],
           "impact": "serious",
-          "html": "<div data-v-2cf2739b=\"\" data-v-25028009=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
+          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
           "target": [
             "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
           ],
