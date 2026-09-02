@@ -25,24 +25,25 @@ const state = ref<'loading'|'ready'|'empty'|'error'>('loading'), loadingMore = r
 const revalidating = ref(false), stale = ref(false), paginationBlocked=ref(false)
 const actionBusy = ref<Record<string, boolean>>({}), actionMessages = ref<Record<string, string>>({})
 const source = ref(''), read = ref('all'), saved = ref('all'), text = ref(''), after = ref(''), before = ref('')
-type FilterSnapshot = { source: string; read: string; saved: string; text: string; after: string; before: string }
-const applied = ref<FilterSnapshot>({ source: '', read: 'all', saved: 'all', text: '', after: '', before: '' })
+const includeHidden = ref(false)
+type FilterSnapshot = { source: string; read: string; saved: string; text: string; after: string; before: string; includeHidden: boolean }
+const applied = ref<FilterSnapshot>({ source: '', read: 'all', saved: 'all', text: '', after: '', before: '', includeHidden: false })
 let generation = 0, loadController: AbortController | undefined, pageController: AbortController | undefined, mounted=true
 let unsubscribeInvalidation: (()=>void) | undefined
 const refreshState = ref<'idle'|'running'|'uncertain'>('idle')
 const sourceNames = computed(() => Object.fromEntries(sources.value.map((item) => [item.id, item.name])))
-const filtersActive = computed(() => Boolean(source.value || read.value !== 'all' || saved.value !== 'all' || text.value.trim() || after.value || before.value))
+const filtersActive = computed(() => Boolean(source.value || read.value !== 'all' || saved.value !== 'all' || text.value.trim() || after.value || before.value || includeHidden.value))
 onMounted(() => {unsubscribeInvalidation=subscribeLibraryInvalidation(()=>{void load(false)});void restoreAndLoad()}); onBeforeUnmount(() => { mounted=false;++generation;unsubscribeInvalidation?.();loadController?.abort();pageController?.abort() })
 async function restoreAndLoad() {
   try {
     const persisted = await server.feedFilter()
-    source.value=persisted.sourceId;read.value=persisted.read;saved.value=persisted.savedOnly?'saved':'all';text.value=persisted.searchQuery
+    source.value=persisted.sourceId;read.value=persisted.read;saved.value=persisted.savedOnly?'saved':'all';text.value=persisted.searchQuery;includeHidden.value=persisted.includeHidden
     applied.value=draft()
   } catch { applied.value=draft() }
   if(mounted)await load(false)
 }
-function draft(): FilterSnapshot { return { source: source.value, read: read.value, saved: saved.value, text: text.value, after: after.value, before: before.value } }
-function query(filter: FilterSnapshot, next?: string): FeedQuery { return { cursor: next || undefined, limit: 20, sourceId: filter.source ? [filter.source] : undefined, read: filter.read === 'all' ? undefined : filter.read === 'read', saved: filter.saved === 'saved' ? true : undefined, text: filter.text.trim() || undefined, publishedAfter: filter.after ? new Date(`${filter.after}T00:00:00`).toISOString() : undefined, publishedBefore: filter.before ? new Date(`${filter.before}T23:59:59`).toISOString() : undefined } }
+function draft(): FilterSnapshot { return { source: source.value, read: read.value, saved: saved.value, text: text.value, after: after.value, before: before.value, includeHidden: includeHidden.value } }
+function query(filter: FilterSnapshot, next?: string): FeedQuery { return { cursor: next || undefined, limit: 20, sourceId: filter.source ? [filter.source] : undefined, read: filter.read === 'all' ? undefined : filter.read === 'read', saved: filter.saved === 'saved' ? true : undefined, includeHidden: filter.includeHidden || undefined, text: filter.text.trim() || undefined, publishedAfter: filter.after ? new Date(`${filter.after}T00:00:00`).toISOString() : undefined, publishedBefore: filter.before ? new Date(`${filter.before}T23:59:59`).toISOString() : undefined } }
 async function load(applyDraft = true) {
   const requested=applyDraft?draft():{...applied.value}, changed=JSON.stringify(requested)!==JSON.stringify(applied.value)
   const requestGeneration = ++generation; loadController?.abort(); pageController?.abort(); loadController = new AbortController(); loadingMore.value=false; pageError.value=''
@@ -51,7 +52,7 @@ async function load(applyDraft = true) {
   if (hasData) revalidating.value = true
   else state.value = 'loading'
   queryError.value = ''; stale.value = false
-  try { if(applyDraft)await server.updateFeedFilter({sourceId:requested.source,read:requested.read as 'all'|'read'|'unread',savedOnly:requested.saved==='saved',includeHidden:false,searchQuery:requested.text.trim()},loadController.signal);const [page,list]=await Promise.all([server.feed(query(requested),loadController.signal),server.sources(loadController.signal)]); if(requestGeneration!==generation)return; applied.value=requested;items.value = page.items; cursor.value = page.nextCursor; sources.value = list.items; state.value = items.value.length ? 'ready' : 'empty'; stale.value = false } catch (cause) { if(requestGeneration!==generation)return; queryError.value = toUserSafeError(cause).message; if(hasData)stale.value=true;else state.value='error' } finally { if(requestGeneration===generation){revalidating.value=false;paginationBlocked.value=false} }
+  try { if(applyDraft)await server.updateFeedFilter({sourceId:requested.source,read:requested.read as 'all'|'read'|'unread',savedOnly:requested.saved==='saved',includeHidden:requested.includeHidden,searchQuery:requested.text.trim()},loadController.signal);const [page,list]=await Promise.all([server.feed(query(requested),loadController.signal),server.sources(loadController.signal)]); if(requestGeneration!==generation)return; applied.value=requested;items.value = page.items; cursor.value = page.nextCursor; sources.value = list.items; state.value = items.value.length ? 'ready' : 'empty'; stale.value = false } catch (cause) { if(requestGeneration!==generation)return; queryError.value = toUserSafeError(cause).message; if(hasData)stale.value=true;else state.value='error' } finally { if(requestGeneration===generation){revalidating.value=false;paginationBlocked.value=false} }
 }
 async function more() { if (!cursor.value||paginationBlocked.value) return; const requestGeneration=generation, next=cursor.value, filter={...applied.value}; pageController?.abort(); pageController=new AbortController(); loadingMore.value = true; pageError.value=''; try { const page = await server.feed(query(filter,next),pageController.signal); if(requestGeneration!==generation||paginationBlocked.value)return; items.value.push(...page.items); cursor.value = page.nextCursor; pageError.value='' } catch (cause) { if(requestGeneration===generation)pageError.value = toUserSafeError(cause).message } finally { if(requestGeneration===generation)loadingMore.value = false } }
 function hide(id: string) { items.value = items.value.filter((item) => item.id !== id); if (!items.value.length) state.value = 'empty' }
@@ -67,7 +68,7 @@ async function mutate(article: ArticleSummary, patch: LibraryStateWrite) {
   actionBusy.value[article.id] = false
 }
 async function refreshed(){refreshState.value='idle';await load(false)}
-function clear(){source.value='';read.value='all';saved.value='all';text.value='';after.value='';before.value='';void load()}
+function clear(){source.value='';read.value='all';saved.value='all';text.value='';after.value='';before.value='';includeHidden.value=false;void load()}
 </script>
 <template>
   <section
@@ -164,6 +165,14 @@ function clear(){source.value='';read.value='all';saved.value='all';text.value='
             v-model="before"
             type="date"
           ></label>
+          <label
+            class="hidden-filter"
+            for="include-hidden"
+          ><input
+            id="include-hidden"
+            v-model="includeHidden"
+            type="checkbox"
+          >Include hidden stories</label>
         </div>
       </details>
       <div class="feed-filters__actions">
@@ -310,6 +319,8 @@ function clear(){source.value='';read.value='all';saved.value='all';text.value='
 .more-filters { border-top: 1px solid var(--color-border); padding-top: var(--space-3); }
 .more-filters summary { width: fit-content; min-height: 2.75rem; display: flex; align-items: center; color: var(--color-brand); cursor: pointer; font-weight: 720; }
 .more-filters__fields { display: grid; grid-template-columns: repeat(2, minmax(12rem, 18rem)); gap: var(--space-3); padding-top: var(--space-2); }
+.hidden-filter { min-height: var(--control-height); display: flex !important; align-items: center; align-self: end; grid-column: 1 / -1; gap: var(--space-2) !important; }
+.hidden-filter input { width: 1.15rem; min-height: 1.15rem; margin: 0; }
 .feed-filters__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .feed-update { color: var(--color-muted); }
 .feed-loading { min-height: 12rem; display: grid; place-items: center; color: var(--color-muted); }

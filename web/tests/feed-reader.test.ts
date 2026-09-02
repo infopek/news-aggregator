@@ -32,6 +32,7 @@ describe('ranked feed', () => {
     const wrapper = mount(RankedFeed, { props: { serverApi: fakeApi() } }); await flushPromises()
     expect(wrapper.get('form[aria-label="Filter ranked stories"]').exists()).toBe(true)
     expect(wrapper.get('.more-filters').attributes('open')).toBeUndefined()
+    expect(wrapper.get('#include-hidden').exists()).toBe(true)
     expect(wrapper.findAll('button').some(item => item.text() === 'Clear filters')).toBe(false)
     await wrapper.get('#read-filter').setValue('unread')
     expect(wrapper.findAll('button').some(item => item.text() === 'Clear filters')).toBe(true)
@@ -39,8 +40,18 @@ describe('ranked feed', () => {
   })
 
   it('restores and persists authoritative filter state', async()=>{
-    const api=fakeApi();vi.mocked(api.feedFilter).mockResolvedValueOnce({sourceId:'opaque-source',read:'unread',savedOnly:true,includeHidden:false,searchQuery:'science',updatedAt:'2026-08-14T10:00:00Z'})
-    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();expect((wrapper.get('#source-filter').element as HTMLSelectElement).value).toBe('opaque-source');expect((wrapper.get('#read-filter').element as HTMLSelectElement).value).toBe('unread');expect((wrapper.get('#saved-filter').element as HTMLSelectElement).value).toBe('saved');expect((wrapper.get('input[maxlength="200"]').element as HTMLInputElement).value).toBe('science');expect(api.feed).toHaveBeenCalledWith(expect.objectContaining({sourceId:['opaque-source'],read:false,saved:true,text:'science'}),expect.any(AbortSignal));expect(api.updateFeedFilter).not.toHaveBeenCalled();wrapper.unmount()
+    const api=fakeApi();vi.mocked(api.feedFilter).mockResolvedValueOnce({sourceId:'opaque-source',read:'unread',savedOnly:true,includeHidden:true,searchQuery:'science',updatedAt:'2026-08-14T10:00:00Z'})
+    const wrapper=mount(RankedFeed,{props:{serverApi:api}});await flushPromises();expect((wrapper.get('#source-filter').element as HTMLSelectElement).value).toBe('opaque-source');expect((wrapper.get('#read-filter').element as HTMLSelectElement).value).toBe('unread');expect((wrapper.get('#saved-filter').element as HTMLSelectElement).value).toBe('saved');expect((wrapper.get('#feed-search').element as HTMLInputElement).value).toBe('science');expect((wrapper.get('#include-hidden').element as HTMLInputElement).checked).toBe(true);expect(api.feed).toHaveBeenCalledWith(expect.objectContaining({sourceId:['opaque-source'],read:false,saved:true,includeHidden:true,text:'science'}),expect.any(AbortSignal));expect(api.updateFeedFilter).not.toHaveBeenCalled();wrapper.unmount()
+  })
+
+  it('persists include-hidden changes and Clear restores the authoritative false value', async () => {
+    const api = fakeApi(), wrapper = mount(RankedFeed, { props: { serverApi: api } }); await flushPromises()
+    await wrapper.get('#include-hidden').setValue(true); await wrapper.get('.feed-filters').trigger('submit'); await flushPromises()
+    expect(api.updateFeedFilter).toHaveBeenLastCalledWith(expect.objectContaining({ includeHidden: true }), expect.any(AbortSignal))
+    expect(api.feed).toHaveBeenLastCalledWith(expect.objectContaining({ includeHidden: true }), expect.any(AbortSignal))
+    await wrapper.findAll('button').find(item => item.text() === 'Clear filters')!.trigger('click'); await flushPromises()
+    expect(api.updateFeedFilter).toHaveBeenLastCalledWith(expect.objectContaining({ includeHidden: false }), expect.any(AbortSignal))
+    wrapper.unmount()
   })
   it('preserves server order, explanations, source metadata, filters, and pagination', async () => {
     const api = fakeApi(), wrapper = mount(RankedFeed, { props: { serverApi: api }, attachTo: document.body }); await flushPromises()
