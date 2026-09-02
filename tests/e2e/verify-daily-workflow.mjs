@@ -92,7 +92,7 @@ try {
 
   await navigate(page, 'Ranked feed')
   await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
-  await page.getByLabel('Saved state').selectOption('saved'); await page.getByRole('button', { name: 'Apply filters' }).click()
+  await page.getByLabel('Saved', { exact: true }).selectOption('saved'); await page.getByRole('button', { name: 'Apply filters' }).click()
   await page.getByRole('link', { name: 'Technology advances in local science', exact: true }).waitFor({ state: 'detached' })
   await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
   assert(await page.getByRole('link', { name: 'Technology advances in local science', exact: true }).count() === 0, 'saved filter included an unsaved article')
@@ -113,7 +113,7 @@ try {
   await auditA11y(page, 'library')
   await page.setViewportSize({ width: 390, height: 844 }); await navigate(page, 'Ranked feed')
   await page.getByRole('heading', { name: 'Ranked feed' }).waitFor(); await screenshot(page, '07-narrow-feed.png'); await auditA11y(page, 'narrow-feed')
-  await page.locator('#source-filter').selectOption({ label: 'Metadata News' }); await page.getByLabel('Saved state').selectOption('saved'); await page.getByLabel('Search').fill('climate'); await page.getByRole('button', { name: 'Apply filters' }).click(); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
+  await page.locator('#source-filter').selectOption({ label: 'Metadata News' }); await page.getByLabel('Saved', { exact: true }).selectOption('saved'); await page.getByLabel('Search stories').fill('climate'); await page.getByRole('button', { name: 'Apply filters' }).click(); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
 
   const storage = await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }))
   for (const serialized of Object.values({ ...storage.local, ...storage.session })) assert(!/technology|climate|Budapest|metadata\.fixture|full\.fixture/i.test(String(serialized)), 'authoritative profile/source data leaked into browser storage')
@@ -130,7 +130,7 @@ try {
   await page.goto(`${origin}/library`); await page.getByRole('button', { name: 'Saved' }).click(); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
   await navigate(page, 'Settings'); await page.getByRole('button', { name: 'Remove technology' }).waitFor(); assert(await page.getByRole('button', { name: 'Remove climate' }).count(), 'profile did not survive restart')
   await navigate(page, 'Sources'); await page.getByRole('heading', { name: 'Metadata News' }).waitFor()
-  await navigate(page, 'Ranked feed'); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor();assert((await page.locator('#source-filter').inputValue())!=='','source filter did not survive restart');assert((await page.getByLabel('Saved state').inputValue())==='saved','saved filter did not survive restart');assert((await page.getByLabel('Search').inputValue())==='climate','search filter did not survive restart')
+  await navigate(page, 'Ranked feed'); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor();assert((await page.locator('#source-filter').inputValue())!=='','source filter did not survive restart');assert((await page.getByLabel('Saved', { exact: true }).inputValue())==='saved','saved filter did not survive restart');assert((await page.getByLabel('Search stories').inputValue())==='climate','search filter did not survive restart')
   await screenshot(page, '09-restart-persistence.png')
   await context.tracing.stop({ path: join(evidence, 'daily-workflow-trace.zip') }); traceStopped = true
 
