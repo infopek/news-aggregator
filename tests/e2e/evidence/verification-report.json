@@ -1,11 +1,11 @@
 {
   "decision": "APPROVE",
-  "revision": "674016e36cd8679da633723078072aeedad0fbef",
-  "generatedAt": "2026-08-26T10:12:36.051Z",
+  "revision": "de05d7770fc4a9c9a00ab7e3245c0209206f080d",
+  "generatedAt": "2026-09-02T20:04:58.997Z",
   "processRestart": [
-    "2026-08-26T10:12:25.219Z initial launch pid=2524898",
-    "2026-08-26T10:12:35.204Z stopped Go process pid=2524898",
-    "2026-08-26T10:12:35.396Z restarted Go process with same SQLite database pid=2525912"
+    "2026-09-02T20:04:53.125Z initial launch pid=2087096",
+    "2026-09-02T20:04:58.201Z stopped Go process pid=2087096",
+    "2026-09-02T20:04:58.413Z restarted Go process with same SQLite database pid=2087745"
   ],
   "accessibility": [
     "ranked-feed: 0 serious/critical",
@@ -15,33 +15,33 @@
   "browserStorage": {
     "local": {
       "news-aggregator:library-view": "saved",
-      "news-aggregator:last-refresh-id": "refresh-1787739146697038275"
+      "news-aggregator:last-refresh-id": "refresh-1788379494664993125"
     },
     "session": {}
   },
   "browserOutboundRequests": [
-    "http://127.0.0.1:40537/",
-    "http://127.0.0.1:40537/assets/index-DGsjJS7f.js",
-    "http://127.0.0.1:40537/assets/index-CjcvwirZ.css",
-    "http://127.0.0.1:40537/api/v1/feed-filter",
-    "http://127.0.0.1:40537/api/v1/profile",
-    "http://127.0.0.1:40537/assets/workbox-window.prod.es5-Bd17z0YL.js",
-    "http://127.0.0.1:40537/api/v1/feed?limit=20",
-    "http://127.0.0.1:40537/api/v1/sources",
-    "http://127.0.0.1:40537/api/v1/ranking-config",
-    "http://127.0.0.1:40537/api/v1/starter-sources",
-    "http://127.0.0.1:40537/setup",
-    "http://127.0.0.1:40537/api/v1/refresh",
-    "http://127.0.0.1:40537/api/v1/refresh/refresh-1787739146697038275",
-    "http://127.0.0.1:40537/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229",
-    "http://127.0.0.1:40537/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229/library-state",
-    "http://127.0.0.1:40537/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e/library-state",
-    "http://127.0.0.1:40537/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e",
-    "http://127.0.0.1:40537/api/v1/feed?limit=20&saved=true",
-    "http://127.0.0.1:40537/api/v1/feed?saved=true&limit=100",
-    "http://127.0.0.1:40537/api/v1/feed?includeHidden=true&limit=100",
-    "http://127.0.0.1:40537/api/v1/feed?limit=20&sourceId=metadata-source&saved=true&text=climate",
-    "http://127.0.0.1:40537/library"
+    "http://127.0.0.1:39565/",
+    "http://127.0.0.1:39565/assets/index-CijIXvD5.js",
+    "http://127.0.0.1:39565/assets/index-ClBF4RU8.css",
+    "http://127.0.0.1:39565/api/v1/feed-filter",
+    "http://127.0.0.1:39565/api/v1/profile",
+    "http://127.0.0.1:39565/assets/workbox-window.prod.es5-Bd17z0YL.js",
+    "http://127.0.0.1:39565/api/v1/feed?limit=20",
+    "http://127.0.0.1:39565/api/v1/sources",
+    "http://127.0.0.1:39565/api/v1/ranking-config",
+    "http://127.0.0.1:39565/api/v1/starter-sources",
+    "http://127.0.0.1:39565/setup",
+    "http://127.0.0.1:39565/api/v1/refresh",
+    "http://127.0.0.1:39565/api/v1/refresh/refresh-1788379494664993125",
+    "http://127.0.0.1:39565/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229",
+    "http://127.0.0.1:39565/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229/library-state",
+    "http://127.0.0.1:39565/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e/library-state",
+    "http://127.0.0.1:39565/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e",
+    "http://127.0.0.1:39565/api/v1/feed?limit=20&saved=true",
+    "http://127.0.0.1:39565/api/v1/feed?saved=true&limit=100",
+    "http://127.0.0.1:39565/api/v1/feed?includeHidden=true&limit=100",
+    "http://127.0.0.1:39565/api/v1/feed?limit=20&sourceId=metadata-source&saved=true&text=climate",
+    "http://127.0.0.1:39565/library"
   ],
   "assertions": "complete daily-use workflow passed against real Go/SQLite/Vue stack, including enabled optional ranking contributions, persisted filters, empty feed, keyboard-only hide/restore navigation, and API interruption recovery"
 }
