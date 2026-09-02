@@ -113,7 +113,7 @@ try {
   await auditA11y(page, 'library')
   await page.setViewportSize({ width: 390, height: 844 }); await navigate(page, 'Ranked feed')
   await page.getByRole('heading', { name: 'Ranked feed' }).waitFor(); await screenshot(page, '07-narrow-feed.png'); await auditA11y(page, 'narrow-feed')
-  await page.locator('#source-filter').selectOption({ label: 'Metadata News' }); await page.locator('#saved-filter').selectOption('saved'); await page.locator('#feed-search').fill('climate'); await page.locator('#include-hidden').check(); await page.getByRole('button', { name: 'Apply filters' }).click(); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
+  await page.locator('#source-filter').selectOption({ label: 'Metadata News' }); await page.locator('#saved-filter').selectOption('saved'); await page.locator('#feed-search').fill('climate'); await page.getByText('More filters', { exact: true }).click(); await page.locator('#include-hidden').check(); await page.getByRole('button', { name: 'Apply filters' }).click(); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
 
   const storage = await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }))
   for (const serialized of Object.values({ ...storage.local, ...storage.session })) assert(!/technology|climate|Budapest|metadata\.fixture|full\.fixture/i.test(String(serialized)), 'authoritative profile/source data leaked into browser storage')
