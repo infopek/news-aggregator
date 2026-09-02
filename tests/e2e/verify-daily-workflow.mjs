@@ -35,20 +35,22 @@ try {
   const browserRequests = []
   page.on('request', request => browserRequests.push(request.url()))
 
-  await page.goto(origin); await page.getByRole('heading', { name: 'First-run setup' }).waitFor()
+  await page.goto(origin); await page.getByRole('heading', { name: 'Make your feed yours' }).waitFor()
   await navigate(page, 'Sources'); await page.getByRole('button', { name: 'Add starter' }).click(); await page.getByText('Unavailable fixture saved.').waitFor()
-  await navigate(page, 'Setup')
-  await page.getByLabel('Interests', { exact: true }).fill('technology, climate, science')
-  await page.getByLabel('Use location for ranking').check()
-  await page.getByLabel('Country code').fill('HU'); await page.getByLabel('Region').fill('Budapest'); await page.getByLabel('City (optional)').fill('Budapest')
+  await page.goto(`${origin}/setup`); await page.getByRole('heading', { name: 'Make your feed yours' }).waitFor()
+  for (const topic of ['technology', 'climate', 'science']) { await page.getByLabel('Add an interest').fill(topic); await page.getByLabel('Add an interest').press('Enter') }
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.getByLabel('Use my location when ranking stories').check()
+  await page.getByLabel('Country').selectOption('HU'); await page.getByLabel('City or area').fill('Budapest')
+  await page.getByText('Additional personalization').click()
   await page.getByRole('group', { name: 'Age' }).getByLabel('Use this signal').check(); await page.getByLabel('Age value').fill('37')
   await page.getByRole('group', { name: 'Gender' }).getByLabel('Use this signal').check(); await page.getByLabel('Gender value').fill('nonbinary')
-  await page.getByLabel('Use Manual location').check(); await page.getByLabel('Use Age').check(); await page.getByLabel('Use Gender').check()
-  await page.getByLabel(/Unavailable fixture/).check()
-  await page.getByRole('button', { name: 'Save setup' }).click()
-  await Promise.race([page.getByText('Setup saved on this computer.').waitFor(), page.locator('[role="alert"]').waitFor()])
-  assert(await page.getByText('Setup saved on this computer.').count(), `setup failed: ${await page.locator('[role="alert"]').allTextContents()}`)
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.getByText('Unavailable fixture', { exact: true }).click()
+  await page.getByRole('button', { name: 'Continue' }).click()
   await screenshot(page, '01-first-run.png')
+  await page.getByRole('button', { name: 'Finish setup' }).click()
+  await page.waitForURL(`${origin}/`)
 
   await navigate(page, 'Ranked feed')
   await page.getByText('No articles match these filters.').waitFor()
@@ -122,9 +124,9 @@ try {
   await screenshot(page, '08-api-unavailable.png')
   app = await launchApp(port, origin, 'restarted Go process with same SQLite database')
   await page.getByRole('button', { name: 'Try again' }).click()
-  await page.getByLabel('Interests', { exact: true }).waitFor()
+  await page.getByRole('button', { name: 'Remove technology' }).waitFor()
   await page.goto(`${origin}/library`); await page.getByRole('button', { name: 'Saved' }).click(); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
-  await navigate(page, 'Settings'); await page.getByLabel('Interests', { exact: true }).waitFor(); assert((await page.getByLabel('Interests', { exact: true }).inputValue()).includes('technology'), 'profile did not survive restart')
+  await navigate(page, 'Settings'); await page.getByRole('button', { name: 'Remove technology' }).waitFor(); assert(await page.getByRole('button', { name: 'Remove climate' }).count(), 'profile did not survive restart')
   await navigate(page, 'Sources'); await page.getByRole('heading', { name: 'Metadata News' }).waitFor()
   await navigate(page, 'Ranked feed'); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor();assert((await page.locator('#source-filter').inputValue())!=='','source filter did not survive restart');assert((await page.getByLabel('Saved state').inputValue())==='saved','saved filter did not survive restart');assert((await page.getByLabel('Search').inputValue())==='climate','search filter did not survive restart')
   await screenshot(page, '09-restart-persistence.png')
@@ -154,7 +156,7 @@ async function addFeed(page, name, url, permission) {
   await page.getByRole('button', { name: 'Save source' }).click(); await page.getByText(`${name} saved.`).waitFor()
 }
 async function navigate(page, name) {
-  const headings = { Sources: 'Sources and refresh', Setup: 'First-run setup', Settings: 'Profile and ranking', Library: 'Personal library', 'Ranked feed': 'Ranked feed' }
+  const headings = { Sources: 'Sources and refresh', Settings: 'Settings', Library: 'Personal library', 'Ranked feed': 'Ranked feed' }
   await page.getByRole('link', { name, exact: true }).click(); await page.getByRole('heading', { name: headings[name], exact: true }).waitFor()
 }
 async function screenshot(page, name) { await page.screenshot({ path: join(evidence, name), fullPage: true }) }
