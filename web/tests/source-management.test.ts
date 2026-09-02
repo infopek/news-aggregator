@@ -36,11 +36,11 @@ async function ready(api = fakeApi()) {
 describe('source management and refresh', () => {
   it('shows all source kinds, policy, permission, and credential state accessibly', async () => {
     const { wrapper } = await ready()
-    expect(wrapper.text()).toContain('Local feedFEED')
+    expect(wrapper.text()).toContain('Local feedNews feed')
     expect(wrapper.text()).toContain('Official API')
     expect(wrapper.text()).toContain('Policy: pending')
     expect(wrapper.text()).toContain('Publisher link only')
-    expect(wrapper.text()).toContain('Configured')
+    expect(wrapper.text()).toContain('Credential ready')
     expect((await axe.run(wrapper.element)).violations).toEqual([])
     wrapper.unmount()
   })
@@ -58,6 +58,21 @@ describe('source management and refresh', () => {
     await form.trigger('submit')
     expect(wrapper.text()).toContain('approved policy review')
     expect(api.createSource).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('explains custom feed and reviewed-website fields with actionable examples', async () => {
+    const { wrapper } = await ready()
+    await wrapper.findAll('button').find((item) => item.text() === 'Add custom source')!.trigger('click')
+    const form = wrapper.get('.source-form')
+    expect(form.get('input[placeholder="https://example.com/feed.xml"]').exists()).toBe(true)
+    expect(form.text()).toContain('Auto-detect is recommended')
+    await form.get('select').setValue('scraper')
+    await flushPromises()
+    expect(form.text()).toContain('Only configure a website after reviewing its terms and robots policy')
+    expect(form.get('input[placeholder="article.story"]').exists()).toBe(true)
+    expect(form.get('input[placeholder="https://example.com/robots.txt"]').exists()).toBe(true)
+    expect(form.get('textarea').attributes('placeholder')).toContain('public headlines')
     wrapper.unmount()
   })
 

@@ -17,7 +17,9 @@ function cancel() { emit('cancel'); void clear('Credential entry cancelled and c
     @submit.prevent="submit"
     @reset.prevent="cancel"
   >
-    <label :for="id">{{ label ?? 'Credential' }}</label>
+    <div class="credential__heading">
+      <strong>{{ label ?? 'Private API credential' }}</strong><span>Write-only</span>
+    </div><label :for="id">Credential value</label>
     <p :id="`${id}-help`">
       Write-only. The value is sent once and is not displayed or stored by this form.
     </p>
@@ -29,6 +31,7 @@ function cancel() { emit('cancel'); void clear('Credential entry cancelled and c
       autocomplete="new-password"
       :disabled="submitting"
       :aria-describedby="`${id}-help`"
+      placeholder="Paste the credential once"
     >
     <div class="actions">
       <button
@@ -46,3 +49,6 @@ function cancel() { emit('cancel'); void clear('Credential entry cancelled and c
     <LiveRegion :message="announcement" />
   </form>
 </template>
+<style scoped>
+.credential{display:grid;gap:var(--space-3);padding:var(--space-4);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface-soft)}.credential__heading{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3)}.credential__heading span{padding:.25rem .55rem;border-radius:var(--radius-pill);background:var(--color-brand-soft);color:var(--color-brand-strong);font-size:.8rem;font-weight:700}.credential p{color:var(--color-muted);font-size:.9rem}.credential input{width:100%;min-height:var(--control-height);padding:.65rem .75rem;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface)}.actions{display:flex;flex-wrap:wrap;gap:var(--space-2)}@media(max-width:36rem){.actions button{flex:1 1 auto}}
+</style>
