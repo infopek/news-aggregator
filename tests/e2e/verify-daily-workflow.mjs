@@ -157,7 +157,7 @@ try {
 async function addFeed(page, name, url, permission) {
   await page.getByRole('button', { name: 'Add custom source' }).click()
   await page.getByLabel('Name').fill(name); await page.getByLabel('Source address').fill(url); await page.getByLabel('Include this source when refreshing').check()
-  await page.getByLabel('Article access').selectOption({ label: permission }); await page.getByLabel('Feed format').selectOption('rss')
+  await page.getByLabel('Article access').selectOption(permission === 'Metadata only' ? 'metadata_only' : 'full_content_allowed'); await page.getByLabel('Feed format').selectOption('rss')
   await page.getByRole('button', { name: 'Save source' }).click(); await page.getByText(`${name} saved.`).waitFor()
 }
 async function navigate(page, name) {
