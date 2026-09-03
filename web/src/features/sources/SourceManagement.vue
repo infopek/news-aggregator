@@ -58,6 +58,7 @@ async function deleteCredential(source: Source) {
 }
 function replaceCredentialStatus(id: string, configured: boolean) { sources.value = sources.value.map((item) => item.id === id ? { ...item, credentialConfigured: configured } : item) }
 function normalizedURL(value: string) { try { const url = new URL(value); url.hash = ''; return url.toString().replace(/\/$/, '') } catch { return value.trim().replace(/\/$/, '') } }
+function kindLabel(kind: Source['kind']) { return kind === 'feed' ? 'News feed' : kind === 'api' ? 'Official API' : 'Approved website' }
 </script>
 
 <template>
@@ -65,15 +66,17 @@ function normalizedURL(value: string) { try { const url = new URL(value); url.ha
     class="sources-workflow"
     aria-labelledby="sources-title"
   >
-    <p class="eyebrow">
-      Local ingestion
-    </p><h1
-      id="sources-title"
-      tabindex="-1"
-    >
-      Sources and refresh
-    </h1>
-    <p>Manage public feeds, official APIs, and explicitly approved scrapers. Credentials are write-only and never displayed.</p>
+    <header class="sources-header">
+      <p class="eyebrow">
+        Local ingestion
+      </p><h1
+        id="sources-title"
+        tabindex="-1"
+      >
+        Sources and refresh
+      </h1>
+      <p>Choose where your local feed gets its stories. Credentials stay write-only and are never displayed.</p>
+    </header>
     <p
       v-if="state === 'loading'"
       role="status"
@@ -98,19 +101,31 @@ function normalizedURL(value: string) { try { const url = new URL(value); url.ha
       >
         {{ error }}
       </p>
-      <section aria-labelledby="configured-title">
+      <section
+        class="source-section"
+        aria-labelledby="configured-title"
+      >
         <h2 id="configured-title">
           Configured sources
         </h2>
-        <p v-if="!sources.length">
-          No sources are configured. Add a starter or custom source before refreshing.
-        </p>
+        <p class="section-description">
+          Sources currently checked when you refresh.
+        </p><div
+          v-if="!sources.length"
+          class="source-empty"
+        >
+          <strong>No sources yet</strong><p>Add a starter below or connect your own public feed.</p>
+        </div>
         <article
           v-for="source in sources"
           :key="source.id"
           class="source-card"
         >
-          <h3>{{ source.name }}</h3><p><strong>{{ source.kind.toUpperCase() }}</strong> · {{ source.enabled ? 'Enabled' : 'Disabled' }} · <PermissionBadge :permission="source.contentPermission" /></p>
+          <header class="source-card__header">
+            <div><h3>{{ source.name }}</h3><p>{{ kindLabel(source.kind) }}</p></div><strong :class="['source-state',{'source-state--disabled':!source.enabled}]">{{ source.enabled ? 'Enabled' : 'Disabled' }}</strong>
+          </header><div class="source-card__badges">
+            <PermissionBadge :permission="source.contentPermission" /><span class="badge">Credential {{ source.credentialConfigured ? 'ready' : 'not configured' }}</span>
+          </div>
           <p>
             <a
               :href="source.url"
@@ -122,13 +137,12 @@ function normalizedURL(value: string) { try { const url = new URL(value); url.ha
               · reviewed {{ new Date(source.scraperPolicy.reviewedAt).toLocaleDateString() }}
             </template>
           </p>
-          <p>Credential: <strong>{{ source.credentialConfigured ? 'Configured' : 'Not configured' }}</strong></p>
           <p v-if="source.retryAfter">
             Rate limited; retry after {{ new Date(source.retryAfter).toLocaleString() }}.
           </p><p v-else-if="source.lastError">
             Last refresh: {{ source.lastError }}
           </p>
-          <div class="actions">
+          <div class="source-actions">
             <button
               type="button"
               @click="edit(source)"
@@ -159,15 +173,20 @@ function normalizedURL(value: string) { try { const url = new URL(value); url.ha
           />
         </article>
       </section>
-      <section aria-labelledby="starters-title">
+      <section
+        class="source-section starter-section"
+        aria-labelledby="starters-title"
+      >
         <h2 id="starters-title">
           Starter catalog
-        </h2><ul>
+        </h2><p class="section-description">
+          Quick, pre-filled choices you can add with one click.
+        </p><ul class="starter-grid">
           <li
             v-for="starter in starters"
             :key="starter.id"
           >
-            {{ starter.name }} ({{ starter.kind }}) <button
+            <div><strong>{{ starter.name }}</strong><span>{{ kindLabel(starter.kind) }}</span></div><button
               type="button"
               :disabled="configuredStarterURLs.has(normalizedURL(starter.url))"
               @click="addStarter(starter)"
@@ -180,6 +199,7 @@ function normalizedURL(value: string) { try { const url = new URL(value); url.ha
       <button
         v-if="!editing"
         type="button"
+        class="add-source"
         @click="edit()"
       >
         Add custom source
@@ -190,7 +210,7 @@ function normalizedURL(value: string) { try { const url = new URL(value); url.ha
         novalidate
         @submit.prevent="save"
       >
-        <h2>{{ form.id ? 'Edit source' : 'Add custom source' }}</h2><div
+        <header><h2>{{ form.id ? 'Edit source' : 'Add custom source' }}</h2><p>Connect a public feed or explicitly reviewed source. Required details depend on its type.</p></header><div
           v-if="validation.length"
           role="alert"
         >
@@ -203,25 +223,30 @@ function normalizedURL(value: string) { try { const url = new URL(value); url.ha
             </li>
           </ul>
         </div>
-        <label>Name <input
+        <label>Name <span class="field-help">A short name you will recognize in filters and refresh results.</span><input
           v-model="form.name"
           required
-        ></label><label>URL <input
+          placeholder="For example, Local technology news"
+        ></label><label>Source address <span class="field-help">Paste the public feed, API, or reviewed website URL.</span><input
           v-model="form.url"
           type="url"
           required
+          placeholder="https://example.com/feed.xml"
         ></label>
-        <label>Type <select
+        <label>Source type <span class="field-help">Most publishers offer an RSS or Atom news feed.</span><select
           v-model="form.kind"
           :disabled="Boolean(form.id)"
         ><option value="feed">RSS/Atom feed</option><option value="api">Official API</option><option value="scraper">Approved scraper</option></select></label>
         <label><input
           v-model="form.enabled"
           type="checkbox"
-        > Enabled</label><label>Content permission <select v-model="form.contentPermission"><option value="metadata_only">Metadata only</option><option value="full_content_allowed">Full content allowed</option></select></label>
-        <label v-if="form.kind === 'feed'">Feed format <select v-model="form.feedFormat"><option value="auto">Auto-detect</option><option value="rss">RSS</option><option value="atom">Atom</option></select></label>
+        > Include this source when refreshing</label><label>Article access <span class="field-help">Choose full content only when the publisher explicitly permits local storage.</span><select v-model="form.contentPermission"><option value="metadata_only">Headlines and publisher links only</option><option value="full_content_allowed">Full articles may be stored</option></select></label>
+        <label v-if="form.kind === 'feed'">Feed format <span class="field-help">Auto-detect is recommended unless the publisher specifies a format.</span><select v-model="form.feedFormat"><option value="auto">Auto-detect (recommended)</option><option value="rss">RSS</option><option value="atom">Atom</option></select></label>
         <template v-if="form.kind === 'api'">
-          <label>Provider identifier <input v-model="form.apiProvider"></label><label>Page size <input
+          <label>API provider name <span class="field-help">Use the provider identifier from its documentation.</span><input
+            v-model="form.apiProvider"
+            placeholder="provider-name"
+          ></label><label>Stories per request <span class="field-help">50 is a sensible default.</span><input
             v-model="form.apiPageSize"
             type="number"
             min="0"
@@ -229,16 +254,34 @@ function normalizedURL(value: string) { try { const url = new URL(value); url.ha
           ></label>
         </template>
         <fieldset v-if="form.kind === 'scraper'">
-          <legend>Scraper configuration and policy</legend><label>Article selector <input v-model="form.articleSelector"></label><label>Title selector <input v-model="form.titleSelector"></label><label>Content selector <input v-model="form.contentSelector"></label><label>Policy status <select v-model="form.policyStatus"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></label><label>Terms URL <input
+          <legend>Reviewed website details</legend>
+          <p class="field-help">
+            Only configure a website after reviewing its terms and robots policy. These details preserve that local approval record.
+          </p>
+          <label>Story container <span class="field-help">CSS selector for one story, for example <code>article.story</code>.</span><input
+            v-model="form.articleSelector"
+            placeholder="article.story"
+          ></label><label>Headline <span class="field-help">CSS selector for the headline inside each story, for example <code>h2</code>.</span><input
+            v-model="form.titleSelector"
+            placeholder="h2"
+          ></label><label>Article text — optional <span class="field-help">Only used when full article storage is permitted, for example <code>.article-body</code>.</span><input
+            v-model="form.contentSelector"
+            placeholder=".article-body"
+          ></label><label>Review decision <span class="field-help">An enabled website must have a complete, approved review.</span><select v-model="form.policyStatus"><option value="pending">Review pending</option><option value="approved">Approved</option><option value="rejected">Not approved</option></select></label><label>Publisher terms <span class="field-help">Public HTTP(S) page containing the publisher's terms.</span><input
             v-model="form.termsUrl"
             type="url"
-          ></label><label>Robots URL <input
+            placeholder="https://example.com/terms"
+          ></label><label>Robots policy <span class="field-help">Public HTTP(S) robots.txt address checked during review.</span><input
             v-model="form.robotsUrl"
             type="url"
-          ></label><label>Reviewed at <input
+            placeholder="https://example.com/robots.txt"
+          ></label><label>Review date and time <span class="field-help">When the policy review was completed on this computer.</span><input
             v-model="form.reviewedAt"
             type="datetime-local"
-          ></label><label>Review notes <textarea v-model="form.reviewNotes" /></label>
+          ></label><label>Review notes <span class="field-help">Briefly record what permits this use and any important limits.</span><textarea
+            v-model="form.reviewNotes"
+            placeholder="For example, public headlines may be fetched at a low rate; article text is not stored."
+          /></label>
         </fieldset>
         <div class="actions">
           <button
@@ -263,5 +306,5 @@ function normalizedURL(value: string) { try { const url = new URL(value); url.ha
 </template>
 
 <style scoped>
-.source-card,.source-form{border:1px solid var(--border,#777);border-radius:.5rem;padding:1rem;margin-block:1rem}.actions{display:flex;flex-wrap:wrap;gap:.5rem}.source-form label{display:block;margin-block:.75rem}.source-form input:not([type=checkbox]),.source-form select,.source-form textarea{display:block;width:min(100%,42rem)}
+.sources-workflow,.sources-header,.source-section{display:grid;gap:var(--space-5)}.sources-header{gap:var(--space-2)}.sources-header>p:last-child,.section-description,.source-form header p{color:var(--color-muted)}.source-section{padding:var(--space-5);border:1px solid var(--color-border);border-radius:var(--radius-lg);background:var(--color-surface-soft)}.source-empty{display:grid;gap:var(--space-1);padding:var(--space-5);border:1px dashed var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface)}.source-empty p{color:var(--color-muted)}.source-card{display:grid;gap:var(--space-3);padding:var(--space-5);border:1px solid var(--color-border);border-radius:var(--radius-lg);background:var(--color-surface);box-shadow:var(--shadow-sm)}.source-card__header{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-4)}.source-card__header div{display:grid;gap:var(--space-1)}.source-card__header p,.source-card>p{color:var(--color-muted)}.source-state{padding:.3rem .65rem;border-radius:var(--radius-pill);background:var(--color-success-soft);color:var(--color-success);font-size:.82rem}.source-state--disabled{background:var(--color-surface-soft);color:var(--color-muted)}.source-card__badges,.source-actions,.actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2)}.source-card a{overflow-wrap:anywhere}.starter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3);margin:0;padding:0;list-style:none}.starter-grid li{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);padding:var(--space-4);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface)}.starter-grid li div{display:grid;gap:var(--space-1)}.starter-grid span{color:var(--color-muted);font-size:.9rem}.add-source{justify-self:start}.source-form{display:grid;gap:var(--space-4);padding:var(--space-5);border:1px solid var(--color-border);border-radius:var(--radius-lg);background:var(--color-surface);box-shadow:var(--shadow-sm)}.source-form header{display:grid;gap:var(--space-2)}.source-form label{display:grid;gap:var(--space-2);max-width:42rem;font-weight:720}.field-help{color:var(--color-muted);font-size:.9rem;font-weight:400}.source-form code{padding:.08rem .25rem;border-radius:var(--radius-sm);background:var(--color-surface-soft);font-size:.85em}.source-form input:not([type=checkbox]),.source-form select,.source-form textarea{width:100%;min-height:var(--control-height);padding:.65rem .75rem;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface)}.source-form textarea{min-height:7rem}.source-form fieldset{display:grid;gap:var(--space-4);padding:var(--space-4);border:1px solid var(--color-border);border-radius:var(--radius-md)}.sources-workflow :deep(.refresh-control>button){justify-self:start}@media(max-width:42rem){.source-section,.source-card,.source-form{padding:var(--space-4)}.starter-grid{grid-template-columns:1fr}.starter-grid li,.source-card__header{align-items:stretch;flex-direction:column}.source-actions button,.source-form .actions button,.add-source{width:100%;flex:1 1 auto}.sources-workflow :deep(.refresh-control>button){justify-self:stretch}}
 </style>

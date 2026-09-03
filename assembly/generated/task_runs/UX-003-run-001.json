@@ -3,7 +3,7 @@
   "task_id": "UX-003",
   "run_id": "UX-003-run-001",
   "actor_id": "frontend-agent",
-  "status": "review",
+  "status": "done",
   "implementation_summary": "Redesigned the ranked feed and reader around a quiet consumer-news hierarchy: compact refresh feedback, grouped responsive filters, complete article cards, subordinate library actions, permission-aware reading, and progressive backend-driven ranking explanations with precise values hidden behind technical disclosure.",
   "files_changed": [
     {"path": "web/src/features/feed/**", "change": "Reorganized the feed header, persisted filters, stale/loading/empty/error states, article actions, pagination, and card composition without changing server-owned query or mutation behavior."},
@@ -20,12 +20,12 @@
     {"command": "./scripts/verify.sh", "result": "passed", "output": "Repository Go/integration, migration, frontend, browser, PWA, and build verification passed."}
   ],
   "proof": [
-    {"kind": "commit", "summary": "Corrective implementation commit 7440b81dec719316c82fc4a322caedc0bb2a8787 restores the accepted include-hidden control and authoritative persistence path.", "status": "needs_review", "recorded_at": "2026-09-02T20:25:00Z"},
-    {"kind": "screenshot", "summary": "Updated desktop feed, expanded explanation, partial refresh, reader, empty/error, narrow reader/feed, and primitive evidence under web/tests/evidence and tests/e2e/evidence.", "status": "needs_review", "recorded_at": "2026-09-02T20:10:00Z"},
-    {"kind": "manual_note", "summary": "Exact-revision report includes accessibility, restart persistence, loopback-only requests, and browser-storage audit.", "status": "needs_review", "recorded_at": "2026-09-02T20:10:00Z"}
+    {"kind": "commit", "summary": "Corrective implementation commit 7440b81dec719316c82fc4a322caedc0bb2a8787 restores the accepted include-hidden control and authoritative persistence path; accepted and merged through PR #60 as 62c7ffdba8c4888cd24299bb232589693d125b49.", "status": "accepted", "recorded_at": "2026-09-02T20:36:20Z"},
+    {"kind": "screenshot", "summary": "Updated desktop feed, expanded explanation, partial refresh, reader, empty/error, narrow reader/feed, and primitive evidence under web/tests/evidence and tests/e2e/evidence.", "status": "accepted", "recorded_at": "2026-09-02T20:36:20Z"},
+    {"kind": "manual_note", "summary": "Exact-revision report includes accessibility, restart persistence, loopback-only requests, and browser-storage audit.", "status": "accepted", "recorded_at": "2026-09-02T20:36:20Z"}
   ],
   "blockers": [],
-  "notes": "No API, backend ranking, permission, persistence, or shared global-style contract changed. Exact contribution values remain available only through an explicitly labeled Technical details disclosure. The include-hidden review finding is corrected at 7440b81dec719316c82fc4a322caedc0bb2a8787. Independent approval is required.",
+  "notes": "No API, backend ranking, permission, persistence, or shared global-style contract changed. Exact contribution values remain available only through an explicitly labeled Technical details disclosure. The include-hidden review finding was corrected at 7440b81dec719316c82fc4a322caedc0bb2a8787. The project owner explicitly reported approval and merge of PR #60; no native GitHub review submission is claimed.",
   "submitted_at": "2026-09-02T20:10:00Z",
-  "updated_at": "2026-09-02T20:25:00Z"
+  "updated_at": "2026-09-02T20:36:20Z"
 }

@@ -1,47 +1,49 @@
 {
   "decision": "APPROVE",
-  "revision": "7440b81dec719316c82fc4a322caedc0bb2a8787",
-  "generatedAt": "2026-09-02T20:22:02.157Z",
+  "revision": "0dcca2261a947c44fb5fbd0cdb598d9273329094",
+  "generatedAt": "2026-09-03T07:52:11.911Z",
   "processRestart": [
-    "2026-09-02T20:21:51.586Z initial launch pid=2182287",
-    "2026-09-02T20:22:01.352Z stopped Go process pid=2182287",
-    "2026-09-02T20:22:01.554Z restarted Go process with same SQLite database pid=2183371"
+    "2026-09-03T07:52:00.690Z initial launch pid=1604362",
+    "2026-09-03T07:52:11.078Z stopped Go process pid=1604362",
+    "2026-09-03T07:52:11.281Z restarted Go process with same SQLite database pid=1605424"
   ],
   "accessibility": [
     "ranked-feed: 0 serious/critical",
     "library: 0 serious/critical",
+    "narrow-library: 0 serious/critical",
+    "narrow-sources: 0 serious/critical",
     "narrow-feed: 0 serious/critical"
   ],
   "browserStorage": {
     "local": {
       "news-aggregator:library-view": "saved",
-      "news-aggregator:last-refresh-id": "refresh-1788380513024083900"
+      "news-aggregator:last-refresh-id": "refresh-1788421922151193333"
     },
     "session": {}
   },
   "browserOutboundRequests": [
-    "http://127.0.0.1:45917/",
-    "http://127.0.0.1:45917/assets/index-BRQSdka6.js",
-    "http://127.0.0.1:45917/assets/index-C94gNKrI.css",
-    "http://127.0.0.1:45917/api/v1/feed-filter",
-    "http://127.0.0.1:45917/api/v1/profile",
-    "http://127.0.0.1:45917/assets/workbox-window.prod.es5-Bd17z0YL.js",
-    "http://127.0.0.1:45917/api/v1/feed?limit=20",
-    "http://127.0.0.1:45917/api/v1/sources",
-    "http://127.0.0.1:45917/api/v1/ranking-config",
-    "http://127.0.0.1:45917/api/v1/starter-sources",
-    "http://127.0.0.1:45917/setup",
-    "http://127.0.0.1:45917/api/v1/refresh",
-    "http://127.0.0.1:45917/api/v1/refresh/refresh-1788380513024083900",
-    "http://127.0.0.1:45917/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229",
-    "http://127.0.0.1:45917/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229/library-state",
-    "http://127.0.0.1:45917/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e/library-state",
-    "http://127.0.0.1:45917/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e",
-    "http://127.0.0.1:45917/api/v1/feed?limit=20&saved=true",
-    "http://127.0.0.1:45917/api/v1/feed?saved=true&limit=100",
-    "http://127.0.0.1:45917/api/v1/feed?includeHidden=true&limit=100",
-    "http://127.0.0.1:45917/api/v1/feed?limit=20&sourceId=metadata-source&saved=true&includeHidden=true&text=climate",
-    "http://127.0.0.1:45917/library"
+    "http://127.0.0.1:44995/",
+    "http://127.0.0.1:44995/assets/index-C0-HSWXE.js",
+    "http://127.0.0.1:44995/assets/index-_-z8YT3Z.css",
+    "http://127.0.0.1:44995/api/v1/feed-filter",
+    "http://127.0.0.1:44995/api/v1/profile",
+    "http://127.0.0.1:44995/assets/workbox-window.prod.es5-Bd17z0YL.js",
+    "http://127.0.0.1:44995/api/v1/feed?limit=20",
+    "http://127.0.0.1:44995/api/v1/sources",
+    "http://127.0.0.1:44995/api/v1/ranking-config",
+    "http://127.0.0.1:44995/api/v1/starter-sources",
+    "http://127.0.0.1:44995/setup",
+    "http://127.0.0.1:44995/api/v1/refresh",
+    "http://127.0.0.1:44995/api/v1/refresh/refresh-1788421922151193333",
+    "http://127.0.0.1:44995/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229",
+    "http://127.0.0.1:44995/api/v1/articles/article-d46345e7f47716150df4c960a9e5d229/library-state",
+    "http://127.0.0.1:44995/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e/library-state",
+    "http://127.0.0.1:44995/api/v1/articles/article-29026b7799232ebcd520692f4e22d42e",
+    "http://127.0.0.1:44995/api/v1/feed?limit=20&saved=true",
+    "http://127.0.0.1:44995/api/v1/feed?saved=true&limit=100",
+    "http://127.0.0.1:44995/api/v1/feed?includeHidden=true&limit=100",
+    "http://127.0.0.1:44995/api/v1/feed?limit=20&sourceId=metadata-source&saved=true&includeHidden=true&text=climate",
+    "http://127.0.0.1:44995/library"
   ],
-  "assertions": "complete daily-use workflow passed against real Go/SQLite/Vue stack, including enabled optional ranking contributions, persisted source/saved/search/include-hidden filters, empty feed, keyboard-only hide/restore navigation, and API interruption recovery"
+  "assertions": "complete daily-use workflow passed against real Go/SQLite/Vue stack, including enabled optional ranking contributions, persisted source/saved/search/include-hidden filters, empty feed, keyboard-only hide/restore navigation, responsive Sources and Library workflows, and API interruption recovery"
 }

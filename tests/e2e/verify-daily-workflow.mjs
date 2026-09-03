@@ -101,18 +101,21 @@ try {
   await page.getByText('Updating ranked stories… Current results remain visible.').waitFor({ state: 'hidden' })
   const hideCard = page.locator('.ranked-list > li').filter({ hasText: 'Climate science briefing' })
   await keyboardActivate(page, hideCard.getByRole('button', { name: 'Hide' })); await hideCard.waitFor({ state: 'detached' })
-  await keyboardActivate(page, page.getByRole('link', { name: 'Library', exact: true })); await page.getByRole('heading', { name: 'Personal library' }).waitFor()
+  await keyboardActivate(page, page.getByRole('link', { name: 'Library', exact: true })); await page.getByRole('heading', { name: 'Library', exact: true }).waitFor()
   await keyboardActivate(page, page.getByRole('button', { name: 'Hidden' }))
   const hiddenState = await page.evaluate(async () => ({ body: await (await fetch('/api/v1/feed?includeHidden=true&limit=100')).json(), text: document.body.innerText }))
   assert(hiddenState.body.items?.some(item => item.title === 'Climate science briefing'), `hidden article missing from authoritative API: ${JSON.stringify(hiddenState)}`)
   await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor(); await keyboardActivate(page, page.getByRole('button', { name: 'Restore' }))
-  await page.getByText('No hidden articles.').waitFor()
+  await page.getByText('No hidden stories').waitFor()
   await page.getByRole('button', { name: 'Saved' }).click(); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
   await screenshot(page, '06-library.png')
 
   await auditA11y(page, 'library')
-  await page.setViewportSize({ width: 390, height: 844 }); await navigate(page, 'Ranked feed')
-  await page.getByRole('heading', { name: 'Ranked feed' }).waitFor(); await screenshot(page, '07-narrow-feed.png'); await auditA11y(page, 'narrow-feed')
+  await page.setViewportSize({ width: 390, height: 844 })
+  await screenshot(page, '07-narrow-library.png'); await auditA11y(page, 'narrow-library'); await assertNoOverflow(page, 'narrow library')
+  await navigate(page, 'Sources'); await screenshot(page, '08-narrow-sources.png'); await auditA11y(page, 'narrow-sources'); await assertNoOverflow(page, 'narrow sources')
+  await navigate(page, 'Ranked feed')
+  await page.getByRole('heading', { name: 'Ranked feed' }).waitFor(); await screenshot(page, '09-narrow-feed.png'); await auditA11y(page, 'narrow-feed')
   await page.locator('#source-filter').selectOption({ label: 'Metadata News' }); await page.locator('#saved-filter').selectOption('saved'); await page.locator('#feed-search').fill('climate'); await page.getByText('More filters', { exact: true }).click(); await page.locator('#include-hidden').check(); await page.getByRole('button', { name: 'Apply filters' }).click(); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor()
 
   const storage = await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }))
@@ -123,7 +126,7 @@ try {
   await stopApp(app, 'stopped Go process'); app = undefined
   await navigate(page, 'Settings')
   await page.getByRole('alert').getByText('The local service is temporarily unavailable.').waitFor()
-  await screenshot(page, '08-api-unavailable.png')
+  await screenshot(page, '10-api-unavailable.png')
   app = await launchApp(port, origin, 'restarted Go process with same SQLite database')
   await page.getByRole('button', { name: 'Try again' }).click()
   await page.getByRole('button', { name: 'Remove technology' }).waitFor()
@@ -131,10 +134,10 @@ try {
   await navigate(page, 'Settings'); await page.getByRole('button', { name: 'Remove technology' }).waitFor(); assert(await page.getByRole('button', { name: 'Remove climate' }).count(), 'profile did not survive restart')
   await navigate(page, 'Sources'); await page.getByRole('heading', { name: 'Metadata News' }).waitFor()
   await navigate(page, 'Ranked feed'); await page.getByRole('link', { name: 'Climate science briefing', exact: true }).waitFor();assert((await page.locator('#source-filter').inputValue())!=='','source filter did not survive restart');assert((await page.locator('#saved-filter').inputValue())==='saved','saved filter did not survive restart');assert((await page.locator('#feed-search').inputValue())==='climate','search filter did not survive restart');assert(await page.locator('#include-hidden').isChecked(),'include-hidden filter did not survive restart')
-  await screenshot(page, '09-restart-persistence.png')
+  await screenshot(page, '11-restart-persistence.png')
   await context.tracing.stop({ path: join(evidence, 'daily-workflow-trace.zip') }); traceStopped = true
 
-  const report = { decision: 'APPROVE', revision: await output('git', ['rev-parse', 'HEAD']), generatedAt: new Date().toISOString(), processRestart: transcript, accessibility: ['ranked-feed: 0 serious/critical', 'library: 0 serious/critical', 'narrow-feed: 0 serious/critical'], browserStorage: storage, browserOutboundRequests: [...new Set(browserRequests)], assertions: 'complete daily-use workflow passed against real Go/SQLite/Vue stack, including enabled optional ranking contributions, persisted source/saved/search/include-hidden filters, empty feed, keyboard-only hide/restore navigation, and API interruption recovery' }
+  const report = { decision: 'APPROVE', revision: await output('git', ['rev-parse', 'HEAD']), generatedAt: new Date().toISOString(), processRestart: transcript, accessibility: ['ranked-feed: 0 serious/critical', 'library: 0 serious/critical', 'narrow-library: 0 serious/critical', 'narrow-sources: 0 serious/critical', 'narrow-feed: 0 serious/critical'], browserStorage: storage, browserOutboundRequests: [...new Set(browserRequests)], assertions: 'complete daily-use workflow passed against real Go/SQLite/Vue stack, including enabled optional ranking contributions, persisted source/saved/search/include-hidden filters, empty feed, keyboard-only hide/restore navigation, responsive Sources and Library workflows, and API interruption recovery' }
   await writeFile(join(evidence, 'verification-report.json'), JSON.stringify(report, null, 2) + '\n')
   await writeFile(join(evidence, 'restart-transcript.txt'), transcript.join('\n') + '\n')
   console.log('VERIFY-002 APPROVED; evidence written to tests/e2e/evidence')
@@ -153,12 +156,12 @@ try {
 
 async function addFeed(page, name, url, permission) {
   await page.getByRole('button', { name: 'Add custom source' }).click()
-  await page.getByLabel('Name').fill(name); await page.getByLabel('URL').fill(url); await page.getByLabel('Enabled').check()
-  await page.getByLabel('Content permission').selectOption({ label: permission }); await page.getByLabel('Feed format').selectOption('rss')
+  await page.getByLabel('Name').fill(name); await page.getByLabel('Source address').fill(url); await page.getByLabel('Include this source when refreshing').check()
+  await page.getByLabel('Article access').selectOption(permission === 'Metadata only' ? 'metadata_only' : 'full_content_allowed'); await page.getByLabel('Feed format').selectOption('rss')
   await page.getByRole('button', { name: 'Save source' }).click(); await page.getByText(`${name} saved.`).waitFor()
 }
 async function navigate(page, name) {
-  const headings = { Sources: 'Sources and refresh', Settings: 'Settings', Library: 'Personal library', 'Ranked feed': 'Ranked feed' }
+  const headings = { Sources: 'Sources and refresh', Settings: 'Settings', Library: 'Library', 'Ranked feed': 'Ranked feed' }
   await page.getByRole('link', { name, exact: true }).click(); await page.getByRole('heading', { name: headings[name], exact: true }).waitFor()
 }
 async function screenshot(page, name) { await page.screenshot({ path: join(evidence, name), fullPage: true }) }
@@ -170,6 +173,10 @@ async function auditA11y(page, name) {
   const blocking = result.violations.filter(item => ['serious', 'critical'].includes(item.impact))
   await writeFile(join(evidence, `accessibility-${name}.json`), JSON.stringify(result, null, 2))
   assert(blocking.length === 0, `${name} accessibility violations: ${blocking.map(item => item.id).join(', ')}`)
+}
+async function assertNoOverflow(page, name) {
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)
+  assert(!overflow, `${name} has horizontal page overflow`)
 }
 async function keyboardActivate(page, target) {
   await target.waitFor()

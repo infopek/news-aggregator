@@ -1,0 +1,31 @@
+{
+  "schema_version": "0.1.0",
+  "task_id": "UX-004",
+  "run_id": "UX-004-run-001",
+  "actor_id": "frontend-agent",
+  "status": "review",
+  "implementation_summary": "Redesigned Sources and Library around scannable consumer workflows: separated configured and starter sources, plain-language source and policy forms, bounded write-only credential entry, compact refresh context, consistent story cards, responsive library views, and reversible authoritative actions.",
+  "files_changed": [
+    {"path": "web/src/features/sources/**", "change": "Introduced clear source identity, human-readable adapter and enabled states, permission/credential/policy badges, starter cards, realistic examples, and actionable helpers for feed, API, and reviewed-website configuration."},
+    {"path": "web/src/features/library/**", "change": "Rebuilt saved/read/unread/hidden views with the shared article-card hierarchy, coherent tabs, empty/error states, responsive actions, and existing cursor/mutation authority preserved."},
+    {"path": "web/src/components/shared/CredentialInput.vue", "change": "Presented credential entry as a distinct write-only security panel while retaining immediate field clearing and non-rendering of submitted secrets."},
+    {"path": "web/tests/**, tests/e2e/**", "change": "Expanded source helper, policy, credential, story-card, desktop/narrow, overflow, accessibility, privacy, restart, and real-process evidence."}
+  ],
+  "verification": [
+    {"command": "npm run lint && npm run typecheck", "result": "passed", "output": "Frontend lint and TypeScript checks passed."},
+    {"command": "npm run test:unit -- --run", "result": "passed", "output": "21 files and 155 tests passed, including source kinds, actionable field help, write-only credentials, refresh recovery, Library cards, cursor pagination, empty/error states, reversible actions, and accessibility."},
+    {"command": "SCREENSHOT_MODE=smoke npm run test:browser", "result": "passed", "output": "Browser proof passed with updated desktop Sources/Library and 390px Sources/Library evidence, keyboard navigation, privacy checks, and no horizontal overflow."},
+    {"command": "node tests/e2e/verify-daily-workflow.mjs", "result": "passed", "output": "VERIFY-002 APPROVED implementation 0dcca2261a947c44fb5fbd0cdb598d9273329094 against real Go/SQLite/Vue, including source creation/refresh, Library restore, full process restart, accessibility, loopback-only traffic, and browser-storage audit."},
+    {"command": "SCREENSHOT_MODE=smoke ./scripts/verify.sh", "result": "passed", "output": "Repository Go/integration, migration, frontend, browser, PWA, and build verification passed."},
+    {"command": "./scripts/lifecycle-contract.sh", "result": "passed", "output": "Task batches, collaboration state, and task runs are internally consistent before submission."}
+  ],
+  "proof": [
+    {"kind": "commit", "summary": "Implementation commit 0dcca2261a947c44fb5fbd0cdb598d9273329094 contains the reviewed-workflow redesign and corrected exact UI-label E2E selectors.", "status": "needs_review", "recorded_at": "2026-09-03T07:52:41Z"},
+    {"kind": "screenshot", "summary": "Desktop Sources/Library and narrow Sources/Library evidence is stored under web/tests/evidence and tests/e2e/evidence.", "status": "needs_review", "recorded_at": "2026-09-03T07:52:41Z"},
+    {"kind": "manual_note", "summary": "Exact-revision report records zero serious/critical accessibility issues, process-restart persistence, loopback-only browser requests, and no authoritative personal/source state in browser storage.", "status": "needs_review", "recorded_at": "2026-09-03T07:52:41Z"}
+  ],
+  "blockers": [],
+  "notes": "No API, source adapter, scraper-policy, content-permission, ranking, or persistence contract changed. Credentials remain write-only and are cleared after submission. Independent review is required; no approval is claimed.",
+  "submitted_at": "2026-09-03T07:52:41Z",
+  "updated_at": "2026-09-03T07:52:41Z"
+}

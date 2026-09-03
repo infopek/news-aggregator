@@ -6,6 +6,8 @@ import { createServerApi, type ServerApi } from '../../api/server-api'
 import type { ArticleSummary, FeedQuery, LibraryStateWrite, Source } from '../../api/generated/models'
 import ArticleSummaryCard from '../../components/shared/ArticleSummaryCard.vue'
 import RankingExplanation from '../../components/shared/RankingExplanation.vue'
+import EmptyState from '../../components/shared/EmptyState.vue'
+import StatusBanner from '../../components/shared/StatusBanner.vue'
 import AppLink from '../../router/AppLink.vue'
 import { toUserSafeError } from '../../state/errors'
 import { ServerMutations } from '../../state/mutations'
@@ -32,16 +34,20 @@ async function mutate(article:ArticleSummary,patch:LibraryStateWrite){busy.value
 </script>
 
 <template>
-  <section aria-labelledby="library-title">
-    <p class="eyebrow">
-      Your local reading history
-    </p><h1
-      id="library-title"
-      tabindex="-1"
-    >
-      Personal library
-    </h1>
-    <p>Saved, read, and hidden states come from the local database and remain reversible.</p>
+  <section
+    class="library-page"
+    aria-labelledby="library-title"
+  >
+    <header class="library-header">
+      <p class="eyebrow">
+        Your stories
+      </p><h1
+        id="library-title"
+        tabindex="-1"
+      >
+        Library
+      </h1><p>Find stories you saved, read, or hid. Every action can be reversed.</p>
+    </header>
     <nav
       aria-label="Library views"
       class="library-tabs"
@@ -56,31 +62,40 @@ async function mutate(article:ArticleSummary,patch:LibraryStateWrite){busy.value
         {{ name === 'unread' ? 'Unread' : name[0].toUpperCase()+name.slice(1) }}
       </button>
     </nav>
-    <p
+    <div
       v-if="state==='loading'"
+      class="library-state"
       role="status"
     >
-      Loading {{ view }} articles…
-    </p>
-    <div
+      Loading {{ view }} stories…
+    </div>
+    <StatusBanner
       v-else-if="state==='error'"
-      role="alert"
+      title="Library unavailable"
+      tone="danger"
     >
-      <p>{{ message }}</p><button
-        type="button"
-        @click="load"
-      >
-        Try again
-      </button>
-    </div>
-    <div
+      {{ message }}<template #actions>
+        <button
+          type="button"
+          class="secondary"
+          @click="load"
+        >
+          Try again
+        </button>
+      </template>
+    </StatusBanner>
+    <EmptyState
       v-else-if="state==='empty'"
-      class="empty-state"
+      :title="`No ${view} stories`"
+      :description="view === 'saved' ? 'Save a story from your feed and it will appear here.' : view === 'hidden' ? 'Stories you hide will appear here so you can restore them.' : `You do not have any ${view} stories yet.`"
     >
-      <p>No {{ view }} articles.</p><AppLink to="/">
-        Return to the ranked feed
+      <AppLink
+        class="button-link"
+        to="/"
+      >
+        Browse ranked stories
       </AppLink>
-    </div>
+    </EmptyState>
     <ol
       v-else
       class="library-list"
@@ -93,49 +108,49 @@ async function mutate(article:ArticleSummary,patch:LibraryStateWrite){busy.value
           :article="article"
           :source-name="sourceNames[article.sourceId]??'Unknown source'"
           heading-level="h2"
-        />
-        <RankingExplanation
-          :contributions="article.ranking.contributions"
-          heading-level="h3"
-        />
-        <AppLink :to="`/articles/${encodeURIComponent(article.id)}`">
-          Open reader
-        </AppLink>
-        <div
-          class="actions"
-          aria-label="Article actions"
+          :reader-to="`/articles/${encodeURIComponent(article.id)}`"
         >
-          <button
-            type="button"
-            :disabled="busy[article.id]"
-            @click="mutate(article,{read:!article.library.readAt})"
-          >
-            {{ article.library.readAt?'Mark unread':'Mark read' }}
-          </button>
-          <button
-            type="button"
-            :disabled="busy[article.id]"
-            @click="mutate(article,{saved:!article.library.savedAt})"
-          >
-            {{ article.library.savedAt?'Unsave':'Save' }}
-          </button>
-          <button
-            v-if="article.library.hiddenAt"
-            type="button"
-            :disabled="busy[article.id]"
-            @click="mutate(article,{hidden:false})"
-          >
-            Restore
-          </button>
-          <button
-            v-else
-            type="button"
-            :disabled="busy[article.id]"
-            @click="mutate(article,{hidden:true})"
-          >
-            Hide
-          </button>
-        </div>
+          <template #explanation>
+            <RankingExplanation :contributions="article.ranking.contributions" />
+          </template><template #actions>
+            <div
+              class="library-actions"
+              aria-label="Article actions"
+            >
+              <button
+                type="button"
+                class="tertiary"
+                :disabled="busy[article.id]"
+                @click="mutate(article,{read:!article.library.readAt})"
+              >
+                {{ article.library.readAt?'Mark unread':'Mark read' }}
+              </button><button
+                type="button"
+                class="tertiary"
+                :disabled="busy[article.id]"
+                @click="mutate(article,{saved:!article.library.savedAt})"
+              >
+                {{ article.library.savedAt?'Unsave':'Save' }}
+              </button><button
+                v-if="article.library.hiddenAt"
+                type="button"
+                class="secondary"
+                :disabled="busy[article.id]"
+                @click="mutate(article,{hidden:false})"
+              >
+                Restore
+              </button><button
+                v-else
+                type="button"
+                class="tertiary"
+                :disabled="busy[article.id]"
+                @click="mutate(article,{hidden:true})"
+              >
+                Hide
+              </button>
+            </div>
+          </template>
+        </ArticleSummaryCard>
       </li>
     </ol>
     <p aria-live="polite">
@@ -144,4 +159,6 @@ async function mutate(article:ArticleSummary,patch:LibraryStateWrite){busy.value
   </section>
 </template>
 
-<style scoped>.library-tabs,.actions{display:flex;flex-wrap:wrap;gap:.75rem}.library-tabs [aria-pressed=true]{font-weight:700;outline:.15rem solid currentColor}.library-list{list-style:none;padding:0}.library-list>li{padding-block:1rem;border-block-end:1px solid var(--border,#777)}.empty-state{padding:1rem;background:var(--surface-muted,#f4f5f6)}</style>
+<style scoped>
+.library-page,.library-header{display:grid;gap:var(--space-5)}.library-header{gap:var(--space-2)}.library-header>p:last-child{color:var(--color-muted);font-size:1.02rem}.library-tabs{display:flex;flex-wrap:wrap;gap:var(--space-1);padding:var(--space-1);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface-soft);width:fit-content}.library-tabs button{border-color:transparent;background:transparent;color:var(--color-muted)}.library-tabs button:hover{background:var(--color-brand-soft);color:var(--color-brand)}.library-tabs [aria-pressed=true]{border-color:#b8cae2;background:var(--color-brand-soft);color:var(--color-brand-strong)}.library-state{min-height:12rem;display:grid;place-items:center;color:var(--color-muted)}.library-list{display:grid;gap:var(--space-4);margin:0;padding:0;list-style:none}.library-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-1)}.library-actions button{min-height:2.5rem;padding-inline:.7rem}@media(max-width:36rem){.library-tabs{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.library-actions button{flex:1 1 auto}}
+</style>

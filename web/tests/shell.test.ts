@@ -36,7 +36,7 @@ describe('application shell', () => {
     await library.trigger('click', { button: 0 })
     await flushPromises()
     expect(window.location.pathname).toBe('/library')
-    expect(wrapper.get('h1').text()).toBe('Personal library')
+    expect(wrapper.get('h1').text()).toBe('Library')
     expect(document.activeElement?.id).toBe('library-title')
 
     window.history.pushState(null, '', '/sources')
