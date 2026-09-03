@@ -13,8 +13,8 @@
     "orientationAngle": 0,
     "orientationType": "landscape-primary"
   },
-  "timestamp": "2026-09-03T07:52:06.070Z",
-  "url": "http://127.0.0.1:44995/",
+  "timestamp": "2026-09-03T07:52:05.803Z",
+  "url": "http://127.0.0.1:44995/sources",
   "toolOptions": {
     "runOnly": {
       "type": "tag",
@@ -242,6 +242,23 @@
       "nodes": []
     },
     {
+      "id": "form-field-multiple-labels",
+      "impact": null,
+      "tags": [
+        "cat.forms",
+        "wcag2a",
+        "wcag332",
+        "TTv5",
+        "TT5.c",
+        "EN-301-549",
+        "EN-9.3.3.2"
+      ],
+      "description": "Ensure form field does not have multiple label elements",
+      "help": "Form field must not have multiple label elements",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/form-field-multiple-labels?application=axeAPI",
+      "nodes": []
+    },
+    {
       "id": "frame-focusable-content",
       "impact": null,
       "tags": [
@@ -374,6 +391,26 @@
       "nodes": []
     },
     {
+      "id": "label",
+      "impact": null,
+      "tags": [
+        "cat.forms",
+        "wcag2a",
+        "wcag412",
+        "section508",
+        "section508.22.n",
+        "TTv5",
+        "TT5.c",
+        "EN-301-549",
+        "EN-9.4.1.2",
+        "ACT"
+      ],
+      "description": "Ensure every form element has a label",
+      "help": "Form elements must have labels",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/label?application=axeAPI",
+      "nodes": []
+    },
+    {
       "id": "link-in-text-block",
       "impact": null,
       "tags": [
@@ -478,6 +515,26 @@
       "description": "Ensure elements that have scrollable content are accessible by keyboard",
       "help": "Scrollable region must have keyboard access",
       "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/scrollable-region-focusable?application=axeAPI",
+      "nodes": []
+    },
+    {
+      "id": "select-name",
+      "impact": null,
+      "tags": [
+        "cat.forms",
+        "wcag2a",
+        "wcag412",
+        "section508",
+        "section508.22.n",
+        "TTv5",
+        "TT5.c",
+        "EN-301-549",
+        "EN-9.4.1.2",
+        "ACT"
+      ],
+      "description": "Ensure select element has an accessible name",
+      "help": "Select element must have an accessible name",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/select-name?application=axeAPI",
       "nodes": []
     },
     {
@@ -701,7 +758,7 @@
             }
           ],
           "impact": null,
-          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
+          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\" aria-current=\"page\">Sources</a><a href=\"/settings\">Settings</a></nav>",
           "target": [
             "nav"
           ]
@@ -727,9 +784,9 @@
             }
           ],
           "impact": null,
-          "html": "<a href=\"/\" aria-current=\"page\">Ranked feed</a>",
+          "html": "<a href=\"/sources\" aria-current=\"page\">Sources</a>",
           "target": [
-            "a[aria-current=\"page\"]"
+            "a[href$=\"sources\"]"
           ]
         },
         {
@@ -753,9 +810,9 @@
             }
           ],
           "impact": null,
-          "html": "<section data-v-286937b5=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
+          "html": "<section data-v-a134cbd0=\"\" class=\"sources-workflow\" aria-labelledby=\"sources-title\">",
           "target": [
-            ".feed-page"
+            ".sources-workflow"
           ]
         },
         {
@@ -779,7 +836,85 @@
             }
           ],
           "impact": null,
-          "html": "<section data-v-735aabbe=\"\" data-v-286937b5=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
+          "html": "<p data-v-a134cbd0=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
+          "target": [
+            ".sources-workflow > .live-region[role=\"status\"][aria-live=\"polite\"]"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-allowed-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attributes are used correctly for the defined role"
+            }
+          ],
+          "none": [
+            {
+              "id": "aria-unsupported-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute is supported"
+            }
+          ],
+          "impact": null,
+          "html": "<section data-v-a134cbd0=\"\" class=\"source-section\" aria-labelledby=\"configured-title\">",
+          "target": [
+            "section[aria-labelledby=\"configured-title\"]"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-allowed-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attributes are used correctly for the defined role"
+            }
+          ],
+          "none": [
+            {
+              "id": "aria-unsupported-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute is supported"
+            }
+          ],
+          "impact": null,
+          "html": "<section data-v-a134cbd0=\"\" class=\"source-section starter-section\" aria-labelledby=\"starters-title\">",
+          "target": [
+            ".starter-section"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-allowed-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attributes are used correctly for the defined role"
+            }
+          ],
+          "none": [
+            {
+              "id": "aria-unsupported-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute is supported"
+            }
+          ],
+          "impact": null,
+          "html": "<section data-v-735aabbe=\"\" data-v-a134cbd0=\"\" class=\"refresh-control\" aria-labelledby=\"manual-refresh-title\">",
           "target": [
             ".refresh-control"
           ]
@@ -808,136 +943,6 @@
           "html": "<p data-v-e6ec4363=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\">Refresh complete with some source issues.</p>",
           "target": [
             ".refresh-status > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-allowed-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attributes are used correctly for the defined role"
-            }
-          ],
-          "none": [
-            {
-              "id": "aria-unsupported-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<form data-v-286937b5=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
-          "target": [
-            "form"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-allowed-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attributes are used correctly for the defined role"
-            }
-          ],
-          "none": [
-            {
-              "id": "aria-unsupported-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-allowed-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attributes are used correctly for the defined role"
-            }
-          ],
-          "none": [
-            {
-              "id": "aria-unsupported-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-allowed-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attributes are used correctly for the defined role"
-            }
-          ],
-          "none": [
-            {
-              "id": "aria-unsupported-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-allowed-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attributes are used correctly for the defined role"
-            }
-          ],
-          "none": [
-            {
-              "id": "aria-unsupported-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
           ]
         }
       ]
@@ -1005,7 +1010,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
+          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\" aria-current=\"page\">Sources</a><a href=\"/settings\">Settings</a></nav>",
           "target": [
             "nav"
           ]
@@ -1023,9 +1028,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<a href=\"/\" aria-current=\"page\">Ranked feed</a>",
+          "html": "<a href=\"/sources\" aria-current=\"page\">Sources</a>",
           "target": [
-            "a[aria-current=\"page\"]"
+            "a[href$=\"sources\"]"
           ]
         },
         {
@@ -1041,9 +1046,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<section data-v-286937b5=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
+          "html": "<section data-v-a134cbd0=\"\" class=\"sources-workflow\" aria-labelledby=\"sources-title\">",
           "target": [
-            ".feed-page"
+            ".sources-workflow"
           ]
         },
         {
@@ -1059,7 +1064,61 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<section data-v-735aabbe=\"\" data-v-286937b5=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
+          "html": "<p data-v-a134cbd0=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
+          "target": [
+            ".sources-workflow > .live-region[role=\"status\"][aria-live=\"polite\"]"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-conditional-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "ARIA attribute is allowed"
+            }
+          ],
+          "none": [],
+          "impact": null,
+          "html": "<section data-v-a134cbd0=\"\" class=\"source-section\" aria-labelledby=\"configured-title\">",
+          "target": [
+            "section[aria-labelledby=\"configured-title\"]"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-conditional-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "ARIA attribute is allowed"
+            }
+          ],
+          "none": [],
+          "impact": null,
+          "html": "<section data-v-a134cbd0=\"\" class=\"source-section starter-section\" aria-labelledby=\"starters-title\">",
+          "target": [
+            ".starter-section"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-conditional-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "ARIA attribute is allowed"
+            }
+          ],
+          "none": [],
+          "impact": null,
+          "html": "<section data-v-735aabbe=\"\" data-v-a134cbd0=\"\" class=\"refresh-control\" aria-labelledby=\"manual-refresh-title\">",
           "target": [
             ".refresh-control"
           ]
@@ -1080,96 +1139,6 @@
           "html": "<p data-v-e6ec4363=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\">Refresh complete with some source issues.</p>",
           "target": [
             ".refresh-status > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-conditional-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<form data-v-286937b5=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
-          "target": [
-            "form"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-conditional-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-conditional-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-conditional-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-conditional-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
           ]
         }
       ]
@@ -1201,45 +1170,27 @@
             }
           ],
           "impact": null,
+          "html": "<p data-v-a134cbd0=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
+          "target": [
+            ".sources-workflow > .live-region[role=\"status\"][aria-live=\"polite\"]"
+          ]
+        },
+        {
+          "any": [],
+          "all": [],
+          "none": [
+            {
+              "id": "deprecatedrole",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "minor",
+              "message": "ARIA role is not deprecated"
+            }
+          ],
+          "impact": null,
           "html": "<p data-v-e6ec4363=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\">Refresh complete with some source issues.</p>",
           "target": [
             ".refresh-status > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "deprecatedrole",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "minor",
-              "message": "ARIA role is not deprecated"
-            }
-          ],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "deprecatedrole",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "minor",
-              "message": "ARIA role is not deprecated"
-            }
-          ],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
           ]
         }
       ]
@@ -1325,71 +1276,7 @@
           "impact": null,
           "html": "<span aria-hidden=\"true\"></span>",
           "target": [
-            ".app-mode > span[aria-hidden=\"true\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "focusable-modal-open",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "No focusable elements while a modal is open"
-            },
-            {
-              "id": "focusable-disabled",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "No focusable elements contained within element"
-            },
-            {
-              "id": "focusable-not-tabbable",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "No focusable elements contained within element"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<span data-v-25b4083d=\"\" aria-hidden=\"true\">·</span>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__meta > span[aria-hidden=\"true\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "focusable-modal-open",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "No focusable elements while a modal is open"
-            },
-            {
-              "id": "focusable-disabled",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "No focusable elements contained within element"
-            },
-            {
-              "id": "focusable-not-tabbable",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "No focusable elements contained within element"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<span data-v-25b4083d=\"\" aria-hidden=\"true\">·</span>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__meta > span[aria-hidden=\"true\"]"
+            "span[aria-hidden=\"true\"]"
           ]
         }
       ]
@@ -1439,7 +1326,7 @@
             }
           ],
           "impact": null,
-          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
+          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\" aria-current=\"page\">Sources</a><a href=\"/settings\">Settings</a></nav>",
           "target": [
             "nav"
           ]
@@ -1457,9 +1344,9 @@
             }
           ],
           "impact": null,
-          "html": "<a href=\"/\" aria-current=\"page\">Ranked feed</a>",
+          "html": "<a href=\"/sources\" aria-current=\"page\">Sources</a>",
           "target": [
-            "a[aria-current=\"page\"]"
+            "a[href$=\"sources\"]"
           ]
         },
         {
@@ -1475,9 +1362,9 @@
             }
           ],
           "impact": null,
-          "html": "<section data-v-286937b5=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
+          "html": "<section data-v-a134cbd0=\"\" class=\"sources-workflow\" aria-labelledby=\"sources-title\">",
           "target": [
-            ".feed-page"
+            ".sources-workflow"
           ]
         },
         {
@@ -1493,7 +1380,61 @@
             }
           ],
           "impact": null,
-          "html": "<section data-v-735aabbe=\"\" data-v-286937b5=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
+          "html": "<p data-v-a134cbd0=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
+          "target": [
+            ".sources-workflow > .live-region[role=\"status\"][aria-live=\"polite\"]"
+          ]
+        },
+        {
+          "any": [],
+          "all": [],
+          "none": [
+            {
+              "id": "aria-prohibited-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "ARIA attribute is allowed"
+            }
+          ],
+          "impact": null,
+          "html": "<section data-v-a134cbd0=\"\" class=\"source-section\" aria-labelledby=\"configured-title\">",
+          "target": [
+            "section[aria-labelledby=\"configured-title\"]"
+          ]
+        },
+        {
+          "any": [],
+          "all": [],
+          "none": [
+            {
+              "id": "aria-prohibited-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "ARIA attribute is allowed"
+            }
+          ],
+          "impact": null,
+          "html": "<section data-v-a134cbd0=\"\" class=\"source-section starter-section\" aria-labelledby=\"starters-title\">",
+          "target": [
+            ".starter-section"
+          ]
+        },
+        {
+          "any": [],
+          "all": [],
+          "none": [
+            {
+              "id": "aria-prohibited-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "ARIA attribute is allowed"
+            }
+          ],
+          "impact": null,
+          "html": "<section data-v-735aabbe=\"\" data-v-a134cbd0=\"\" class=\"refresh-control\" aria-labelledby=\"manual-refresh-title\">",
           "target": [
             ".refresh-control"
           ]
@@ -1514,60 +1455,6 @@
           "html": "<p data-v-e6ec4363=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\">Refresh complete with some source issues.</p>",
           "target": [
             ".refresh-status > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
-          "html": "<form data-v-286937b5=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
-          "target": [
-            "form"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "ARIA attribute is allowed"
-            }
-          ],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
           ]
         }
       ]
@@ -1599,45 +1486,27 @@
           "all": [],
           "none": [],
           "impact": null,
+          "html": "<p data-v-a134cbd0=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
+          "target": [
+            ".sources-workflow > .live-region[role=\"status\"][aria-live=\"polite\"]"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "aria-required-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "All required ARIA attributes are present"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
           "html": "<p data-v-e6ec4363=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\">Refresh complete with some source issues.</p>",
           "target": [
             ".refresh-status > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-required-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "All required ARIA attributes are present"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-required-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "All required ARIA attributes are present"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
           ]
         }
       ]
@@ -1683,73 +1552,41 @@
             }
           ],
           "impact": null,
+          "html": "<p data-v-a134cbd0=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
+          "target": [
+            ".sources-workflow > .live-region[role=\"status\"][aria-live=\"polite\"]"
+          ]
+        },
+        {
+          "any": [],
+          "all": [],
+          "none": [
+            {
+              "id": "invalidrole",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA role is valid"
+            },
+            {
+              "id": "abstractrole",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Abstract roles are not used"
+            },
+            {
+              "id": "unsupportedrole",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA role is supported"
+            }
+          ],
+          "impact": null,
           "html": "<p data-v-e6ec4363=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\">Refresh complete with some source issues.</p>",
           "target": [
             ".refresh-status > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "invalidrole",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA role is valid"
-            },
-            {
-              "id": "abstractrole",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Abstract roles are not used"
-            },
-            {
-              "id": "unsupportedrole",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA role is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "invalidrole",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA role is valid"
-            },
-            {
-              "id": "abstractrole",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Abstract roles are not used"
-            },
-            {
-              "id": "unsupportedrole",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA role is supported"
-            }
-          ],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
           ]
         }
       ]
@@ -1859,7 +1696,7 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
+          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\" aria-current=\"page\">Sources</a><a href=\"/settings\">Settings</a></nav>",
           "target": [
             "nav"
           ]
@@ -1891,9 +1728,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<a href=\"/\" aria-current=\"page\">Ranked feed</a>",
+          "html": "<a href=\"/sources\" aria-current=\"page\">Sources</a>",
           "target": [
-            "a[aria-current=\"page\"]"
+            "a[href$=\"sources\"]"
           ]
         },
         {
@@ -1923,9 +1760,9 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<section data-v-286937b5=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
+          "html": "<section data-v-a134cbd0=\"\" class=\"sources-workflow\" aria-labelledby=\"sources-title\">",
           "target": [
-            ".feed-page"
+            ".sources-workflow"
           ]
         },
         {
@@ -1955,7 +1792,103 @@
           ],
           "none": [],
           "impact": null,
-          "html": "<section data-v-735aabbe=\"\" data-v-286937b5=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
+          "html": "<p data-v-a134cbd0=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
+          "target": [
+            ".sources-workflow > .live-region[role=\"status\"][aria-live=\"polite\"]"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-valid-attr-value",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute values are valid"
+            },
+            {
+              "id": "aria-errormessage",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
+            },
+            {
+              "id": "aria-level",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "aria-level values are valid"
+            }
+          ],
+          "none": [],
+          "impact": null,
+          "html": "<section data-v-a134cbd0=\"\" class=\"source-section\" aria-labelledby=\"configured-title\">",
+          "target": [
+            "section[aria-labelledby=\"configured-title\"]"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-valid-attr-value",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute values are valid"
+            },
+            {
+              "id": "aria-errormessage",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
+            },
+            {
+              "id": "aria-level",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "aria-level values are valid"
+            }
+          ],
+          "none": [],
+          "impact": null,
+          "html": "<section data-v-a134cbd0=\"\" class=\"source-section starter-section\" aria-labelledby=\"starters-title\">",
+          "target": [
+            ".starter-section"
+          ]
+        },
+        {
+          "any": [],
+          "all": [
+            {
+              "id": "aria-valid-attr-value",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute values are valid"
+            },
+            {
+              "id": "aria-errormessage",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
+            },
+            {
+              "id": "aria-level",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "aria-level values are valid"
+            }
+          ],
+          "none": [],
+          "impact": null,
+          "html": "<section data-v-735aabbe=\"\" data-v-a134cbd0=\"\" class=\"refresh-control\" aria-labelledby=\"manual-refresh-title\">",
           "target": [
             ".refresh-control"
           ]
@@ -1990,166 +1923,6 @@
           "html": "<p data-v-e6ec4363=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\">Refresh complete with some source issues.</p>",
           "target": [
             ".refresh-status > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-valid-attr-value",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute values are valid"
-            },
-            {
-              "id": "aria-errormessage",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
-            },
-            {
-              "id": "aria-level",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-level values are valid"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<form data-v-286937b5=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
-          "target": [
-            "form"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-valid-attr-value",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute values are valid"
-            },
-            {
-              "id": "aria-errormessage",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
-            },
-            {
-              "id": "aria-level",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-level values are valid"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-valid-attr-value",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute values are valid"
-            },
-            {
-              "id": "aria-errormessage",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
-            },
-            {
-              "id": "aria-level",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-level values are valid"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-valid-attr-value",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute values are valid"
-            },
-            {
-              "id": "aria-errormessage",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
-            },
-            {
-              "id": "aria-level",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-level values are valid"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
-          ]
-        },
-        {
-          "any": [],
-          "all": [
-            {
-              "id": "aria-valid-attr-value",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute values are valid"
-            },
-            {
-              "id": "aria-errormessage",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-errormessage exists and references elements visible to screen readers that use a supported aria-errormessage technique"
-            },
-            {
-              "id": "aria-level",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "aria-level values are valid"
-            }
-          ],
-          "none": [],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
           ]
         }
       ]
@@ -2217,7 +1990,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\" aria-current=\"page\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\">Sources</a><a href=\"/settings\">Settings</a></nav>",
+          "html": "<nav class=\"primary-nav\" aria-label=\"Primary navigation\"><a href=\"/\">Ranked feed</a><a href=\"/library\">Library</a><a href=\"/sources\" aria-current=\"page\">Sources</a><a href=\"/settings\">Settings</a></nav>",
           "target": [
             "nav"
           ]
@@ -2235,9 +2008,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<a href=\"/\" aria-current=\"page\">Ranked feed</a>",
+          "html": "<a href=\"/sources\" aria-current=\"page\">Sources</a>",
           "target": [
-            "a[aria-current=\"page\"]"
+            "a[href$=\"sources\"]"
           ]
         },
         {
@@ -2253,9 +2026,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<section data-v-286937b5=\"\" class=\"feed-page\" aria-labelledby=\"feed-title\">",
+          "html": "<section data-v-a134cbd0=\"\" class=\"sources-workflow\" aria-labelledby=\"sources-title\">",
           "target": [
-            ".feed-page"
+            ".sources-workflow"
           ]
         },
         {
@@ -2271,7 +2044,61 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<section data-v-735aabbe=\"\" data-v-286937b5=\"\" class=\"refresh-control refresh-control--compact\" aria-labelledby=\"manual-refresh-title\">",
+          "html": "<p data-v-a134cbd0=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
+          "target": [
+            ".sources-workflow > .live-region[role=\"status\"][aria-live=\"polite\"]"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "aria-valid-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute name is valid"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<section data-v-a134cbd0=\"\" class=\"source-section\" aria-labelledby=\"configured-title\">",
+          "target": [
+            "section[aria-labelledby=\"configured-title\"]"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "aria-valid-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute name is valid"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<section data-v-a134cbd0=\"\" class=\"source-section starter-section\" aria-labelledby=\"starters-title\">",
+          "target": [
+            ".starter-section"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "aria-valid-attr",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "ARIA attribute name is valid"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<section data-v-735aabbe=\"\" data-v-a134cbd0=\"\" class=\"refresh-control\" aria-labelledby=\"manual-refresh-title\">",
           "target": [
             ".refresh-control"
           ]
@@ -2292,96 +2119,6 @@
           "html": "<p data-v-e6ec4363=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\">Refresh complete with some source issues.</p>",
           "target": [
             ".refresh-status > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-valid-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute name is valid"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<form data-v-286937b5=\"\" class=\"feed-filters\" aria-label=\"Filter ranked stories\">",
-          "target": [
-            "form"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-valid-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute name is valid"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-valid-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute name is valid"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-valid-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute name is valid"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "aria-valid-attr",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "ARIA attribute name is valid"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<p data-v-2cf2739b=\"\" class=\"live-region\" role=\"status\" aria-live=\"polite\"></p>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .live-region[role=\"status\"][aria-live=\"polite\"]"
           ]
         }
       ]
@@ -2418,135 +2155,207 @@
           "all": [],
           "none": [],
           "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\"> Edit </button>",
+          "target": [
+            "article:nth-child(3) > .source-actions > button:nth-child(1)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "button-has-visible-text",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Element has inner text that is visible to screen readers"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\">Configure credential</button>",
+          "target": [
+            "article:nth-child(3) > .source-actions > button:nth-child(2)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "button-has-visible-text",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Element has inner text that is visible to screen readers"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button type=\"button\">Delete source</button>",
+          "target": [
+            "article:nth-child(3) > .source-actions > .confirm > button"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "button-has-visible-text",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Element has inner text that is visible to screen readers"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\"> Edit </button>",
+          "target": [
+            "article:nth-child(4) > .source-actions > button:nth-child(1)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "button-has-visible-text",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Element has inner text that is visible to screen readers"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\">Configure credential</button>",
+          "target": [
+            "article:nth-child(4) > .source-actions > button:nth-child(2)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "button-has-visible-text",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Element has inner text that is visible to screen readers"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button type=\"button\">Delete source</button>",
+          "target": [
+            "article:nth-child(4) > .source-actions > .confirm > button"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "button-has-visible-text",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Element has inner text that is visible to screen readers"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\"> Edit </button>",
+          "target": [
+            "article:nth-child(5) > .source-actions > button:nth-child(1)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "button-has-visible-text",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Element has inner text that is visible to screen readers"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\">Configure credential</button>",
+          "target": [
+            "article:nth-child(5) > .source-actions > button:nth-child(2)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "button-has-visible-text",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Element has inner text that is visible to screen readers"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button type=\"button\">Delete source</button>",
+          "target": [
+            "article:nth-child(5) > .source-actions > .confirm > button"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "button-has-visible-text",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Element has inner text that is visible to screen readers"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\" disabled=\"\">Configured</button>",
+          "target": [
+            "li > button"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "button-has-visible-text",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Element has inner text that is visible to screen readers"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\" class=\"add-source\"> Add custom source </button>",
+          "target": [
+            ".add-source"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "button-has-visible-text",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Element has inner text that is visible to screen readers"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
           "html": "<button data-v-735aabbe=\"\" type=\"button\">Refresh news</button>",
           "target": [
-            "button[data-v-735aabbe=\"\"][type=\"button\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "button-has-visible-text",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Element has inner text that is visible to screen readers"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-286937b5=\"\" type=\"submit\"> Apply filters </button>",
-          "target": [
-            "button[type=\"submit\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "button-has-visible-text",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Element has inner text that is visible to screen readers"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary\">Mark read</button>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .tertiary[type=\"button\"]:nth-child(1)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "button-has-visible-text",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Element has inner text that is visible to screen readers"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary\">Unsave</button>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .tertiary[type=\"button\"]:nth-child(2)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "button-has-visible-text",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Element has inner text that is visible to screen readers"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary article-actions__hide\"> Hide </button>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .article-actions__hide.tertiary[type=\"button\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "button-has-visible-text",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Element has inner text that is visible to screen readers"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary\">Mark unread</button>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .tertiary[type=\"button\"]:nth-child(1)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "button-has-visible-text",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Element has inner text that is visible to screen readers"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary\">Save</button>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .tertiary[type=\"button\"]:nth-child(2)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "button-has-visible-text",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Element has inner text that is visible to screen readers"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary article-actions__hide\"> Hide </button>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .article-actions__hide.tertiary[type=\"button\"]"
+            "button[data-v-735aabbe=\"\"]"
           ]
         }
       ]
@@ -2583,27 +2392,45 @@
               "data": null,
               "relatedNodes": [
                 {
-                  "html": "<h1 data-v-286937b5=\"\" id=\"feed-title\" tabindex=\"-1\"> Ranked feed </h1>",
+                  "html": "<h1 data-v-a134cbd0=\"\" id=\"sources-title\" tabindex=\"-1\"> Sources and refresh </h1>",
                   "target": [
-                    "#feed-title"
+                    "#sources-title"
                   ]
                 },
                 {
-                  "html": "<h2 data-v-735aabbe=\"\" id=\"manual-refresh-title\" class=\"sr-only\"> Refresh news </h2>",
+                  "html": "<h2 data-v-a134cbd0=\"\" id=\"configured-title\"> Configured sources </h2>",
+                  "target": [
+                    "#configured-title"
+                  ]
+                },
+                {
+                  "html": "<h3 data-v-a134cbd0=\"\">Full Content News</h3>",
+                  "target": [
+                    "article:nth-child(3) > .source-card__header > div > h3"
+                  ]
+                },
+                {
+                  "html": "<h3 data-v-a134cbd0=\"\">Metadata News</h3>",
+                  "target": [
+                    "article:nth-child(4) > .source-card__header > div > h3"
+                  ]
+                },
+                {
+                  "html": "<h3 data-v-a134cbd0=\"\">Unavailable fixture</h3>",
+                  "target": [
+                    "article:nth-child(5) > .source-card__header > div > h3"
+                  ]
+                },
+                {
+                  "html": "<h2 data-v-a134cbd0=\"\" id=\"starters-title\"> Starter catalog </h2>",
+                  "target": [
+                    "#starters-title"
+                  ]
+                },
+                {
+                  "html": "<h2 data-v-735aabbe=\"\" id=\"manual-refresh-title\"> Refresh news </h2>",
                   "target": [
                     "#manual-refresh-title"
-                  ]
-                },
-                {
-                  "html": "<h2 data-v-25b4083d=\"\" class=\"article-card__title\"><a data-v-25b4083d=\"\" href=\"/articles/article-29026b7799232ebcd520692f4e22d42e\">Climate science briefing</a></h2>",
-                  "target": [
-                    "li:nth-child(1) > article > .article-card__title"
-                  ]
-                },
-                {
-                  "html": "<h2 data-v-25b4083d=\"\" class=\"article-card__title\"><a data-v-25b4083d=\"\" href=\"/articles/article-d46345e7f47716150df4c960a9e5d229\">Technology advances in local science</a></h2>",
-                  "target": [
-                    "li:nth-child(2) > article > .article-card__title"
                   ]
                 }
               ],
@@ -2707,24 +2534,24 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#0f2d57",
-                "bgColor": "#eaf1fa",
-                "contrastRatio": 12.04,
+                "fgColor": "#5d6879",
+                "bgColor": "#ffffff",
+                "contrastRatio": 5.64,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 12.04"
+              "message": "Element has sufficient color contrast of 5.64"
             }
           ],
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<a href=\"/\" aria-current=\"page\">Ranked feed</a>",
+          "html": "<a href=\"/\">Ranked feed</a>",
           "target": [
-            "a[aria-current=\"page\"]"
+            "nav > a[href=\"/\"]"
           ]
         },
         {
@@ -2757,22 +2584,22 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#5d6879",
-                "bgColor": "#ffffff",
-                "contrastRatio": 5.64,
+                "fgColor": "#0f2d57",
+                "bgColor": "#eaf1fa",
+                "contrastRatio": 12.04,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 5.64"
+              "message": "Element has sufficient color contrast of 12.04"
             }
           ],
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<a href=\"/sources\">Sources</a>",
+          "html": "<a href=\"/sources\" aria-current=\"page\">Sources</a>",
           "target": [
             "a[href$=\"sources\"]"
           ]
@@ -2822,7 +2649,7 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<p data-v-286937b5=\"\" class=\"eyebrow\"> Your local news </p>",
+          "html": "<p data-v-a134cbd0=\"\" class=\"eyebrow\"> Local ingestion </p>",
           "target": [
             ".eyebrow"
           ]
@@ -2847,9 +2674,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<h1 data-v-286937b5=\"\" id=\"feed-title\" tabindex=\"-1\"> Ranked feed </h1>",
+          "html": "<h1 data-v-a134cbd0=\"\" id=\"sources-title\" tabindex=\"-1\"> Sources and refresh </h1>",
           "target": [
-            "#feed-title"
+            "#sources-title"
           ]
         },
         {
@@ -2860,7 +2687,7 @@
                 "fgColor": "#5d6879",
                 "bgColor": "#ffffff",
                 "contrastRatio": 5.64,
-                "fontSize": "12.2pt (16.32px)",
+                "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
@@ -2872,9 +2699,909 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<p data-v-286937b5=\"\">Stories ordered using your preferences on this computer.</p>",
+          "html": "<p data-v-a134cbd0=\"\">Choose where your local feed gets its stories. Credentials stay write-only and are never displayed.</p>",
           "target": [
-            ".feed-heading > p:nth-child(3)"
+            ".sources-header > p:nth-child(3)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#172033",
+                "bgColor": "#f8fafc",
+                "contrastRatio": 15.54,
+                "fontSize": "15.6pt (20.8px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "3:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 15.54"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<h2 data-v-a134cbd0=\"\" id=\"configured-title\"> Configured sources </h2>",
+          "target": [
+            "#configured-title"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#5d6879",
+                "bgColor": "#f8fafc",
+                "contrastRatio": 5.39,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 5.39"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<p data-v-a134cbd0=\"\" class=\"section-description\"> Sources currently checked when you refresh. </p>",
+          "target": [
+            "section[aria-labelledby=\"configured-title\"] > .section-description"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#172033",
+                "bgColor": "#ffffff",
+                "contrastRatio": 16.26,
+                "fontSize": "13.0pt (17.28px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 16.26"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<h3 data-v-a134cbd0=\"\">Full Content News</h3>",
+          "target": [
+            "article:nth-child(3) > .source-card__header > div > h3"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#5d6879",
+                "bgColor": "#ffffff",
+                "contrastRatio": 5.64,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 5.64"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<p data-v-a134cbd0=\"\">News feed</p>",
+          "target": [
+            "article:nth-child(3) > .source-card__header > div > p"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#16704a",
+                "bgColor": "#eaf7f1",
+                "contrastRatio": 5.52,
+                "fontSize": "9.8pt (13.12px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 5.52"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<strong data-v-a134cbd0=\"\" class=\"source-state\">Enabled</strong>",
+          "target": [
+            "article:nth-child(3) > .source-card__header > .source-state"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#0f2d57",
+                "bgColor": "#eaf1fa",
+                "contrastRatio": 12.04,
+                "fontSize": "9.4pt (12.48px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 12.04"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<span data-v-a134cbd0=\"\" class=\"badge\">Full article available</span>",
+          "target": [
+            "article:nth-child(3) > .source-card__badges > .badge:nth-child(1)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#0f2d57",
+                "bgColor": "#eaf1fa",
+                "contrastRatio": 12.04,
+                "fontSize": "9.4pt (12.48px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 12.04"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<span data-v-a134cbd0=\"\" class=\"badge\">Credential not configured</span>",
+          "target": [
+            "article:nth-child(3) > .source-card__badges > .badge:nth-child(2)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#163b70",
+                "bgColor": "#ffffff",
+                "contrastRatio": 11.08,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 11.08"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<a data-v-a134cbd0=\"\" href=\"http://full.fixture.test/feed.xml\" rel=\"noreferrer\">http://full.fixture.test/feed.xml</a>",
+          "target": [
+            "article:nth-child(3) > p > a[rel=\"noreferrer\"]"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#ffffff",
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 11.08"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\"> Edit </button>",
+          "target": [
+            "article:nth-child(3) > .source-actions > button:nth-child(1)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#ffffff",
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 11.08"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\">Configure credential</button>",
+          "target": [
+            "article:nth-child(3) > .source-actions > button:nth-child(2)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#ffffff",
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 11.08"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button type=\"button\">Delete source</button>",
+          "target": [
+            "article:nth-child(3) > .source-actions > .confirm > button"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#172033",
+                "bgColor": "#ffffff",
+                "contrastRatio": 16.26,
+                "fontSize": "13.0pt (17.28px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 16.26"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<h3 data-v-a134cbd0=\"\">Metadata News</h3>",
+          "target": [
+            "article:nth-child(4) > .source-card__header > div > h3"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#5d6879",
+                "bgColor": "#ffffff",
+                "contrastRatio": 5.64,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 5.64"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<p data-v-a134cbd0=\"\">News feed</p>",
+          "target": [
+            "article:nth-child(4) > .source-card__header > div > p"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#16704a",
+                "bgColor": "#eaf7f1",
+                "contrastRatio": 5.52,
+                "fontSize": "9.8pt (13.12px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 5.52"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<strong data-v-a134cbd0=\"\" class=\"source-state\">Enabled</strong>",
+          "target": [
+            "article:nth-child(4) > .source-card__header > .source-state"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#0f2d57",
+                "bgColor": "#eaf1fa",
+                "contrastRatio": 12.04,
+                "fontSize": "9.4pt (12.48px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 12.04"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<span data-v-a134cbd0=\"\" class=\"badge\">Publisher link only</span>",
+          "target": [
+            "article:nth-child(4) > .source-card__badges > .badge:nth-child(1)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#0f2d57",
+                "bgColor": "#eaf1fa",
+                "contrastRatio": 12.04,
+                "fontSize": "9.4pt (12.48px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 12.04"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<span data-v-a134cbd0=\"\" class=\"badge\">Credential not configured</span>",
+          "target": [
+            "article:nth-child(4) > .source-card__badges > .badge:nth-child(2)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#163b70",
+                "bgColor": "#ffffff",
+                "contrastRatio": 11.08,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 11.08"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<a data-v-a134cbd0=\"\" href=\"http://metadata.fixture.test/feed.xml\" rel=\"noreferrer\">http://metadata.fixture.test/feed.xml</a>",
+          "target": [
+            "article:nth-child(4) > p > a[rel=\"noreferrer\"]"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#ffffff",
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 11.08"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\"> Edit </button>",
+          "target": [
+            "article:nth-child(4) > .source-actions > button:nth-child(1)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#ffffff",
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 11.08"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\">Configure credential</button>",
+          "target": [
+            "article:nth-child(4) > .source-actions > button:nth-child(2)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#ffffff",
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 11.08"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button type=\"button\">Delete source</button>",
+          "target": [
+            "article:nth-child(4) > .source-actions > .confirm > button"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#172033",
+                "bgColor": "#ffffff",
+                "contrastRatio": 16.26,
+                "fontSize": "13.0pt (17.28px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 16.26"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<h3 data-v-a134cbd0=\"\">Unavailable fixture</h3>",
+          "target": [
+            "article:nth-child(5) > .source-card__header > div > h3"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#5d6879",
+                "bgColor": "#ffffff",
+                "contrastRatio": 5.64,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 5.64"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<p data-v-a134cbd0=\"\">News feed</p>",
+          "target": [
+            "article:nth-child(5) > .source-card__header > div > p"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#16704a",
+                "bgColor": "#eaf7f1",
+                "contrastRatio": 5.52,
+                "fontSize": "9.8pt (13.12px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 5.52"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<strong data-v-a134cbd0=\"\" class=\"source-state\">Enabled</strong>",
+          "target": [
+            "article:nth-child(5) > .source-card__header > .source-state"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#0f2d57",
+                "bgColor": "#eaf1fa",
+                "contrastRatio": 12.04,
+                "fontSize": "9.4pt (12.48px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 12.04"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<span data-v-a134cbd0=\"\" class=\"badge\">Publisher link only</span>",
+          "target": [
+            "article:nth-child(5) > .source-card__badges > .badge:nth-child(1)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#0f2d57",
+                "bgColor": "#eaf1fa",
+                "contrastRatio": 12.04,
+                "fontSize": "9.4pt (12.48px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 12.04"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<span data-v-a134cbd0=\"\" class=\"badge\">Credential not configured</span>",
+          "target": [
+            "article:nth-child(5) > .source-card__badges > .badge:nth-child(2)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#163b70",
+                "bgColor": "#ffffff",
+                "contrastRatio": 11.08,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 11.08"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<a data-v-a134cbd0=\"\" href=\"http://failure.fixture.test/feed.xml\" rel=\"noreferrer\">http://failure.fixture.test/feed.xml</a>",
+          "target": [
+            "article:nth-child(5) > p > a[rel=\"noreferrer\"]"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#ffffff",
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 11.08"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\"> Edit </button>",
+          "target": [
+            "article:nth-child(5) > .source-actions > button:nth-child(1)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#ffffff",
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 11.08"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\">Configure credential</button>",
+          "target": [
+            "article:nth-child(5) > .source-actions > button:nth-child(2)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#ffffff",
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 11.08"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button type=\"button\">Delete source</button>",
+          "target": [
+            "article:nth-child(5) > .source-actions > .confirm > button"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#172033",
+                "bgColor": "#f8fafc",
+                "contrastRatio": 15.54,
+                "fontSize": "15.6pt (20.8px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "3:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 15.54"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<h2 data-v-a134cbd0=\"\" id=\"starters-title\"> Starter catalog </h2>",
+          "target": [
+            "#starters-title"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#5d6879",
+                "bgColor": "#f8fafc",
+                "contrastRatio": 5.39,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 5.39"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<p data-v-a134cbd0=\"\" class=\"section-description\"> Quick, pre-filled choices you can add with one click. </p>",
+          "target": [
+            ".starter-section > .section-description"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#172033",
+                "bgColor": "#ffffff",
+                "contrastRatio": 16.26,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 16.26"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<strong data-v-a134cbd0=\"\">Unavailable fixture</strong>",
+          "target": [
+            "div > strong"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#5d6879",
+                "bgColor": "#ffffff",
+                "contrastRatio": 5.64,
+                "fontSize": "10.8pt (14.4px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 5.64"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<span data-v-a134cbd0=\"\">News feed</span>",
+          "target": [
+            "li > div > span"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#ffffff",
+                "bgColor": "#163b70",
+                "contrastRatio": 11.08,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 11.08"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\" class=\"add-source\"> Add custom source </button>",
+          "target": [
+            ".add-source"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#172033",
+                "bgColor": "#ffffff",
+                "contrastRatio": 16.26,
+                "fontSize": "15.6pt (20.8px)",
+                "fontWeight": "bold",
+                "expectedContrastRatio": "3:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 16.26"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<h2 data-v-735aabbe=\"\" id=\"manual-refresh-title\"> Refresh news </h2>",
+          "target": [
+            "#manual-refresh-title"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#5d6879",
+                "bgColor": "#ffffff",
+                "contrastRatio": 5.64,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element has sufficient color contrast of 5.64"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<p data-v-735aabbe=\"\">Checks all enabled sources while this local application is open.</p>",
+          "target": [
+            "p[data-v-735aabbe=\"\"]"
           ]
         },
         {
@@ -2899,7 +3626,7 @@
           "impact": null,
           "html": "<button data-v-735aabbe=\"\" type=\"button\">Refresh news</button>",
           "target": [
-            "button[data-v-735aabbe=\"\"][type=\"button\"]"
+            "button[data-v-735aabbe=\"\"]"
           ]
         },
         {
@@ -2949,847 +3676,7 @@
           "impact": null,
           "html": "<summary data-v-e6ec4363=\"\">Refresh complete with source issues</summary>",
           "target": [
-            ".refresh-status__details > summary"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#172033",
-                "bgColor": "#f8fafc",
-                "contrastRatio": 15.54,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.54"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"source-filter\">",
-          "target": [
-            "label[for=\"source-filter\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#172033",
-                "bgColor": "#ffffff",
-                "contrastRatio": 16.26,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 16.26"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<select id=\"source-filter\" value=\"\"><option value=\"\">All sources</option><option value=\"full-source\">Full Content News</option><option value=\"metadata-source\">Metadata News</option><option value=\"starter-failure\">Unavailable fixture</option></select>",
-          "target": [
-            "#source-filter"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#172033",
-                "bgColor": "#f8fafc",
-                "contrastRatio": 15.54,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.54"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"read-filter\">Reading status<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select></label>",
-          "target": [
-            "label[for=\"read-filter\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#172033",
-                "bgColor": "#ffffff",
-                "contrastRatio": 16.26,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 16.26"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select>",
-          "target": [
-            "#read-filter"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#172033",
-                "bgColor": "#f8fafc",
-                "contrastRatio": 15.54,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.54"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"saved-filter\">Saved<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select></label>",
-          "target": [
-            "label[for=\"saved-filter\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#172033",
-                "bgColor": "#ffffff",
-                "contrastRatio": 16.26,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 16.26"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select>",
-          "target": [
-            "#saved-filter"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#172033",
-                "bgColor": "#f8fafc",
-                "contrastRatio": 15.54,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 15.54"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<label data-v-286937b5=\"\" class=\"feed-search\" for=\"feed-search\">Search stories<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\"></label>",
-          "target": [
-            ".feed-search"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#172033",
-                "bgColor": "#ffffff",
-                "contrastRatio": 16.26,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 16.26"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\">",
-          "target": [
-            "#feed-search"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#163b70",
-                "bgColor": "#f8fafc",
-                "contrastRatio": 10.59,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 10.59"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<summary data-v-286937b5=\"\">More filters</summary>",
-          "target": [
-            ".more-filters > summary"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "messageKey": "hidden"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element is hidden"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<input data-v-286937b5=\"\" id=\"published-after\" type=\"date\" style=\"\">",
-          "target": [
-            "#published-after"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "messageKey": "hidden"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element is hidden"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<input data-v-286937b5=\"\" id=\"published-before\" type=\"date\" style=\"\">",
-          "target": [
-            "#published-before"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#ffffff",
-                "bgColor": "#163b70",
-                "contrastRatio": 11.08,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 11.08"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-286937b5=\"\" type=\"submit\"> Apply filters </button>",
-          "target": [
-            "button[type=\"submit\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#172033",
-                "bgColor": "#ffffff",
-                "contrastRatio": 16.26,
-                "fontSize": "10.3pt (13.76px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 16.26"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span data-v-25b4083d=\"\" class=\"article-card__source\">Metadata News</span>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__meta > .article-card__source"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#5d6879",
-                "bgColor": "#ffffff",
-                "contrastRatio": 5.64,
-                "fontSize": "10.3pt (13.76px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 5.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span data-v-25b4083d=\"\" aria-hidden=\"true\">·</span>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__meta > span[aria-hidden=\"true\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#5d6879",
-                "bgColor": "#ffffff",
-                "contrastRatio": 5.64,
-                "fontSize": "10.3pt (13.76px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 5.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<time data-v-25b4083d=\"\" datetime=\"2026-08-14T08:00:00Z\">Aug 14, 2026, 10:00 AM</time>",
-          "target": [
-            "time[datetime=\"2026-08-14T08:00:00Z\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#0f2d57",
-                "bgColor": "#eaf1fa",
-                "contrastRatio": 12.04,
-                "fontSize": "9.4pt (12.48px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 12.04"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span data-v-25b4083d=\"\" class=\"badge\">Publisher link only</span>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__meta > .badge"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#172033",
-                "bgColor": "#ffffff",
-                "contrastRatio": 16.26,
-                "fontSize": "14.4pt (19.2px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "3:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 16.26"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<a data-v-25b4083d=\"\" href=\"/articles/article-29026b7799232ebcd520692f4e22d42e\">Climate science briefing</a>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__title > a"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#5d6879",
-                "bgColor": "#ffffff",
-                "contrastRatio": 5.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 5.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<p data-v-25b4083d=\"\" class=\"article-card__excerpt\">Local climate research and technology.</p>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__excerpt"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#163b70",
-                "bgColor": "#ffffff",
-                "contrastRatio": 11.08,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 11.08"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<summary data-v-bddbf37b=\"\">Why this story?</summary>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__explanation > .ranking > summary"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#ffffff",
-                "bgColor": "#163b70",
-                "contrastRatio": 11.08,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 11.08"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<a data-v-25b4083d=\"\" href=\"/articles/article-29026b7799232ebcd520692f4e22d42e\" class=\"button-link\"> Open article </a>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-card__primary > .button-link"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#163b70",
-                "bgColor": "#ffffff",
-                "contrastRatio": 11.08,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 11.08"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary\">Mark read</button>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .tertiary[type=\"button\"]:nth-child(1)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#163b70",
-                "bgColor": "#ffffff",
-                "contrastRatio": 11.08,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 11.08"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary\">Unsave</button>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .tertiary[type=\"button\"]:nth-child(2)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#5d6879",
-                "bgColor": "#ffffff",
-                "contrastRatio": 5.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 5.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary article-actions__hide\"> Hide </button>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .article-actions__hide.tertiary[type=\"button\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#172033",
-                "bgColor": "#ffffff",
-                "contrastRatio": 16.26,
-                "fontSize": "10.3pt (13.76px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 16.26"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span data-v-25b4083d=\"\" class=\"article-card__source\">Full Content News</span>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__meta > .article-card__source"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#5d6879",
-                "bgColor": "#ffffff",
-                "contrastRatio": 5.64,
-                "fontSize": "10.3pt (13.76px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 5.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span data-v-25b4083d=\"\" aria-hidden=\"true\">·</span>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__meta > span[aria-hidden=\"true\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#5d6879",
-                "bgColor": "#ffffff",
-                "contrastRatio": 5.64,
-                "fontSize": "10.3pt (13.76px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 5.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<time data-v-25b4083d=\"\" datetime=\"2026-08-15T09:00:00Z\">Aug 15, 2026, 11:00 AM</time>",
-          "target": [
-            "time[datetime=\"2026-08-15T09:00:00Z\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#0f2d57",
-                "bgColor": "#eaf1fa",
-                "contrastRatio": 12.04,
-                "fontSize": "9.4pt (12.48px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 12.04"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<span data-v-25b4083d=\"\" class=\"badge\">Full article available</span>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__meta > .badge"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#172033",
-                "bgColor": "#ffffff",
-                "contrastRatio": 16.26,
-                "fontSize": "14.4pt (19.2px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "3:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 16.26"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<a data-v-25b4083d=\"\" href=\"/articles/article-d46345e7f47716150df4c960a9e5d229\">Technology advances in local science</a>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__title > a"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#5d6879",
-                "bgColor": "#ffffff",
-                "contrastRatio": 5.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 5.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<p data-v-25b4083d=\"\" class=\"article-card__excerpt\">Technology and science report.</p>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__excerpt"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#163b70",
-                "bgColor": "#ffffff",
-                "contrastRatio": 11.08,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 11.08"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<summary data-v-bddbf37b=\"\">Why this story?</summary>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__explanation > .ranking > summary"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#ffffff",
-                "bgColor": "#163b70",
-                "contrastRatio": 11.08,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "bold",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 11.08"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<a data-v-25b4083d=\"\" href=\"/articles/article-d46345e7f47716150df4c960a9e5d229\" class=\"button-link\"> Open article </a>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-card__primary > .button-link"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#163b70",
-                "bgColor": "#ffffff",
-                "contrastRatio": 11.08,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 11.08"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary\">Mark unread</button>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .tertiary[type=\"button\"]:nth-child(1)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#163b70",
-                "bgColor": "#ffffff",
-                "contrastRatio": 11.08,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 11.08"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary\">Save</button>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .tertiary[type=\"button\"]:nth-child(2)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "color-contrast",
-              "data": {
-                "fgColor": "#5d6879",
-                "bgColor": "#ffffff",
-                "contrastRatio": 5.64,
-                "fontSize": "12.0pt (16px)",
-                "fontWeight": "normal",
-                "expectedContrastRatio": "4.5:1"
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has sufficient color contrast of 5.64"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary article-actions__hide\"> Hide </button>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .article-actions__hide.tertiary[type=\"button\"]"
+            "summary"
           ]
         },
         {
@@ -3874,7 +3761,7 @@
           "any": [
             {
               "id": "duplicate-id-aria",
-              "data": "feed-title",
+              "data": "sources-title",
               "relatedNodes": [],
               "impact": "critical",
               "message": "Document has no elements referenced with ARIA or labels that share the same id attribute"
@@ -3883,9 +3770,45 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<h1 data-v-286937b5=\"\" id=\"feed-title\" tabindex=\"-1\"> Ranked feed </h1>",
+          "html": "<h1 data-v-a134cbd0=\"\" id=\"sources-title\" tabindex=\"-1\"> Sources and refresh </h1>",
           "target": [
-            "#feed-title"
+            "#sources-title"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "duplicate-id-aria",
+              "data": "configured-title",
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Document has no elements referenced with ARIA or labels that share the same id attribute"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<h2 data-v-a134cbd0=\"\" id=\"configured-title\"> Configured sources </h2>",
+          "target": [
+            "#configured-title"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "duplicate-id-aria",
+              "data": "starters-title",
+              "relatedNodes": [],
+              "impact": "critical",
+              "message": "Document has no elements referenced with ARIA or labels that share the same id attribute"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<h2 data-v-a134cbd0=\"\" id=\"starters-title\"> Starter catalog </h2>",
+          "target": [
+            "#starters-title"
           ]
         },
         {
@@ -3901,253 +3824,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<h2 data-v-735aabbe=\"\" id=\"manual-refresh-title\" class=\"sr-only\"> Refresh news </h2>",
+          "html": "<h2 data-v-735aabbe=\"\" id=\"manual-refresh-title\"> Refresh news </h2>",
           "target": [
             "#manual-refresh-title"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "duplicate-id-aria",
-              "data": "source-filter",
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Document has no elements referenced with ARIA or labels that share the same id attribute"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<select id=\"source-filter\" value=\"\"><option value=\"\">All sources</option><option value=\"full-source\">Full Content News</option><option value=\"metadata-source\">Metadata News</option><option value=\"starter-failure\">Unavailable fixture</option></select>",
-          "target": [
-            "#source-filter"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "duplicate-id-aria",
-              "data": "read-filter",
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Document has no elements referenced with ARIA or labels that share the same id attribute"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select>",
-          "target": [
-            "#read-filter"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "duplicate-id-aria",
-              "data": "saved-filter",
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Document has no elements referenced with ARIA or labels that share the same id attribute"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select>",
-          "target": [
-            "#saved-filter"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "duplicate-id-aria",
-              "data": "feed-search",
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Document has no elements referenced with ARIA or labels that share the same id attribute"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\">",
-          "target": [
-            "#feed-search"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "duplicate-id-aria",
-              "data": "published-after",
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Document has no elements referenced with ARIA or labels that share the same id attribute"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<input data-v-286937b5=\"\" id=\"published-after\" type=\"date\" style=\"\">",
-          "target": [
-            "#published-after"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "duplicate-id-aria",
-              "data": "published-before",
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Document has no elements referenced with ARIA or labels that share the same id attribute"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<input data-v-286937b5=\"\" id=\"published-before\" type=\"date\" style=\"\">",
-          "target": [
-            "#published-before"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "duplicate-id-aria",
-              "data": "include-hidden",
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Document has no elements referenced with ARIA or labels that share the same id attribute"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<input data-v-286937b5=\"\" id=\"include-hidden\" type=\"checkbox\" style=\"\">",
-          "target": [
-            "#include-hidden"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "form-field-multiple-labels",
-      "impact": null,
-      "tags": [
-        "cat.forms",
-        "wcag2a",
-        "wcag332",
-        "TTv5",
-        "TT5.c",
-        "EN-301-549",
-        "EN-9.3.3.2"
-      ],
-      "description": "Ensure form field does not have multiple label elements",
-      "help": "Form field must not have multiple label elements",
-      "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/form-field-multiple-labels?application=axeAPI",
-      "nodes": [
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "multiple-label",
-              "data": null,
-              "relatedNodes": [
-                {
-                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"source-filter\">",
-                  "target": [
-                    "label[for=\"source-filter\"]"
-                  ]
-                }
-              ],
-              "impact": "moderate",
-              "message": "Form field does not have multiple label elements"
-            }
-          ],
-          "impact": null,
-          "html": "<select id=\"source-filter\" value=\"\"><option value=\"\">All sources</option><option value=\"full-source\">Full Content News</option><option value=\"metadata-source\">Metadata News</option><option value=\"starter-failure\">Unavailable fixture</option></select>",
-          "target": [
-            "#source-filter"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "multiple-label",
-              "data": null,
-              "relatedNodes": [
-                {
-                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"read-filter\">Reading status<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select></label>",
-                  "target": [
-                    "label[for=\"read-filter\"]"
-                  ]
-                }
-              ],
-              "impact": "moderate",
-              "message": "Form field does not have multiple label elements"
-            }
-          ],
-          "impact": null,
-          "html": "<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select>",
-          "target": [
-            "#read-filter"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "multiple-label",
-              "data": null,
-              "relatedNodes": [
-                {
-                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"saved-filter\">Saved<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select></label>",
-                  "target": [
-                    "label[for=\"saved-filter\"]"
-                  ]
-                }
-              ],
-              "impact": "moderate",
-              "message": "Form field does not have multiple label elements"
-            }
-          ],
-          "impact": null,
-          "html": "<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select>",
-          "target": [
-            "#saved-filter"
-          ]
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "multiple-label",
-              "data": null,
-              "relatedNodes": [
-                {
-                  "html": "<label data-v-286937b5=\"\" class=\"feed-search\" for=\"feed-search\">Search stories<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\"></label>",
-                  "target": [
-                    ".feed-search"
-                  ]
-                }
-              ],
-              "impact": "moderate",
-              "message": "Form field does not have multiple label elements"
-            }
-          ],
-          "impact": null,
-          "html": "<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\">",
-          "target": [
-            "#feed-search"
           ]
         }
       ]
@@ -4222,85 +3901,6 @@
           "html": "<html lang=\"en\">",
           "target": [
             "html"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "label",
-      "impact": null,
-      "tags": [
-        "cat.forms",
-        "wcag2a",
-        "wcag412",
-        "section508",
-        "section508.22.n",
-        "TTv5",
-        "TT5.c",
-        "EN-301-549",
-        "EN-9.4.1.2",
-        "ACT"
-      ],
-      "description": "Ensure every form element has a label",
-      "help": "Form elements must have labels",
-      "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/label?application=axeAPI",
-      "nodes": [
-        {
-          "any": [
-            {
-              "id": "implicit-label",
-              "data": {
-                "implicitLabel": "Search stories Topics, titles, or keywords…"
-              },
-              "relatedNodes": [
-                {
-                  "html": "<label data-v-286937b5=\"\" class=\"feed-search\" for=\"feed-search\">Search stories<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\"></label>",
-                  "target": [
-                    ".feed-search"
-                  ]
-                }
-              ],
-              "impact": "critical",
-              "message": "Element has an implicit (wrapped) <label>"
-            },
-            {
-              "id": "explicit-label",
-              "data": {
-                "explicitLabel": "Search stories Topics, titles, or keywords…"
-              },
-              "relatedNodes": [
-                {
-                  "html": "<label data-v-286937b5=\"\" class=\"feed-search\" for=\"feed-search\">Search stories<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\"></label>",
-                  "target": [
-                    ".feed-search"
-                  ]
-                }
-              ],
-              "impact": "critical",
-              "message": "Element has an explicit <label>"
-            },
-            {
-              "id": "non-empty-placeholder",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Element has a placeholder attribute"
-            }
-          ],
-          "all": [],
-          "none": [
-            {
-              "id": "hidden-explicit-label",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Form element has a visible explicit <label>"
-            }
-          ],
-          "impact": null,
-          "html": "<input data-v-286937b5=\"\" id=\"feed-search\" type=\"search\" maxlength=\"200\" placeholder=\"Topics, titles, or keywords…\" style=\"\">",
-          "target": [
-            "#feed-search"
           ]
         }
       ]
@@ -4406,9 +4006,9 @@
             }
           ],
           "impact": null,
-          "html": "<a href=\"/\" aria-current=\"page\">Ranked feed</a>",
+          "html": "<a href=\"/\">Ranked feed</a>",
           "target": [
-            "a[aria-current=\"page\"]"
+            "nav > a[href=\"/\"]"
           ]
         },
         {
@@ -4458,7 +4058,7 @@
             }
           ],
           "impact": null,
-          "html": "<a href=\"/sources\">Sources</a>",
+          "html": "<a href=\"/sources\" aria-current=\"page\">Sources</a>",
           "target": [
             "a[href$=\"sources\"]"
           ]
@@ -4510,9 +4110,9 @@
             }
           ],
           "impact": null,
-          "html": "<a data-v-25b4083d=\"\" href=\"/articles/article-29026b7799232ebcd520692f4e22d42e\">Climate science briefing</a>",
+          "html": "<a data-v-a134cbd0=\"\" href=\"http://full.fixture.test/feed.xml\" rel=\"noreferrer\">http://full.fixture.test/feed.xml</a>",
           "target": [
-            "li:nth-child(1) > article > .article-card__title > a"
+            "article:nth-child(3) > p > a[rel=\"noreferrer\"]"
           ]
         },
         {
@@ -4536,9 +4136,9 @@
             }
           ],
           "impact": null,
-          "html": "<a data-v-25b4083d=\"\" href=\"/articles/article-29026b7799232ebcd520692f4e22d42e\" class=\"button-link\"> Open article </a>",
+          "html": "<a data-v-a134cbd0=\"\" href=\"http://metadata.fixture.test/feed.xml\" rel=\"noreferrer\">http://metadata.fixture.test/feed.xml</a>",
           "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-card__primary > .button-link"
+            "article:nth-child(4) > p > a[rel=\"noreferrer\"]"
           ]
         },
         {
@@ -4562,35 +4162,9 @@
             }
           ],
           "impact": null,
-          "html": "<a data-v-25b4083d=\"\" href=\"/articles/article-d46345e7f47716150df4c960a9e5d229\">Technology advances in local science</a>",
+          "html": "<a data-v-a134cbd0=\"\" href=\"http://failure.fixture.test/feed.xml\" rel=\"noreferrer\">http://failure.fixture.test/feed.xml</a>",
           "target": [
-            "li:nth-child(2) > article > .article-card__title > a"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "has-visible-text",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has text that is visible to screen readers"
-            }
-          ],
-          "all": [],
-          "none": [
-            {
-              "id": "focusable-no-name",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element is not in tab order or has accessible text"
-            }
-          ],
-          "impact": null,
-          "html": "<a data-v-25b4083d=\"\" href=\"/articles/article-d46345e7f47716150df4c960a9e5d229\" class=\"button-link\"> Open article </a>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-card__primary > .button-link"
+            "article:nth-child(5) > p > a[rel=\"noreferrer\"]"
           ]
         }
       ]
@@ -4622,9 +4196,9 @@
             }
           ],
           "impact": null,
-          "html": "<ol data-v-286937b5=\"\" class=\"ranked-list\">",
+          "html": "<ul data-v-a134cbd0=\"\" class=\"starter-grid\"><li data-v-a134cbd0=\"\"><div data-v-a134cbd0=\"\"><strong data-v-a134cbd0=\"\">Unavailable fixture</strong><span data-v-a134cbd0=\"\">News feed</span></div><button data-v-a134cbd0=\"\" type=\"button\" disabled=\"\">Configured</button></li></ul>",
           "target": [
-            "ol"
+            ".starter-grid"
           ]
         }
       ]
@@ -4656,27 +4230,9 @@
           "all": [],
           "none": [],
           "impact": null,
-          "html": "<li data-v-286937b5=\"\">",
+          "html": "<li data-v-a134cbd0=\"\"><div data-v-a134cbd0=\"\"><strong data-v-a134cbd0=\"\">Unavailable fixture</strong><span data-v-a134cbd0=\"\">News feed</span></div><button data-v-a134cbd0=\"\" type=\"button\" disabled=\"\">Configured</button></li>",
           "target": [
-            "ol > li:nth-child(1)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "listitem",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "List item has a <ul>, <ol> or role=\"list\" parent element"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<li data-v-286937b5=\"\">",
-          "target": [
-            "ol > li:nth-child(2)"
+            ".starter-grid > li"
           ]
         }
       ]
@@ -4745,9 +4301,207 @@
           "all": [],
           "none": [],
           "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\"> Edit </button>",
+          "target": [
+            "article:nth-child(3) > .source-actions > button:nth-child(1)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element does not have focusable descendants"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\">Configure credential</button>",
+          "target": [
+            "article:nth-child(3) > .source-actions > button:nth-child(2)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element does not have focusable descendants"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button type=\"button\">Delete source</button>",
+          "target": [
+            "article:nth-child(3) > .source-actions > .confirm > button"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element does not have focusable descendants"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\"> Edit </button>",
+          "target": [
+            "article:nth-child(4) > .source-actions > button:nth-child(1)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element does not have focusable descendants"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\">Configure credential</button>",
+          "target": [
+            "article:nth-child(4) > .source-actions > button:nth-child(2)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element does not have focusable descendants"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button type=\"button\">Delete source</button>",
+          "target": [
+            "article:nth-child(4) > .source-actions > .confirm > button"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element does not have focusable descendants"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\"> Edit </button>",
+          "target": [
+            "article:nth-child(5) > .source-actions > button:nth-child(1)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element does not have focusable descendants"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\">Configure credential</button>",
+          "target": [
+            "article:nth-child(5) > .source-actions > button:nth-child(2)"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element does not have focusable descendants"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button type=\"button\">Delete source</button>",
+          "target": [
+            "article:nth-child(5) > .source-actions > .confirm > button"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element does not have focusable descendants"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\" disabled=\"\">Configured</button>",
+          "target": [
+            "li > button"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element does not have focusable descendants"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
+          "html": "<button data-v-a134cbd0=\"\" type=\"button\" class=\"add-source\"> Add custom source </button>",
+          "target": [
+            ".add-source"
+          ]
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element does not have focusable descendants"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": null,
           "html": "<button data-v-735aabbe=\"\" type=\"button\">Refresh news</button>",
           "target": [
-            "button[data-v-735aabbe=\"\"][type=\"button\"]"
+            "button[data-v-735aabbe=\"\"]"
           ]
         },
         {
@@ -4765,523 +4519,7 @@
           "impact": null,
           "html": "<summary data-v-e6ec4363=\"\">Refresh complete with source issues</summary>",
           "target": [
-            ".refresh-status__details > summary"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<option value=\"\">All sources</option>",
-          "target": [
-            "option[value=\"\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<option value=\"full-source\">Full Content News</option>",
-          "target": [
-            "option[value=\"full-source\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<option value=\"metadata-source\">Metadata News</option>",
-          "target": [
-            "option[value=\"metadata-source\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<option value=\"starter-failure\">Unavailable fixture</option>",
-          "target": [
-            "option[value=\"starter-failure\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<option value=\"all\">All stories</option>",
-          "target": [
-            "#read-filter > option[value=\"all\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<option value=\"unread\">Unread</option>",
-          "target": [
-            "option[value=\"unread\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<option value=\"read\">Read</option>",
-          "target": [
-            "option[value=\"read\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<option value=\"all\">All stories</option>",
-          "target": [
-            "#saved-filter > option[value=\"all\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<option value=\"saved\">Saved only</option>",
-          "target": [
-            "option[value=\"saved\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<summary data-v-286937b5=\"\">More filters</summary>",
-          "target": [
-            ".more-filters > summary"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-286937b5=\"\" type=\"submit\"> Apply filters </button>",
-          "target": [
-            "button[type=\"submit\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<summary data-v-bddbf37b=\"\">Why this story?</summary>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__explanation > .ranking > summary"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary\">Mark read</button>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .tertiary[type=\"button\"]:nth-child(1)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary\">Unsave</button>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .tertiary[type=\"button\"]:nth-child(2)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary article-actions__hide\"> Hide </button>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .article-actions__hide.tertiary[type=\"button\"]"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<summary data-v-bddbf37b=\"\">Why this story?</summary>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__explanation > .ranking > summary"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary\">Mark unread</button>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .tertiary[type=\"button\"]:nth-child(1)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary\">Save</button>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .tertiary[type=\"button\"]:nth-child(2)"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "no-focusable-content",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element does not have focusable descendants"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<button data-v-2cf2739b=\"\" type=\"button\" class=\"tertiary article-actions__hide\"> Hide </button>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"] > .article-actions__hide.tertiary[type=\"button\"]"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "select-name",
-      "impact": null,
-      "tags": [
-        "cat.forms",
-        "wcag2a",
-        "wcag412",
-        "section508",
-        "section508.22.n",
-        "TTv5",
-        "TT5.c",
-        "EN-301-549",
-        "EN-9.4.1.2",
-        "ACT"
-      ],
-      "description": "Ensure select element has an accessible name",
-      "help": "Select element must have an accessible name",
-      "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/select-name?application=axeAPI",
-      "nodes": [
-        {
-          "any": [
-            {
-              "id": "implicit-label",
-              "data": {
-                "implicitLabel": "Source"
-              },
-              "relatedNodes": [
-                {
-                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"source-filter\">",
-                  "target": [
-                    "label[for=\"source-filter\"]"
-                  ]
-                }
-              ],
-              "impact": "critical",
-              "message": "Element has an implicit (wrapped) <label>"
-            },
-            {
-              "id": "explicit-label",
-              "data": {
-                "explicitLabel": "Source"
-              },
-              "relatedNodes": [
-                {
-                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"source-filter\">",
-                  "target": [
-                    "label[for=\"source-filter\"]"
-                  ]
-                }
-              ],
-              "impact": "critical",
-              "message": "Element has an explicit <label>"
-            }
-          ],
-          "all": [],
-          "none": [
-            {
-              "id": "hidden-explicit-label",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Form element has a visible explicit <label>"
-            }
-          ],
-          "impact": null,
-          "html": "<select id=\"source-filter\" value=\"\"><option value=\"\">All sources</option><option value=\"full-source\">Full Content News</option><option value=\"metadata-source\">Metadata News</option><option value=\"starter-failure\">Unavailable fixture</option></select>",
-          "target": [
-            "#source-filter"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "implicit-label",
-              "data": {
-                "implicitLabel": "Reading status"
-              },
-              "relatedNodes": [
-                {
-                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"read-filter\">Reading status<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select></label>",
-                  "target": [
-                    "label[for=\"read-filter\"]"
-                  ]
-                }
-              ],
-              "impact": "critical",
-              "message": "Element has an implicit (wrapped) <label>"
-            },
-            {
-              "id": "explicit-label",
-              "data": {
-                "explicitLabel": "Reading status"
-              },
-              "relatedNodes": [
-                {
-                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"read-filter\">Reading status<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select></label>",
-                  "target": [
-                    "label[for=\"read-filter\"]"
-                  ]
-                }
-              ],
-              "impact": "critical",
-              "message": "Element has an explicit <label>"
-            }
-          ],
-          "all": [],
-          "none": [
-            {
-              "id": "hidden-explicit-label",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Form element has a visible explicit <label>"
-            }
-          ],
-          "impact": null,
-          "html": "<select id=\"read-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"unread\">Unread</option><option value=\"read\">Read</option></select>",
-          "target": [
-            "#read-filter"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "implicit-label",
-              "data": {
-                "implicitLabel": "Saved"
-              },
-              "relatedNodes": [
-                {
-                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"saved-filter\">Saved<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select></label>",
-                  "target": [
-                    "label[for=\"saved-filter\"]"
-                  ]
-                }
-              ],
-              "impact": "critical",
-              "message": "Element has an implicit (wrapped) <label>"
-            },
-            {
-              "id": "explicit-label",
-              "data": {
-                "explicitLabel": "Saved"
-              },
-              "relatedNodes": [
-                {
-                  "html": "<label data-v-286937b5=\"\" class=\"filter\" for=\"saved-filter\">Saved<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select></label>",
-                  "target": [
-                    "label[for=\"saved-filter\"]"
-                  ]
-                }
-              ],
-              "impact": "critical",
-              "message": "Element has an explicit <label>"
-            }
-          ],
-          "all": [],
-          "none": [
-            {
-              "id": "hidden-explicit-label",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "critical",
-              "message": "Form element has a visible explicit <label>"
-            }
-          ],
-          "impact": null,
-          "html": "<select id=\"saved-filter\" value=\"all\"><option value=\"all\">All stories</option><option value=\"saved\">Saved only</option></select>",
-          "target": [
-            "#saved-filter"
+            "summary"
           ]
         }
       ]
@@ -5319,61 +4557,7 @@
           "impact": null,
           "html": "<summary data-v-e6ec4363=\"\">Refresh complete with source issues</summary>",
           "target": [
-            ".refresh-status__details > summary"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "has-visible-text",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has text that is visible to screen readers"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<summary data-v-286937b5=\"\">More filters</summary>",
-          "target": [
-            ".more-filters > summary"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "has-visible-text",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has text that is visible to screen readers"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<summary data-v-bddbf37b=\"\">Why this story?</summary>",
-          "target": [
-            "li:nth-child(1) > article > .article-card__explanation > .ranking > summary"
-          ]
-        },
-        {
-          "any": [
-            {
-              "id": "has-visible-text",
-              "data": null,
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "Element has text that is visible to screen readers"
-            }
-          ],
-          "all": [],
-          "none": [],
-          "impact": null,
-          "html": "<summary data-v-bddbf37b=\"\">Why this story?</summary>",
-          "target": [
-            "li:nth-child(2) > article > .article-card__explanation > .ranking > summary"
+            "summary"
           ]
         }
       ]
@@ -5417,58 +4601,6 @@
           "html": "<div class=\"app-mode\" aria-label=\"Application status\"><span aria-hidden=\"true\"></span>Local only </div>",
           "target": [
             ".app-mode"
-          ],
-          "failureSummary": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": {
-                "role": null,
-                "nodeName": "div",
-                "messageKey": "noRoleSingular",
-                "prohibited": [
-                  "aria-label"
-                ]
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "aria-label attribute is not well supported on a div with no valid role attribute."
-            }
-          ],
-          "impact": "serious",
-          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
-          "target": [
-            "li:nth-child(1) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
-          ],
-          "failureSummary": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
-        },
-        {
-          "any": [],
-          "all": [],
-          "none": [
-            {
-              "id": "aria-prohibited-attr",
-              "data": {
-                "role": null,
-                "nodeName": "div",
-                "messageKey": "noRoleSingular",
-                "prohibited": [
-                  "aria-label"
-                ]
-              },
-              "relatedNodes": [],
-              "impact": "serious",
-              "message": "aria-label attribute is not well supported on a div with no valid role attribute."
-            }
-          ],
-          "impact": "serious",
-          "html": "<div data-v-2cf2739b=\"\" data-v-286937b5=\"\" class=\"article-actions\" aria-label=\"Article actions\">",
-          "target": [
-            "li:nth-child(2) > article > .article-card__footer > .article-actions[aria-label=\"Article actions\"][data-v-2cf2739b=\"\"]"
           ],
           "failureSummary": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
         }

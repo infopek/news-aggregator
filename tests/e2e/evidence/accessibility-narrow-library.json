@@ -8,12 +8,12 @@
   },
   "testEnvironment": {
     "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
-    "windowWidth": 1280,
-    "windowHeight": 800,
+    "windowWidth": 390,
+    "windowHeight": 844,
     "orientationAngle": 0,
     "orientationType": "landscape-primary"
   },
-  "timestamp": "2026-09-03T07:52:05.289Z",
+  "timestamp": "2026-09-03T07:52:05.510Z",
   "url": "http://127.0.0.1:44995/library",
   "toolOptions": {
     "runOnly": {
@@ -2641,7 +2641,7 @@
                 "fgColor": "#172033",
                 "bgColor": "#ffffff",
                 "contrastRatio": 16.26,
-                "fontSize": "31.8pt (42.4px)",
+                "fontSize": "22.2pt (29.6px)",
                 "fontWeight": "bold",
                 "expectedContrastRatio": "3:1"
               },
@@ -2688,16 +2688,16 @@
             {
               "id": "color-contrast",
               "data": {
-                "fgColor": "#163b70",
+                "fgColor": "#0f2d57",
                 "bgColor": "#eaf1fa",
-                "contrastRatio": 9.74,
+                "contrastRatio": 12.04,
                 "fontSize": "12.0pt (16px)",
                 "fontWeight": "normal",
                 "expectedContrastRatio": "4.5:1"
               },
               "relatedNodes": [],
               "impact": "serious",
-              "message": "Element has sufficient color contrast of 9.74"
+              "message": "Element has sufficient color contrast of 12.04"
             }
           ],
           "all": [],
@@ -2891,7 +2891,7 @@
                 "fgColor": "#172033",
                 "bgColor": "#ffffff",
                 "contrastRatio": 16.26,
-                "fontSize": "18.6pt (24.8px)",
+                "fontSize": "14.4pt (19.2px)",
                 "fontWeight": "bold",
                 "expectedContrastRatio": "3:1"
               },
